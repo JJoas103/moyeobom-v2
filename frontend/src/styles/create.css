@@ -1,0 +1,773 @@
+/* 모임 만들기 ① ② */
+
+.create-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.back-link {
+  align-self: flex-start;
+  font-size: 14px;
+  color: var(--text-sub);
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+/* 단계 표시 */
+.create-steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.create-steps__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-sub);
+}
+
+.create-steps__item + .create-steps__item::before {
+  content: '';
+  width: 32px;
+  height: 1px;
+  margin-right: 4px;
+  background: var(--line);
+}
+
+.create-steps__num {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-muted);
+  color: var(--text-sub);
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.create-steps__item.is-active {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.create-steps__item.is-active .create-steps__num,
+.create-steps__item.is-done .create-steps__num {
+  background: var(--primary);
+  color: #ffffff;
+}
+
+/* ---------- ① 행사 고르기 ---------- */
+.pick-layout {
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  column-gap: 40px;
+  align-items: start;
+}
+
+.pick-main {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  min-width: 0;
+}
+
+.pick-search {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pick-search__label {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.pick-search .search-input input {
+  height: 52px;
+  border-radius: var(--radius-md);
+  font-size: 16px;
+}
+
+.pick-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.section-head__hint {
+  font-size: 13px;
+  color: var(--text-sub);
+}
+
+.pick-empty {
+  padding: 20px;
+  border-radius: var(--radius-md);
+  background: var(--bg-muted);
+  font-size: 14px;
+  color: var(--text-sub);
+}
+
+.pick-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.pick-row:hover {
+  border-color: var(--text-disabled);
+}
+
+.pick-row.is-selected {
+  border: 1.5px solid var(--brand);
+  background: var(--primary-soft);
+}
+
+/* 라디오를 시안의 원 모양으로 */
+.pick-row input {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  margin: 0;
+  border-radius: var(--radius-pill);
+  border: 1.5px solid var(--text-disabled);
+  background: #ffffff;
+}
+
+.pick-row input:checked {
+  border: 6px solid var(--brand);
+}
+
+.pick-row__poster {
+  width: 60px;
+  height: 80px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: var(--img-edge);
+}
+
+.pick-row__poster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pick-row__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.pick-row__tags {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pick-row__cat {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-body);
+}
+
+.pick-row__ended {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--status-closed);
+}
+
+.pick-row__title {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.pick-row__meta {
+  font-size: 14px;
+  color: var(--text-body);
+}
+
+.pick-row__count {
+  font-size: 13px;
+  color: var(--text-sub);
+  white-space: nowrap;
+}
+
+.pick-side__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-sub);
+}
+
+.pick-side__empty {
+  padding: 24px 0;
+  font-size: 14px;
+  color: var(--text-sub);
+}
+
+.picked {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.picked__poster {
+  position: relative;
+  width: 72px;
+  height: 96px;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  box-shadow: var(--img-edge);
+}
+
+.picked__poster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.picked__poster span {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.picked__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--text-body);
+}
+
+.picked__title {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--text);
+}
+
+/* ---------- ② 모임 정보 ---------- */
+.info-layout {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: 380px minmax(0, 1fr);
+  column-gap: 56px;
+  align-items: start;
+}
+
+.facts {
+  position: sticky;
+  top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.facts__box {
+  padding: 24px;
+  border-radius: var(--radius-lg);
+  background: var(--bg-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.facts__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.facts__change {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-body);
+}
+
+.facts__change:hover {
+  text-decoration: underline;
+}
+
+.facts__event {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.facts__poster {
+  position: relative;
+  width: 96px;
+  height: 128px;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  box-shadow: var(--img-edge);
+}
+
+.facts__poster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.facts__poster > span {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.facts__name {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 2px;
+  font-size: 13px;
+  color: var(--text-sub);
+}
+
+.facts__name strong {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--text);
+}
+
+.facts__list {
+  margin: 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 14px;
+}
+
+.facts__list div {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+}
+
+.facts__list dt {
+  color: var(--text-sub);
+}
+
+.facts__list dd {
+  margin: 0;
+}
+
+.facts__note {
+  padding: 0 4px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-sub);
+}
+
+/* 폼 */
+.create-form {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  min-width: 0;
+}
+
+.create-form__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.create-form__head-sub {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-sub);
+}
+
+.form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.form-group {
+  margin: 0;
+  padding: 0;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.form-group legend {
+  padding: 0 0 16px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.form-group--box {
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  gap: 16px;
+}
+
+.form-group--box legend {
+  padding: 0 6px;
+}
+
+.form-grid {
+  display: grid;
+  column-gap: 20px;
+  row-gap: 20px;
+  align-items: start;
+}
+
+.form-grid--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.form-grid--3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.form-grid--place {
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.field__label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.field__optional {
+  margin-left: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-sub);
+}
+
+.field__foot {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.field__hint,
+.field__error {
+  flex-grow: 1;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-sub);
+}
+
+.field__error {
+  color: var(--cat-stage);
+  font-weight: 500;
+}
+
+.field__count {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--text-sub);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.field__count.is-over {
+  color: var(--cat-stage);
+}
+
+.input {
+  width: 100%;
+  height: 52px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 16px;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--text);
+}
+
+.input::placeholder {
+  color: var(--text-sub);
+}
+
+.input--area {
+  height: auto;
+  min-height: 96px;
+  padding: 14px 16px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.has-error .input {
+  border-color: var(--cat-stage);
+}
+
+/* 술 없음/있음 */
+.pill-radios {
+  display: flex;
+  gap: 8px;
+}
+
+.pill-radio {
+  flex-grow: 1;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  background: var(--bg-muted);
+  color: var(--text-body);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.pill-radio.is-selected {
+  border-color: var(--brand);
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.pill-radio:has(input:focus-visible) {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.check input {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--primary);
+}
+
+/* 대표 이미지 */
+.image-pick {
+  display: flex;
+  gap: 16px;
+  align-items: stretch;
+}
+
+.image-pick__preview {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--text-sub);
+}
+
+.card-preview {
+  position: relative;
+  width: 150px;
+  height: 200px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--img-edge);
+}
+
+.card-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.card-preview__badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  height: 22px;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.card-preview__text {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.card-preview__text span {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+.card-preview__text strong {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.image-pick__drop {
+  flex-grow: 1;
+  height: 200px;
+  border: 1.5px dashed var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--text-body);
+  cursor: pointer;
+}
+
+.image-pick__drop:hover {
+  border-color: var(--text-disabled);
+  background: var(--bg-muted);
+}
+
+.image-pick__drop:has(input:focus-visible) {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.image-pick__drop strong {
+  font-size: 15px;
+  color: var(--text);
+}
+
+.image-pick__drop span {
+  font-size: 13px;
+  color: var(--text-sub);
+}
+
+.link-btn {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text-body);
+  font-size: 13px;
+  text-decoration: underline;
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 8px;
+}
+
+.form-actions .btn--primary {
+  padding: 0 32px;
+}
+
+.form-actions__note {
+  margin-left: 8px;
+  font-size: 13px;
+  color: var(--text-sub);
+}
+
+/* 모임 수정 — 모집 마감 · 모임 취소 */
+.status-actions {
+  margin-top: 16px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.status-actions__row {
+  padding: 16px 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.status-actions__text {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  color: var(--text-sub);
+}
+
+.status-actions__text strong {
+  font-size: 15px;
+  color: var(--text);
+}
+
+.status-actions__danger {
+  color: var(--cat-stage);
+}

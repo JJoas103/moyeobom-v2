@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>모여봄 친구 요청 일괄 확인</title>
+<style>
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css");
+:root{--bg:#FBFAF7;--bg-muted:#F4F2EC;--surface:#FFFFFF;--line:#E6E1D7;--line-strong:#26221E;--text:#26221E;--text-body:#5E5850;--text-sub:#736D64;--text-disabled:#B8B2A8;--brand:#1F6B52;--primary:#1F6B52;--primary-hover:#185843;--primary-soft:#E5F1EC;--primary-highlight:#CFE5DA;--cat-stage:#A23B4A;--cat-exhibit:#3D4ACC;--cat-festival:#B06F0F;--cat-etc:#5E5850;--status-open:#2E5AAC;--status-soon:#8F5500;--status-closed:#8C867D;--shadow-hover:0 2px 4px rgba(38,34,30,.04),0 8px 24px rgba(38,34,30,.08);--img-edge:inset 0 0 0 1px rgba(0,0,0,.06)}
+body{margin:0;font-family:'Pretendard Variable',Pretendard,-apple-system,system-ui,sans-serif;background:var(--bg);color:var(--text);letter-spacing:-0.01em}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit}
+.btn-p{transition:background .2s ease-out}.btn-p:hover{background:var(--primary-hover)}
+.pc .pimg{transition:transform .2s ease-out,box-shadow .2s ease-out}.pc:hover .pimg{transform:scale(1.02);box-shadow:var(--shadow-hover),var(--img-edge)}.pc:hover h3{text-decoration:underline}
+.clamp2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.one{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ghost:hover{text-decoration:underline}
+input{box-sizing:border-box;font-family:inherit}
+
+@media (prefers-reduced-motion: reduce){.pc:hover .pimg{transform:none}}
+</style>
+</head>
+<body>
+<div class="page" style="width: 100%; min-width: 1280px; min-height: 100vh; box-sizing: border-box; background: var(--bg); color: var(--text); display: flex; flex-direction: column">
+<header style="height: 72px; flex-shrink: 0; display: flex; align-items: center; gap: 56px; padding: 0 max(180px, calc((100% - 1080px) / 2)); background: var(--bg); border-bottom: 1px solid var(--line)">
+<a href="#" style="font-size: 22px; font-weight: 800; letter-spacing: -0.03em; color: var(--brand)">모여봄</a>
+<nav style="display: flex; gap: 32px; font-size: 16px; font-weight: 600">
+<a href="#" style="height: 72px; box-sizing: border-box; display: flex; align-items: center; border-bottom: 2px solid transparent; color: var(--text-sub)">홈</a>
+<a href="#" style="height: 72px; box-sizing: border-box; display: flex; align-items: center; border-bottom: 2px solid transparent; color: var(--text-sub)">행사</a>
+<a href="#" style="height: 72px; box-sizing: border-box; display: flex; align-items: center; border-bottom: 2px solid transparent; color: var(--text-sub)">모임</a>
+<a href="#" style="height: 72px; box-sizing: border-box; display: flex; align-items: center; border-bottom: 2px solid transparent; color: var(--text-sub)">내 모임</a>
+<a href="friends.html" style="height: 72px; box-sizing: border-box; display: flex; align-items: center; border-bottom: 2px solid var(--brand); color: var(--text)">친구</a>
+<a href="#" style="height: 72px; box-sizing: border-box; display: flex; align-items: center; border-bottom: 2px solid transparent; color: var(--text-sub)">마이</a>
+</nav>
+<span style="flex-grow: 1"></span>
+<button aria-label="알림, 새 알림 있음" style="position: relative; width: 44px; height: 44px; border: none; background: transparent; color: var(--text-body); display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg><span style="position: absolute; top: 10px; right: 11px; width: 7px; height: 7px; border-radius: 9999px; background: var(--brand)"></span></button>
+<div style="width: 36px; height: 36px; border-radius: 9999px; background: var(--bg-muted)"></div>
+</header>
+<main style="width: 1080px; margin: 0 auto; padding: 48px 0 80px; display: flex; flex-direction: column; gap: 28px">
+<div style="display: flex; align-items: flex-end; gap: 32px; border-bottom: 1px solid var(--line)">
+<h1 style="margin: 0 16px 10px 0; font-size: 30px; font-weight: 700; line-height: 1.3; letter-spacing: -0.02em">친구</h1>
+<div role="tablist" style="display: flex; gap: 28px">
+<a role="tab" aria-selected="false" href="friends.html" style="height: 44px; padding: 0 4px; border: none; border-bottom: 2px solid transparent; background: transparent; color: var(--text-sub); font-size: 17px; font-weight: 500; display: flex; align-items: center; gap: 6px">친구 <span style="font-size: 15px; font-weight: 500; color: var(--text-sub)">3</span></a>
+<a role="tab" aria-selected="true" href="friends-requests.html" style="height: 44px; padding: 0 4px; border: none; border-bottom: 2px solid var(--text); background: transparent; color: var(--text); font-size: 17px; font-weight: 700; display: flex; align-items: center; gap: 6px">요청 <span style="min-width: 20px; height: 20px; padding: 0 6px; box-sizing: border-box; border-radius: 9999px; background: var(--brand); color: #FFFFFF; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center">1</span></a>
+</div>
+</div>
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 320px; column-gap: 40px; align-items: start">
+<div style="display: flex; flex-direction: column; gap: 40px; min-width: 0">
+<section style="display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: center; gap: 10px; padding-bottom: 12px; border-bottom: 1px solid var(--line)"><h2 style="margin: 0; font-size: 19px; font-weight: 700">받은 요청</h2><span style="font-size: 15px; color: var(--text-sub)">1</span><span style="flex-grow: 1"></span><button style="height: 36px; padding: 0 14px; border: 1px solid var(--line); border-radius: 9999px; background: var(--surface); color: var(--text); font-size: 14px; font-weight: 600">모두 수락</button></div>
+<div style="display: flex; align-items: center; gap: 16px; padding: 16px 20px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); ">
+<span style="width: 48px; height: 48px; flex-shrink: 0; border-radius: 9999px; background: #D9CBB8; display: block"></span>
+<span style="display: flex; flex-direction: column; gap: 3px; flex-grow: 1; min-width: 0"><span style="font-size: 16px; font-weight: 700">새벽산책</span><span style="align-self: flex-start; max-width: 100%; box-sizing: border-box; margin-top: 4px; padding: 6px 12px 6px 6px; border-radius: 10px; background: var(--bg-muted); display: inline-flex; align-items: center; gap: 10px">
+<span style="width: 24px; height: 32px; flex-shrink: 0; border-radius: 4px; background: #5B4A5E; box-shadow: var(--img-edge); display: block"></span>
+<span style="display: flex; flex-direction: column; gap: 1px; min-width: 0"><span class="one" style="font-size: 14px; font-weight: 600; color: var(--text)">커튼콜 끝나고 넘버 얘기해요</span><span class="one" style="font-size: 12px; color: var(--text-sub)">여름밤의 정원 · 09.30</span></span>
+</span></span>
+<span style="font-size: 13px; font-weight: 600; color: var(--text-sub); white-space: nowrap">6일 남음</span><a class="btn-p" href="friends.html" style="height: 40px; padding: 0 20px; display: flex; align-items: center; border-radius: 10px; background: var(--primary); color: #FFFFFF; font-size: 14px; font-weight: 700">수락</a>
+</div>
+</section>
+<section style="display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: center; gap: 10px; padding-bottom: 12px; border-bottom: 1px solid var(--line)"><h2 style="margin: 0; font-size: 19px; font-weight: 700">요청 가능</h2><span style="font-size: 15px; color: var(--text-sub)">2</span><span style="flex-grow: 1"></span><button style="height: 36px; padding: 0 14px; border: 1px solid var(--line); border-radius: 9999px; background: var(--surface); color: var(--text); font-size: 14px; font-weight: 600">모두 요청 보내기</button></div>
+<div style="display: flex; align-items: center; gap: 16px; padding: 16px 20px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); ">
+<span style="width: 48px; height: 48px; flex-shrink: 0; border-radius: 9999px; background: #A9B7C6; display: block"></span>
+<span style="display: flex; flex-direction: column; gap: 3px; flex-grow: 1; min-width: 0"><span style="font-size: 16px; font-weight: 700">오후네시</span><span style="align-self: flex-start; max-width: 100%; box-sizing: border-box; margin-top: 4px; padding: 6px 12px 6px 6px; border-radius: 10px; background: var(--bg-muted); display: inline-flex; align-items: center; gap: 10px">
+<span style="width: 24px; height: 32px; flex-shrink: 0; border-radius: 4px; background: #5B4A5E; box-shadow: var(--img-edge); display: block"></span>
+<span style="display: flex; flex-direction: column; gap: 1px; min-width: 0"><span class="one" style="font-size: 14px; font-weight: 600; color: var(--text)">커튼콜 끝나고 넘버 얘기해요</span><span class="one" style="font-size: 12px; color: var(--text-sub)">여름밤의 정원 · 09.30</span></span>
+</span></span>
+<span style="font-size: 13px; font-weight: 600; color: var(--text-sub); white-space: nowrap">7일 남음</span><a href="friends-requests.html" style="height: 40px; padding: 0 16px; display: flex; align-items: center; border-radius: 10px; background: var(--surface); border: 1.5px solid var(--brand); color: var(--primary); font-size: 14px; font-weight: 700">친구 요청 보내기</a>
+</div>
+<div style="display: flex; align-items: center; gap: 16px; padding: 16px 20px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); ">
+<span style="width: 48px; height: 48px; flex-shrink: 0; border-radius: 9999px; background: #C7A9A0; display: block"></span>
+<span style="display: flex; flex-direction: column; gap: 3px; flex-grow: 1; min-width: 0"><span style="font-size: 16px; font-weight: 700">밤새는고래</span><span style="align-self: flex-start; max-width: 100%; box-sizing: border-box; margin-top: 4px; padding: 6px 12px 6px 6px; border-radius: 10px; background: var(--bg-muted); display: inline-flex; align-items: center; gap: 10px">
+<span style="width: 24px; height: 32px; flex-shrink: 0; border-radius: 4px; background: #2F3A4A; box-shadow: var(--img-edge); display: block"></span>
+<span style="display: flex; flex-direction: column; gap: 1px; min-width: 0"><span class="one" style="font-size: 14px; font-weight: 600; color: var(--text)">엔딩 크레딧 다 보고 나와서 한 잔</span><span class="one" style="font-size: 12px; color: var(--text-sub)">마지막 정거장 · 09.27</span></span>
+</span></span>
+<span style="font-size: 13px; font-weight: 600; color: var(--status-soon); white-space: nowrap">2일 남음</span><a href="friends-requests.html" style="height: 40px; padding: 0 16px; display: flex; align-items: center; border-radius: 10px; background: var(--surface); border: 1.5px solid var(--brand); color: var(--primary); font-size: 14px; font-weight: 700">친구 요청 보내기</a>
+</div>
+</section>
+<section style="display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: center; gap: 10px; padding-bottom: 12px; border-bottom: 1px solid var(--line)"><h2 style="margin: 0; font-size: 19px; font-weight: 700">보낸 요청</h2><span style="font-size: 15px; color: var(--text-sub)">2</span></div>
+<div style="display: flex; align-items: center; gap: 16px; padding: 16px 20px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); ">
+<span style="width: 48px; height: 48px; flex-shrink: 0; border-radius: 9999px; background: #9AA6B8; display: block"></span>
+<span style="display: flex; flex-direction: column; gap: 3px; flex-grow: 1; min-width: 0"><span style="font-size: 16px; font-weight: 700">조용한관객</span><span style="align-self: flex-start; max-width: 100%; box-sizing: border-box; margin-top: 4px; padding: 6px 12px 6px 6px; border-radius: 10px; background: var(--bg-muted); display: inline-flex; align-items: center; gap: 10px">
+<span style="width: 24px; height: 32px; flex-shrink: 0; border-radius: 4px; background: #A9B7C6; box-shadow: var(--img-edge); display: block"></span>
+<span style="display: flex; flex-direction: column; gap: 1px; min-width: 0"><span class="one" style="font-size: 14px; font-weight: 600; color: var(--text)">앙코르곡 제목 같이 찾아봐요</span><span class="one" style="font-size: 12px; color: var(--text-sub)">가을 실내악의 밤 · 10.02</span></span>
+</span></span>
+<span style="font-size: 13px; font-weight: 600; color: var(--text-sub); white-space: nowrap">대기 중 · 5일 남음</span>
+</div>
+<div style="display: flex; align-items: center; gap: 16px; padding: 16px 20px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); opacity: .55;">
+<span style="width: 48px; height: 48px; flex-shrink: 0; border-radius: 9999px; background: #B8B2A8; display: block"></span>
+<span style="display: flex; flex-direction: column; gap: 3px; flex-grow: 1; min-width: 0"><span style="font-size: 16px; font-weight: 700">주말극장</span><span style="align-self: flex-start; max-width: 100%; box-sizing: border-box; margin-top: 4px; padding: 6px 12px 6px 6px; border-radius: 10px; background: var(--bg-muted); display: inline-flex; align-items: center; gap: 10px">
+<span style="width: 24px; height: 32px; flex-shrink: 0; border-radius: 4px; background: #C7A9A0; box-shadow: var(--img-edge); display: block"></span>
+<span style="display: flex; flex-direction: column; gap: 1px; min-width: 0"><span class="one" style="font-size: 14px; font-weight: 600; color: var(--text)">마지막 공연 보고 식탁 장면 이야기</span><span class="one" style="font-size: 12px; color: var(--text-sub)">두 사람의 식탁 · 09.20</span></span>
+</span></span>
+<span style="font-size: 13px; font-weight: 600; color: var(--status-closed); white-space: nowrap">만료됨</span>
+</div>
+</section>
+</div>
+</div>
+</main><div style="position: fixed; inset: 0; z-index: 10; background: rgba(38,34,30,.32); display: flex; align-items: center; justify-content: center">
+<div role="dialog" aria-label="2명에게 친구 요청을 보낼까요?" style="width: 360px; padding: 24px; box-sizing: border-box; border-radius: 16px; background: var(--surface); box-shadow: 0 16px 48px rgba(38,34,30,.2); display: flex; flex-direction: column; gap: 20px">
+<span style="font-size: 18px; font-weight: 700">2명에게 친구 요청을 보낼까요?</span>
+<div style="display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border-radius: 12px; background: var(--bg-muted)"><span style="display: flex; align-items: center; gap: 10px"><span style="width: 32px; height: 32px; flex-shrink: 0; border-radius: 9999px; background: #A9B7C6; display: block"></span><span style="font-size: 15px; font-weight: 600">오후네시</span></span><span style="display: flex; align-items: center; gap: 10px"><span style="width: 32px; height: 32px; flex-shrink: 0; border-radius: 9999px; background: #C7A9A0; display: block"></span><span style="font-size: 15px; font-weight: 600">밤새는고래</span></span></div>
+<div style="display: flex; justify-content: flex-end; gap: 8px">
+<button style="height: 44px; padding: 0 20px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--text); font-size: 15px; font-weight: 600">취소</button>
+<button class="btn-p" style="height: 44px; padding: 0 24px; border: none; border-radius: 10px; background: var(--primary); color: #FFFFFF; font-size: 15px; font-weight: 700">모두 보내기</button>
+</div>
+</div>
+</div>
+<footer style="margin-top: auto; padding: 32px max(180px, calc((100% - 1080px) / 2)); border-top: 1px solid var(--line); display: flex; gap: 24px; font-size: 13px; color: var(--text-sub)">
+<span style="font-weight: 800; color: var(--text)">모여봄</span>
+<span>행사 정보 · KOPIS · KOBIS · 서울시 문화행사 정보</span>
+<span style="flex-grow: 1"></span>
+<span>대학 팀 프로젝트</span>
+</footer>
+</div>
+</body>
+</html>

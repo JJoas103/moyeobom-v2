@@ -1,0 +1,198 @@
+/* 헤더 · 푸터 */
+
+.site-header {
+  height: var(--header-height);
+  flex-shrink: 0;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+
+.site-header__inner {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 56px;
+}
+
+.site-header__logo {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--brand);
+}
+
+.site-nav {
+  display: flex;
+  gap: 32px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.site-nav a {
+  height: var(--header-height);
+  display: flex;
+  align-items: center;
+  border-bottom: 2px solid transparent;
+  color: var(--text-sub);
+}
+
+.site-nav a:hover {
+  color: var(--text);
+}
+
+.site-nav a.active {
+  border-bottom-color: var(--brand);
+  color: var(--text);
+}
+
+.icon-btn {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: transparent;
+  color: var(--text-body);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+}
+
+.icon-btn:hover {
+  background: var(--bg-muted);
+}
+
+.icon-btn__dot {
+  position: absolute;
+  top: 10px;
+  right: 11px;
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-pill);
+  background: var(--brand);
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-muted);
+  flex-shrink: 0;
+}
+
+img.avatar {
+  object-fit: cover;
+}
+
+/* 아바타 메뉴 */
+.user-menu {
+  position: relative;
+}
+
+.user-menu__btn {
+  padding: 0;
+  border: none;
+  background: none;
+  border-radius: var(--radius-pill);
+  display: flex;
+  cursor: pointer;
+}
+
+.user-menu__panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  min-width: 220px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-hover);
+  display: flex;
+  flex-direction: column;
+}
+
+.user-menu__who {
+  padding: 8px 12px 12px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.user-menu__who strong {
+  font-size: 15px;
+}
+
+.user-menu__who span {
+  font-size: 13px;
+  color: var(--text-sub);
+}
+
+.user-menu__item {
+  padding: 10px 12px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  text-align: left;
+  font-size: 15px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.user-menu__item:hover {
+  background: var(--bg-muted);
+}
+
+/* 헤더 오른쪽 아이콘 묶음 사이 간격 (채팅 · 알림) */
+.site-header__inner > .icon-btn + .icon-btn {
+  margin-left: -52px;
+}
+
+/* 채팅 아이콘 — 채팅 화면에서는 그린 바탕 */
+.icon-btn.is-active {
+  border-radius: var(--radius-md);
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.icon-btn__dot--chat {
+  top: 9px;
+  right: 9px;
+}
+
+/* 채팅 화면 — 헤더 아래를 꽉 채움 */
+.app--fixed {
+  height: 100vh;
+  min-height: 640px;
+}
+
+.page--chat {
+  min-height: 0;
+  padding: 24px 0;
+  display: flex;
+}
+
+.page--chat > .container {
+  min-height: 0;
+  display: flex;
+}
+
+.site-footer {
+  border-top: 1px solid var(--line);
+  padding: 32px 0;
+  font-size: 13px;
+  color: var(--text-sub);
+}
+
+.site-footer__inner {
+  display: flex;
+  gap: 24px;
+}
+
+.site-footer__brand {
+  font-weight: 800;
+  color: var(--text);
+}

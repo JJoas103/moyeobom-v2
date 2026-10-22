@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>모여봄 모임 평가 기안 B 2단계</title>
+<style>
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css");
+:root{--bg:#FBFAF7;--bg-muted:#F4F2EC;--surface:#FFFFFF;--line:#E6E1D7;--line-strong:#26221E;--text:#26221E;--text-body:#5E5850;--text-sub:#736D64;--text-disabled:#B8B2A8;--brand:#1F6B52;--primary:#1F6B52;--primary-hover:#185843;--primary-soft:#E5F1EC;--primary-highlight:#CFE5DA;--cat-stage:#A23B4A;--cat-exhibit:#3D4ACC;--cat-festival:#B06F0F;--cat-etc:#5E5850;--status-open:#2E5AAC;--status-soon:#8F5500;--status-closed:#8C867D;--shadow-hover:0 2px 4px rgba(38,34,30,.04),0 8px 24px rgba(38,34,30,.08);--img-edge:inset 0 0 0 1px rgba(0,0,0,.06)}
+body{margin:0;font-family:'Pretendard Variable',Pretendard,-apple-system,system-ui,sans-serif;background:var(--bg);color:var(--text);letter-spacing:-0.01em}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit}
+.btn-p{transition:background .2s ease-out}.btn-p:hover{background:var(--primary-hover)}
+.pc .pimg{transition:transform .2s ease-out,box-shadow .2s ease-out}.pc:hover .pimg{transform:scale(1.02);box-shadow:var(--shadow-hover),var(--img-edge)}.pc:hover h3{text-decoration:underline}
+.clamp2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.one{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ghost:hover{text-decoration:underline}
+input{box-sizing:border-box;font-family:inherit}
+
+@media (prefers-reduced-motion: reduce){.pc:hover .pimg{transform:none}}
+</style>
+</head>
+<body>
+<div class="page" style="width: 100%; min-width: 1280px; min-height: 100vh; box-sizing: border-box; background: var(--bg); color: var(--text); display: flex; flex-direction: column">
+<header style="height: 72px; flex-shrink: 0; display: flex; align-items: center; gap: 56px; padding: 0 max(180px, calc((100% - 1080px) / 2)); background: var(--bg); border-bottom: 1px solid var(--line)">
+<a href="#" style="font-size: 22px; font-weight: 800; letter-spacing: -0.03em; color: var(--brand)">모여봄</a>
+<nav style="display: flex; gap: 32px; font-size: 16px; font-weight: 600">
+<a href="#" style="height: 72px; box-sizing: border-box; display: flex; align-items: center; border-bottom: 2px solid transparent; color: var(--text-sub)">홈</a>
+<a href="#" style="height: 72px; box-sizing: border-box; display: flex; align-items: center; border-bottom: 2px solid transparent; color: var(--text-sub)">행사</a>
+<a href="#" style="height: 72px; box-sizing: border-box; display: flex; align-items: center; border-bottom: 2px solid transparent; color: var(--text-sub)">모임</a>
+<a href="#" style="height: 72px; box-sizing: border-box; display: flex; align-items: center; border-bottom: 2px solid transparent; color: var(--text-sub)">내 모임</a>
+<a href="friends.html" style="height: 72px; box-sizing: border-box; display: flex; align-items: center; border-bottom: 2px solid transparent; color: var(--text-sub)">친구</a>
+<a href="#" style="height: 72px; box-sizing: border-box; display: flex; align-items: center; border-bottom: 2px solid transparent; color: var(--text-sub)">마이</a>
+</nav>
+<span style="flex-grow: 1"></span>
+<button aria-label="알림, 새 알림 있음" style="position: relative; width: 44px; height: 44px; border: none; background: transparent; color: var(--text-body); display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg><span style="position: absolute; top: 10px; right: 11px; width: 7px; height: 7px; border-radius: 9999px; background: var(--brand)"></span></button>
+<div style="width: 36px; height: 36px; border-radius: 9999px; background: var(--bg-muted)"></div>
+</header>
+<main style="width: 760px; margin: 0 auto; padding: 40px 0 80px; display: flex; flex-direction: column; gap: 24px">
+<a class="ghost" href="meetup-ended.html" style="align-self: flex-start; font-size: 14px; color: var(--text-sub)">‹ 모임 상세</a>
+<div style="padding-bottom: 20px; border-bottom: 1.5px solid var(--line-strong)">
+<h1 style="margin: 0; font-size: 30px; font-weight: 700; line-height: 1.3; letter-spacing: -0.02em">모임 평가</h1>
+</div>
+<div style="display: flex; align-items: center; gap: 16px; padding: 18px 24px; border-radius: 14px; background: #FFF3DC; border: 1px solid #F0D9A8">
+<span style="width: 44px; height: 44px; flex-shrink: 0; border-radius: 9999px; background: #FFFFFF; color: var(--status-soon); display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></span>
+<span style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1"><span style="font-size: 14px; font-weight: 600; color: var(--status-soon)">평가 마감까지</span><span style="font-size: 28px; font-weight: 800; letter-spacing: -0.02em; color: var(--status-soon); font-variant-numeric: tabular-nums">44시간 12분</span></span>
+<span style="font-size: 16px; font-weight: 700; color: var(--text); white-space: nowrap">10.03 (금) 12:00 마감</span>
+</div>
+<div style="display: flex; align-items: center; gap: 16px; padding: 16px 20px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line)">
+<span style="width: 48px; height: 64px; flex-shrink: 0; border-radius: 6px; background: linear-gradient(160deg, #A8957F 0%, #6E5E50 100%); box-shadow: var(--img-edge); display: block"></span>
+<span style="display: flex; flex-direction: column; gap: 3px; flex-grow: 1; min-width: 0">
+<span style="font-size: 13px; color: var(--text-sub)">여름밤의 정원 · 09.30 화 이야기 자리</span>
+<span style="font-size: 17px; font-weight: 700">커튼콜 끝나고 넘버 얘기해요</span>
+</span>
+
+</div>
+<div style="display: flex; align-items: center; justify-content: space-between"><div style="display: flex; align-items: center; gap: 12px"><span style="display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 500; color: var(--text-sub)"><span style="width: 24px; height: 24px; border-radius: 9999px; background: var(--primary); color: #FFFFFF; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center">1</span>칭찬하기</span><span style="width: 40px; height: 1px; background: var(--line)"></span><span style="display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; color: var(--text)"><span style="width: 24px; height: 24px; border-radius: 9999px; background: var(--primary); color: #FFFFFF; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center">2</span>또 만나고 싶어요</span></div><span style="font-size: 14px; color: var(--text-sub)">2 / 2</span></div>
+<section style="display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 22px; font-weight: 700; letter-spacing: -0.02em">개인적으로 다시 보고 싶은 사람이 있나요?</span><span style="display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--text-body)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>이 선택은 아무에게도 알려지지 않아요. 서로 골랐을 때만 친구 요청을 보낼 수 있어요.</span></div>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px">
+<label style="position: relative; padding: 28px 16px 20px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface); display: flex; flex-direction: column; align-items: center; gap: 12px; cursor: pointer">
+<span style="position: absolute; top: 12px; right: 12px; width: 28px; height: 28px; border-radius: 9999px; background: var(--bg-muted); color: var(--text-sub); display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"></path></svg></span>
+<span style="width: 72px; height: 72px; flex-shrink: 0; border-radius: 9999px; background: #D9CBB8; display: block"></span>
+<span style="font-size: 17px; font-weight: 700; text-align: center">새벽산책 <span style="height: 20px; padding: 0 8px; display: inline-flex; align-items: center; border-radius: 9999px; background: var(--primary-soft); color: var(--primary); font-size: 11px; font-weight: 700; vertical-align: 2px">호스트</span></span>
+</label>
+<label style="position: relative; padding: 28px 16px 20px; border-radius: 16px; border: 2px solid var(--text); background: var(--surface); display: flex; flex-direction: column; align-items: center; gap: 12px; cursor: pointer">
+<span style="position: absolute; top: 12px; right: 12px; width: 28px; height: 28px; border-radius: 9999px; background: var(--text); color: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"></path></svg></span>
+<span style="width: 72px; height: 72px; flex-shrink: 0; border-radius: 9999px; background: #A9B7C6; display: block"></span>
+<span style="font-size: 17px; font-weight: 700; text-align: center">오후네시</span>
+</label>
+<label style="position: relative; padding: 28px 16px 20px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface); display: flex; flex-direction: column; align-items: center; gap: 12px; cursor: pointer">
+<span style="position: absolute; top: 12px; right: 12px; width: 28px; height: 28px; border-radius: 9999px; background: var(--bg-muted); color: var(--text-sub); display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"></path></svg></span>
+<span style="width: 72px; height: 72px; flex-shrink: 0; border-radius: 9999px; background: #9FB2A1; display: block"></span>
+<span style="font-size: 17px; font-weight: 700; text-align: center">무대뒤</span>
+</label>
+<label style="position: relative; padding: 28px 16px 20px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface); display: flex; flex-direction: column; align-items: center; gap: 12px; cursor: pointer">
+<span style="position: absolute; top: 12px; right: 12px; width: 28px; height: 28px; border-radius: 9999px; background: var(--bg-muted); color: var(--text-sub); display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"></path></svg></span>
+<span style="width: 72px; height: 72px; flex-shrink: 0; border-radius: 9999px; background: #C4A88E; display: block"></span>
+<span style="font-size: 17px; font-weight: 700; text-align: center">여름잠</span>
+</label>
+<label style="position: relative; padding: 28px 16px 20px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface); display: flex; flex-direction: column; align-items: center; gap: 12px; cursor: pointer">
+<span style="position: absolute; top: 12px; right: 12px; width: 28px; height: 28px; border-radius: 9999px; background: var(--bg-muted); color: var(--text-sub); display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"></path></svg></span>
+<span style="width: 72px; height: 72px; flex-shrink: 0; border-radius: 9999px; background: #B8C4B0; display: block"></span>
+<span style="font-size: 17px; font-weight: 700; text-align: center">커튼뒤</span>
+</label>
+</div>
+</section>
+<div style="position: sticky; bottom: 0; z-index: 3; margin-top: 8px; padding: 16px 0 24px; background: var(--bg); border-top: 1px solid var(--line); display: flex; align-items: center; gap: 12px">
+<span style="display: flex; align-items: center; gap: 8px; flex-grow: 1; font-size: 15px; color: var(--text-body)"><span style="display: flex"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg></span><span>또 만나고 싶어요 <strong style="font-size: 17px; color: var(--text)">1명</strong></span></span>
+<a href="review-step1.html" style="height: 52px; padding: 0 24px; display: flex; align-items: center; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); color: var(--text); font-size: 16px; font-weight: 600">이전</a>
+<a class="btn-p" href="review-done.html" style="height: 52px; padding: 0 36px; display: flex; align-items: center; border-radius: 12px; background: var(--primary); color: #FFFFFF; font-size: 16px; font-weight: 700">평가 보내기</a>
+</div>
+</main>
+<footer style="margin-top: auto; padding: 32px max(180px, calc((100% - 1080px) / 2)); border-top: 1px solid var(--line); display: flex; gap: 24px; font-size: 13px; color: var(--text-sub)">
+<span style="font-weight: 800; color: var(--text)">모여봄</span>
+<span>행사 정보 · KOPIS · KOBIS · 서울시 문화행사 정보</span>
+<span style="flex-grow: 1"></span>
+<span>대학 팀 프로젝트</span>
+</footer>
+</div>
+</body>
+</html>

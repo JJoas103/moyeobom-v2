@@ -1,0 +1,299 @@
+/* =========================================================
+   모여봄 v2 — 디자인 토큰 + 기본 스타일
+   "차분하게 읽히고, 포스터가 먼저, 누를 곳은 그린 하나"
+   화면별 스타일은 src/styles/*.css
+   ========================================================= */
+
+:root {
+  /* 바탕 · 면 · 선 */
+  --bg: #fbfaf7;
+  --bg-muted: #f4f2ec;
+  --surface: #ffffff;
+  --line: #e6e1d7;
+  --line-strong: #26221e;
+
+  /* 글자 */
+  --text: #26221e;
+  --text-body: #5e5850;
+  --text-sub: #736d64;
+  --text-disabled: #b8b2a8;
+
+  /* 브랜드 · 누를 곳 (그린 하나) */
+  --brand: #1f6b52;
+  --primary: #1f6b52;
+  --primary-hover: #185843;
+  --primary-soft: #e5f1ec;
+  --primary-highlight: #cfe5da;
+
+  /* 카테고리 점 색 */
+  --cat-stage: #a23b4a;
+  --cat-exhibit: #3d4acc;
+  --cat-festival: #b06f0f;
+  --cat-etc: #5e5850;
+
+  /* 상태 */
+  --status-open: #2e5aac;
+  --status-open-soft: #eaf0fb;
+  --status-soon: #8f5500;
+  --status-soon-soft: #fff3dc;
+  --status-closed: #8c867d;
+
+  /* 그림자 */
+  --shadow-tile: 0 2px 8px rgba(38, 34, 30, 0.08);
+  --shadow-hover: 0 2px 4px rgba(38, 34, 30, 0.04), 0 8px 24px rgba(38, 34, 30, 0.08);
+  --img-edge: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+
+  /* 레이아웃 */
+  --content-width: 1080px;
+  --header-height: 72px;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 9999px;
+}
+
+/* ---------- 기본 ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+}
+
+body {
+  min-width: 1200px; /* 이번 범위는 데스크톱 전용 */
+  font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  letter-spacing: -0.01em;
+  line-height: 1.5;
+  word-break: keep-all; /* 한글이 글자 중간에서 줄바꿈되지 않게 */
+  overflow-wrap: anywhere;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.clamp2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.one-line {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---------- 레이아웃 ---------- */
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  width: var(--content-width);
+  margin: 0 auto;
+}
+
+.page {
+  flex-grow: 1;
+  padding: 48px 0 80px;
+}
+
+/* ---------- 공통 조각 ---------- */
+
+/* 페이지 제목줄: 제목 + 숫자 + 오른쪽 도구, 아래 진한 선 */
+.page-head {
+  display: flex;
+  align-items: flex-end;
+  gap: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1.5px solid var(--line-strong);
+}
+
+.page-head h1 {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+}
+
+.page-head .count {
+  margin-left: 6px;
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--text-sub);
+}
+
+.spacer {
+  flex-grow: 1;
+}
+
+/* 버튼 — 누를 곳은 그린 하나 */
+.btn {
+  height: 48px;
+  padding: 0 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: background 0.2s ease-out;
+}
+
+.btn--primary {
+  background: var(--primary);
+  color: #ffffff;
+}
+
+.btn--primary:hover {
+  background: var(--primary-hover);
+}
+
+.btn--line {
+  background: var(--surface);
+  border-color: var(--line);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.btn--line:hover {
+  background: var(--bg-muted);
+}
+
+.btn--lg {
+  height: 52px;
+  font-size: 16px;
+}
+
+/* 칩 (카테고리 · 필터) */
+.chip {
+  height: 36px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  background: var(--bg-muted);
+  color: var(--text-body);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.chip--outline {
+  background: var(--surface);
+  border-color: var(--line);
+  color: var(--text);
+}
+
+.chip.is-active {
+  border-color: var(--brand);
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* 상태 글자 */
+.status {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.status--open {
+  color: var(--status-open);
+}
+.status--soon {
+  color: var(--status-soon);
+}
+.status--closed {
+  color: var(--status-closed);
+}
+.status--plan {
+  color: var(--text-sub);
+}
+
+/* 카테고리 점 */
+.cat-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  flex-shrink: 0;
+}
+
+/* 로딩 · 빈 상태 */
+.state-box {
+  padding: 80px 0;
+  text-align: center;
+  color: var(--text-sub);
+  font-size: 15px;
+}
+
+.state-box strong {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text);
+  font-size: 18px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}

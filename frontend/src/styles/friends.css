@@ -1,0 +1,313 @@
+/* 친구 — 시안 friends · friends-requests · friends-memo · friends-bulk-confirm */
+
+.friends {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.friends__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  column-gap: 40px;
+  align-items: start;
+}
+
+/* 오른쪽 안내 */
+.friends-how {
+  padding: 24px;
+  border-radius: var(--radius-lg);
+  background: var(--bg-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.friends-how__title {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.friends-how ol {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-body);
+}
+
+.friends-how__note {
+  font-size: 13px;
+  color: var(--text-sub);
+}
+
+.friends-empty {
+  padding: 64px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  color: var(--text-sub);
+  text-align: center;
+}
+
+.friends-empty strong {
+  font-size: 18px;
+  color: var(--text);
+}
+
+.friends-empty .btn {
+  margin-top: 12px;
+}
+
+.friends-done {
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* ---------- 친구 탭 ---------- */
+.friend-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.friend-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 4px;
+  border-bottom: 1px solid var(--line);
+}
+
+.friend-row__text {
+  flex-grow: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.friend-row__name {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.friend-row__memo {
+  align-self: flex-start;
+  max-width: 100%;
+  margin-top: 4px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  background: var(--bg-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: var(--text-sub);
+  font-size: 14px;
+}
+
+.friend-row__memo .one-line {
+  color: var(--text-body);
+}
+
+.friend-row__chat {
+  height: 40px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.friend-row__chat:hover {
+  background: var(--bg-muted);
+}
+
+/* 메모 팝업 */
+.memo-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.memo-form__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.memo-form__title {
+  flex-grow: 1;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.memo-form__close {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-body);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.memo-form__close:hover {
+  background: var(--bg-muted);
+}
+
+.memo-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.memo-form__field input {
+  width: 100%;
+  height: 48px;
+  padding: 0 14px;
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  font-size: 15px;
+}
+
+.memo-form__field input:focus {
+  outline: none;
+  border-color: var(--text);
+}
+
+.memo-form__count {
+  align-self: flex-end;
+  font-size: 12px;
+  color: var(--text-sub);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- 요청 탭 ---------- */
+.request-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  min-width: 0;
+}
+
+.request-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.request-section__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.request-section__head h2 {
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.request-section__count {
+  font-size: 15px;
+  color: var(--text-sub);
+}
+
+.request-section__bulk {
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.request-section__bulk:hover {
+  background: var(--bg-muted);
+}
+
+.request-section__empty {
+  padding: 8px 4px;
+  font-size: 14px;
+  color: var(--text-sub);
+}
+
+.request-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+.request-card.is-expired {
+  opacity: 0.55;
+}
+
+.request-card__text {
+  flex-grow: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.request-card__name {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.request-card__left {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-sub);
+  white-space: nowrap;
+}
+
+.request-card__left.is-soon {
+  color: var(--status-soon);
+}
+
+.request-card__left.is-expired {
+  color: var(--status-closed);
+}
+
+.request-card__btn {
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.request-card__btn--outline {
+  padding: 0 16px;
+  background: var(--surface);
+  border: 1.5px solid var(--brand);
+  color: var(--primary);
+}
+
+.request-card__btn--outline:hover {
+  background: var(--primary-soft);
+}

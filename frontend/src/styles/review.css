@@ -1,0 +1,446 @@
+/* 모임 평가 — 시안 review-step1 · step2 · done · closed */
+
+.review {
+  width: 760px;
+  margin: -8px auto 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.review__back {
+  align-self: flex-start;
+  font-size: 14px;
+  color: var(--text-sub);
+}
+
+.review__back:hover {
+  text-decoration: underline;
+}
+
+/* 마감까지 남은 시간 */
+.review-banner {
+  padding: 18px 24px;
+  border-radius: 14px;
+  background: var(--status-soon-soft);
+  border: 1px solid #f0d9a8;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.review-banner__icon {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: var(--radius-pill);
+  background: #ffffff;
+  color: var(--status-soon);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.review-banner__left {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--status-soon);
+}
+
+.review-banner__left strong {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.review-banner__at {
+  font-size: 16px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.review-banner--muted {
+  padding: 20px 24px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--bg-muted);
+  color: var(--text-sub);
+  gap: 12px;
+  font-size: 15px;
+}
+
+.review-banner--muted strong {
+  color: var(--text);
+}
+
+.review-banner__left--muted {
+  color: var(--text-body);
+  font-weight: 400;
+}
+
+.review-banner__left--muted strong {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+/* 모임 한 줄 */
+.review-meetup {
+  padding: 16px 20px;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.review-meetup__text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.review-meetup__sub {
+  font-size: 13px;
+  color: var(--text-sub);
+}
+
+.review-meetup__title {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+/* 단계 표시 */
+.stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.stepper__steps {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stepper__step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-sub);
+}
+
+.stepper__step.is-current {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.stepper__num {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-muted);
+  color: var(--text-sub);
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stepper__num.is-on {
+  background: var(--primary);
+  color: #ffffff;
+}
+
+.stepper__line {
+  width: 40px;
+  height: 1px;
+  background: var(--line);
+}
+
+.stepper__page {
+  font-size: 14px;
+  color: var(--text-sub);
+}
+
+/* 단계 본문 */
+.review-step {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.review-step__head {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.review-step__head h2 {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.review-step__head p {
+  font-size: 14px;
+  color: var(--text-body);
+}
+
+.review-step__private {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.review-empty {
+  padding: 32px 0;
+  text-align: center;
+  font-size: 15px;
+  color: var(--text-sub);
+}
+
+/* 사람 카드 4칸 */
+.people-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.person-card {
+  position: relative;
+  padding: 28px 16px 20px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.person-card:has(input:focus-visible) {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.person-card__mark {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-muted);
+  color: var(--text-sub);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.person-card__name {
+  font-size: 17px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.person-card .avatar {
+  flex-shrink: 0;
+}
+
+/* ① 칭찬 — 그린 */
+.person-card--praise.is-on {
+  border: 2px solid var(--brand);
+  padding: 27px 15px 19px;
+  background: var(--primary-soft);
+}
+
+.person-card--praise.is-on .person-card__mark {
+  background: var(--primary);
+  color: #ffffff;
+}
+
+/* ② 또 만나고 싶어요 — 비공개라 글자색 */
+.person-card--again.is-on {
+  border: 2px solid var(--text);
+  padding: 27px 15px 19px;
+}
+
+.person-card--again.is-on .person-card__mark {
+  background: var(--text);
+  color: #ffffff;
+}
+
+/* 마감 — 고를 수 없음 */
+.person-card--closed {
+  padding: 20px;
+  border: none;
+  background: var(--bg-muted);
+  opacity: 0.6;
+  gap: 10px;
+  cursor: default;
+}
+
+.person-card--closed .person-card__name {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* 하단 고정 바 */
+.review-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
+  margin-top: 8px;
+  padding: 16px 0 24px;
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.review-bar__count {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  color: var(--text-body);
+}
+
+.review-bar__count strong {
+  font-size: 17px;
+  color: var(--text);
+}
+
+.review-bar__icon {
+  display: flex;
+  color: var(--primary);
+}
+
+.review-bar__count--closed {
+  font-weight: 600;
+  color: var(--status-closed);
+}
+
+.review-bar__next {
+  padding: 0 36px;
+}
+
+/* 평가 보냄 */
+.review-done {
+  width: 640px;
+  margin: 24px auto 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  text-align: center;
+}
+
+.review-done__check {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-pill);
+  background: var(--primary-soft);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.review-done__head {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 16px;
+  color: var(--text-body);
+}
+
+.review-done__head h1 {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.review-done__card {
+  width: 360px;
+  padding: 32px 28px;
+  border-radius: 20px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.review-done__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.review-done__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-pill);
+  background: var(--primary-soft);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.review-done__icon--muted {
+  background: var(--bg-muted);
+  color: var(--text);
+}
+
+.review-done__label {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-body);
+}
+
+.review-done__num {
+  font-size: 36px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.review-done__saved {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.review-done__note {
+  font-size: 13px;
+  color: var(--text-sub);
+}
+
+.review-done__line {
+  width: 100%;
+  height: 1px;
+  background: var(--line);
+}
+
+.review-done__actions {
+  display: flex;
+  gap: 10px;
+}

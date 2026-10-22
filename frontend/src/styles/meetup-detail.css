@@ -1,0 +1,676 @@
+/* 모임 상세 */
+
+.detail__main--meetup {
+  gap: 72px;
+}
+
+.event-link {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-body);
+}
+
+.event-link:hover {
+  text-decoration: underline;
+}
+
+.info-list--compact {
+  gap: 12px;
+  font-size: 15px;
+}
+
+.info-list--compact .info-list__label {
+  width: 88px;
+}
+
+.condition-chips {
+  margin-top: auto;
+  display: flex;
+  gap: 8px;
+}
+
+.condition-chip {
+  height: 32px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-muted);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.section-head__right {
+  font-size: 15px;
+  color: var(--text-sub);
+}
+
+/* ---------- 그날 저녁 타임라인 ---------- */
+.timeline-legend {
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+  color: var(--text-sub);
+}
+
+.timeline-legend .is-all {
+  color: var(--primary);
+}
+
+.timeline {
+  position: relative;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 세로 선 — 시각(72) + 간격(16) + 점 칸 가운데(12) - 선 두께 절반 */
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 99px;
+  top: 28px;
+  bottom: 28px;
+  width: 2px;
+  background: var(--line);
+}
+
+.timeline__item {
+  display: grid;
+  grid-template-columns: 72px 24px minmax(0, 1fr);
+  column-gap: 16px;
+  align-items: start;
+}
+
+.timeline__time {
+  padding-top: 16px;
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.timeline__dot {
+  position: relative;
+  z-index: 1;
+  justify-self: center;
+  margin-top: 20px;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-pill);
+}
+
+.timeline__card {
+  padding: 16px 20px;
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.timeline__who {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-sub);
+}
+
+.timeline__title {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+/* 관람부터 함께만 — 빈 원 + 흰 카드 */
+.timeline__item--watch .timeline__dot {
+  border: 2px solid var(--text-body);
+  background: var(--bg);
+}
+.timeline__item--watch .timeline__card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+/* 행사 일정(참고) — 작은 회색 점 + 점선 카드 */
+.timeline__item--event .timeline__dot {
+  width: 10px;
+  height: 10px;
+  margin-top: 23px;
+  background: var(--text-disabled);
+}
+.timeline__item--event .timeline__card {
+  background: transparent;
+  border: 1px dashed var(--line);
+}
+
+/* 모두 — 초록 점 + 연초록 카드 */
+.timeline__item--all .timeline__dot {
+  background: var(--brand);
+  box-shadow: 0 0 0 4px var(--primary-soft);
+}
+.timeline__item--all .timeline__card {
+  background: var(--primary-soft);
+  border: 1px solid var(--primary-highlight);
+}
+.timeline__item--all .timeline__who {
+  color: var(--primary);
+}
+
+/* ---------- 호스트 ---------- */
+.host-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar--lg {
+  width: 44px;
+  height: 44px;
+}
+
+.host-row__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.host-row__name {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.host-row__name span {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-sub);
+}
+
+.host-row__sub {
+  font-size: 13px;
+  color: var(--text-sub);
+}
+
+.host-quote {
+  padding: 20px 24px;
+  border-left: 3px solid var(--brand);
+  background: var(--surface);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  font-size: 16px;
+  line-height: 1.75;
+  color: var(--text-body);
+}
+
+/* ---------- 함께하는 사람 ---------- */
+.member-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.member-dot {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-pill);
+  box-shadow: 0 0 0 2px var(--bg);
+}
+
+.member-dot--empty {
+  width: 36px;
+  height: 36px;
+  margin: 2px;
+  border: 2px dashed var(--line);
+  box-shadow: none;
+}
+
+/* ---------- 채팅 잠금 ---------- */
+.chat-lock {
+  position: relative;
+  padding: 20px;
+  border-radius: var(--radius-md);
+  background: var(--bg-muted);
+  overflow: hidden;
+}
+
+.chat-lock__preview {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  filter: blur(3px);
+  opacity: 0.7;
+}
+
+.chat-lock__preview span {
+  align-self: flex-start;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  font-size: 14px;
+}
+
+.chat-lock__preview span.is-mine {
+  align-self: flex-end;
+  background: var(--primary-soft);
+}
+
+.chat-lock__badge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  height: 44px;
+  padding: 0 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  box-shadow: var(--shadow-tile);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* 확정 참여자 — 잠금 대신 채팅 열기 */
+.chat-lock__badge--open {
+  background: var(--primary);
+  color: #ffffff;
+  transition: background 0.2s ease-out;
+}
+
+.chat-lock__badge--open:hover {
+  background: var(--primary-hover);
+}
+
+/* ---------- 끝난 모임 — 평가 박스 ---------- */
+.review-box__title {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.review-box__text {
+  margin-top: -8px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-body);
+}
+
+.review-box__deadline {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--bg-muted);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-body);
+}
+
+.review-box__deadline strong {
+  color: var(--status-soon);
+  text-align: right;
+}
+
+.review-box__chat {
+  align-self: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-body);
+}
+
+.review-box__chat:hover {
+  text-decoration: underline;
+}
+
+/* ---------- 이 모임의 행사 ---------- */
+.event-mini {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+.event-mini:hover .event-mini__title {
+  text-decoration: underline;
+}
+
+.event-mini__poster {
+  position: relative;
+  width: 72px;
+  height: 96px;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  box-shadow: var(--img-edge);
+}
+
+.event-mini__poster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.event-mini__poster span {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.event-mini__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex-grow: 1;
+}
+
+.event-mini__cat {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-body);
+}
+
+.event-mini__title {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.event-mini__meta {
+  font-size: 14px;
+  color: var(--text-body);
+}
+
+.event-mini__more {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-body);
+  white-space: nowrap;
+}
+
+/* ---------- 신청 박스 ---------- */
+.side-box__head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.apply-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.join-options {
+  margin: 0;
+  padding: 0;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.join-option {
+  display: flex;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.join-option.is-selected {
+  border: 1.5px solid var(--brand);
+  background: var(--primary-soft);
+}
+
+.join-options:disabled .join-option {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* 기본 라디오를 시안의 원 모양으로 */
+.join-option input {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin: 2px 0 0;
+  border-radius: var(--radius-pill);
+  border: 1.5px solid var(--text-disabled);
+  background: #ffffff;
+}
+
+.join-option input:checked {
+  border: 5px solid var(--brand);
+}
+
+.join-option__text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.join-option__title {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.join-option__desc {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-body);
+}
+
+.join-option__note {
+  font-size: 12px;
+  color: var(--text-sub);
+}
+
+.square-btn {
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text-body);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.square-btn:hover {
+  background: var(--bg-muted);
+}
+
+.square-btn__done {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.apply-done {
+  padding: 16px;
+  border-radius: var(--radius-md);
+  background: var(--primary-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-body);
+}
+
+.apply-done strong {
+  font-size: 16px;
+  color: var(--primary);
+}
+
+.form-error {
+  font-size: 13px;
+  color: var(--cat-stage);
+}
+
+/* 모임을 막 만들었을 때 안내 */
+.notice {
+  padding: 14px 20px;
+  border-radius: var(--radius-md);
+  background: var(--primary-soft);
+  border: 1px solid var(--primary-highlight);
+  font-size: 15px;
+  color: var(--text-body);
+}
+
+.notice strong {
+  color: var(--primary);
+}
+
+/* 행사장 근처 — 가까운 역 · 공중화장실 */
+.nearby {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.nearby__col {
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.nearby__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.nearby__head svg {
+  color: var(--text-sub);
+}
+
+.nearby__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.nearby__item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nearby__name {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.nearby__meta {
+  font-size: 14px;
+  color: var(--text-body);
+}
+
+.nearby__tags {
+  display: flex;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.nearby__empty {
+  font-size: 14px;
+  color: var(--text-sub);
+}
+
+/* 신청 대기 상태 (신청 박스) */
+.apply-done--wait {
+  background: var(--status-soon-soft);
+}
+
+.apply-done--wait strong {
+  color: var(--status-soon);
+}
+
+/* 신청자 목록 — 호스트 승인 · 승인된 참여자끼리 */
+.applicants {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.applicants__label {
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-sub);
+}
+
+.applicants__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.applicant {
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.applicant__text {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  color: var(--text-sub);
+}
+
+.applicant__text strong {
+  font-size: 15px;
+  color: var(--text);
+}
+
+/* 취소된 모임 안내 */
+.notice--muted {
+  background: var(--bg-muted);
+  border-color: var(--line);
+}
+
+.notice--muted strong {
+  color: var(--text);
+}

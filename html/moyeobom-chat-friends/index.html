@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>모여봄 화면 묶음 · 채팅 · 친구</title>
+<style>
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css");
+:root{--bg:#FBFAF7;--muted:#F4F2EC;--line:#E6E1D7;--text:#26221E;--body:#5E5850;--sub:#736D64;--brand:#1F6B52;--soft:#E5F1EC;--warn:#8F5500}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'Pretendard Variable',Pretendard,-apple-system,system-ui,sans-serif;letter-spacing:-0.01em}
+main{max-width:1080px;margin:0 auto;padding:48px 24px 80px;display:flex;flex-direction:column;gap:40px}
+h1{margin:0;font-size:30px;letter-spacing:-0.02em}
+h2{margin:0 0 12px;font-size:20px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.sub{color:var(--sub);font-size:14px;margin-top:6px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:12px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:13px;color:var(--sub);font-weight:600}
+td a{color:var(--brand);font-weight:600;text-decoration:none}
+td a:hover{text-decoration:underline}
+code{font-size:12px;background:var(--muted);padding:2px 6px;border-radius:6px}
+ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.6;color:var(--body)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.box{padding:20px 24px;border-radius:14px;background:#fff;border:1px solid var(--line)}
+.box.warn{background:#FFF3DC;border-color:#F0D9A8}
+.tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--soft);color:var(--brand)}
+</style>
+</head>
+<body>
+<main>
+<div>
+<h1>모여봄 화면 묶음 · 채팅 · 친구</h1>
+<div class="sub">2026-10-14 채택본 · 데스크톱 웹 · 정적 HTML (행사명·닉네임·수치는 모두 가상 예시)</div>
+</div>
+
+<section>
+<h2>화면 목록</h2>
+<table>
+<thead><tr><th style="width:24%">화면</th><th style="width:22%">파일</th><th>상태 · 주요 동작</th></tr></thead>
+<tbody>
+<tr><td>모임 채팅</td><td><a href="chat-meetup.html">chat-meetup.html</a></td><td>방 목록(전체 / 모임 / 친구 1:1 탭, 안 읽은 수) · 대화 · 모임 정보와 참여자. 호스트 고정 공지 바, 내 메시지 옆 숫자 = 안 읽은 사람 수</td></tr>
+<tr><td>친구 1:1 채팅</td><td><a href="chat-friend.html">chat-friend.html</a></td><td>친구 1:1 탭 선택 상태 · 오른쪽에 처음 만난 모임, 친구 끊기, 차단·신고</td></tr>
+<tr><td>모임 상세 (끝난 뒤)</td><td><a href="meetup-ended.html">meetup-ended.html</a></td><td>평가 진입점 — 마감까지 남은 시간 + "모임 평가하기"</td></tr>
+<tr><td>모임 평가 ① 칭찬하기</td><td><a href="review-step1.html">review-step1.html</a></td><td>확정 참여자(본인 제외) 다중 선택 · 한 줄 4칸 · 하단 고정 바(선택 수 / 다음)</td></tr>
+<tr><td>모임 평가 ② 또 만나고 싶어요</td><td><a href="review-step2.html">review-step2.html</a></td><td>비공개 다중 선택 · 하단 고정 바(선택 수 / 이전 · 평가 보내기)</td></tr>
+<tr><td>모임 평가 제출 완료</td><td><a href="review-done.html">review-done.html</a></td><td>칭찬 인원 수만 표시 · 매칭 결과는 보여주지 않음</td></tr>
+<tr><td>모임 평가 마감</td><td><a href="review-closed.html">review-closed.html</a></td><td>선택 불가 · 하단 고정 바(다른 모임 보기)</td></tr>
+<tr><td>친구 — 친구 탭</td><td><a href="friends.html">friends.html</a></td><td>친구 카드(본인만 보는 메모) · 1:1 채팅 · ⋯ 메뉴 = 친구 끊기 / 메모 설정하기 / 차단하기</td></tr>
+<tr><td>친구 — 메모 팝업</td><td><a href="friends-memo.html">friends-memo.html</a></td><td>한 줄 입력 · 글자 수 표시 · 취소 / 저장</td></tr>
+<tr><td>친구 — 요청 탭</td><td><a href="friends-requests.html">friends-requests.html</a></td><td>받은 요청(수락만) · 요청 가능(친구 요청 보내기) · 보낸 요청(대기 / 만료) · 카드마다 만난 모임 · 일괄 버튼</td></tr>
+<tr><td>친구 — 일괄 확인 팝업</td><td><a href="friends-bulk-confirm.html">friends-bulk-confirm.html</a></td><td>모두 요청 보내기 / 모두 수락 → 대상 목록 확인 후 실행</td></tr>
+</tbody>
+</table>
+</section>
+
+<section class="two">
+<div class="box">
+<h2>화면에 반영된 확정 규칙</h2>
+<ul>
+<li>모임 채팅은 승인된 참여자만 입장 · 대화는 신고 확인용으로 서버 보관</li>
+<li>공지 고정은 호스트만 · 참여자는 읽기만</li>
+<li>메시지 신고 · 참여자 차단 (⋯ 메뉴)</li>
+<li>평가 열림: 이야기 자리 시작일 다음날 12:00 · 마감: 열림 + 48시간</li>
+<li>평가 대상: 같은 모임의 확정 참여자 (본인 제외)</li>
+<li>칭찬하기: 사람만 고름 · 매너 점수에 반영</li>
+<li>또 만나고 싶어요: 비공개 · 서로 골랐을 때만 '요청 가능'</li>
+<li>친구 성립: 요청 → 수락 · 거절 버튼 없음, 기한 지나면 조용히 만료</li>
+<li>두 사람이 동시에 요청하면 바로 친구</li>
+<li>일괄 버튼: 카드 1개여도 노출 · 확인 팝업 필수</li>
+<li>친구 메모: 본인만 보임 · 작은 팝업에서 입력</li>
+<li>종료 예정 시각 없음 (모든 화면에서 제거)</li>
+</ul>
+</div>
+<div class="box warn">
+<h2>미결정 — 구현 전에 정해야 할 것</h2>
+<ul>
+<li>요청 만료 기한 — 화면엔 7일(제안값)</li>
+<li>메모 글자 수 — 화면엔 30자(제안값)</li>
+<li>매너 점수 산정 방식 · 노출 위치 (화면에 숫자 없음)</li>
+<li>노쇼 판정 주체 (평가 화면에 항목 없음)</li>
+<li>모임 채팅방 유지 기간 · 대화 보존 기간</li>
+<li>공지 최대 개수</li>
+<li>알림 대상 이벤트 · 전달 수단</li>
+</ul>
+</div>
+</section>
+
+<section>
+<h2>참고</h2>
+<ul>
+<li>이 묶음에 없는 화면(홈 · 행사 · 모임 목록 등)으로 가는 링크는 <code>#</code>으로 비워 두었습니다.</li>
+<li>폰트는 Pretendard CDN을 불러옵니다. 오프라인에서는 시스템 글꼴로 보입니다.</li>
+<li>색 · 간격 값은 각 파일 상단 <code>:root</code> 변수에 있습니다 (v2 토큰).</li>
+</ul>
+</section>
+</main>
+</body>
+</html>
