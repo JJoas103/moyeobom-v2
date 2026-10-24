@@ -64,7 +64,12 @@ export default function ChatRoom({ roomId, onRead }) {
     setData((d) => {
       if (!d || d.messages.some((m) => m._id === message._id)) return d
       if (d.room.members.some((m) => m.blocked && m.user._id === message.sender)) return d
-      return { ...d, messages: [...d.messages, message] }
+      // 보낸 사람은 그 시점까지 읽은 것으로 서버가 저장한다 (chatService 의 pushMessage).
+      // 그 사실이 chat:read 로 따로 오지 않으므로 여기서 같이 반영해야 안 읽은 수가 바로 줄어든다.
+      const reads = message.sender
+        ? d.room.reads.filter((r) => r.user !== message.sender).concat({ user: message.sender, at: message.createdAt })
+        : d.room.reads
+      return { ...d, messages: [...d.messages, message], room: { ...d.room, reads } }
     })
     if (message.sender !== user._id) read()
   })
