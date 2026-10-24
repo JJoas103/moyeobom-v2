@@ -91,7 +91,7 @@ function ReviewView({ meetupId, review }) {
             <section className="review-step">
               <div className="review-step__head">
                 <h2>오늘 모임에서 좋았던 사람을 칭찬해 주세요</h2>
-                <p>여러 명 고를 수 있어요. 고르지 않고 넘어가도 돼요.</p>
+                <p>여러 명 고를 수 있어요. 칭찬은 매너 점수에 반영돼요.</p>
               </div>
               <PeopleGrid targets={review.targets} selected={praised} onToggle={toggle(setPraised)} kind="praise" />
             </section>
@@ -103,7 +103,6 @@ function ReviewView({ meetupId, review }) {
                   <LockIcon size={14} />
                   이 선택은 아무에게도 알려지지 않아요. 서로 골랐을 때만 친구 요청을 보낼 수 있어요.
                 </p>
-                <p>고르지 않고 보내도 돼요.</p>
               </div>
               <PeopleGrid targets={review.targets} selected={again} onToggle={toggle(setAgain)} kind="again" />
             </section>

@@ -49,43 +49,29 @@ const naverVerify = socialVerify('naver', (profile) => ({
 }));
 
 // 콜백 주소는 백엔드(:3000) — OAuth 콘솔에도 같은 주소 등록
-//
-// passport-oauth2 는 clientID 가 비어 있으면 만드는 시점에 바로 예외를 던진다. 이 파일은
-// app.js 가 require 하는 자리라, 그러면 서버가 아예 뜨지 않는다. .env 를 아직 안 채웠거나
-// 화면만 띄워 확인할 때도 서버는 떠야 하므로, 키가 없으면 건너뛰고 알려만 준다.
-// 키를 채우면 그때부터 똑같이 동작한다 — 등록 조건만 붙였고 안쪽은 그대로다. 등록되지 않은
-// 전략으로 로그인에 들어가면 passport 가 Unknown strategy 로 받으니, 키를 넣는 것이 정답이다.
-if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
-  passport.use(
-    'google-api',
-    new GoogleStrategy(
-      {
-        clientID: process.env.GOOGLE_CLIENT_ID,
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: '/api/auth/google/callback',
-      },
-      googleVerify
-    )
-  );
-} else {
-  console.warn('[passport] GOOGLE_CLIENT_ID 가 없어 구글 로그인을 건너뜁니다');
-}
+passport.use(
+  'google-api',
+  new GoogleStrategy(
+    {
+      clientID: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      callbackURL: '/api/auth/google/callback',
+    },
+    googleVerify
+  )
+);
 
-if (process.env.NAVER_CLIENT_ID && process.env.NAVER_CLIENT_SECRET) {
-  passport.use(
-    'naver-api',
-    new NaverStrategy(
-      {
-        clientID: process.env.NAVER_CLIENT_ID,
-        clientSecret: process.env.NAVER_CLIENT_SECRET,
-        callbackURL: '/api/auth/naver/callback',
-      },
-      naverVerify
-    )
-  );
-} else {
-  console.warn('[passport] NAVER_CLIENT_ID 가 없어 네이버 로그인을 건너뜁니다');
-}
+passport.use(
+  'naver-api',
+  new NaverStrategy(
+    {
+      clientID: process.env.NAVER_CLIENT_ID,
+      clientSecret: process.env.NAVER_CLIENT_SECRET,
+      callbackURL: '/api/auth/naver/callback',
+    },
+    naverVerify
+  )
+);
 
 passport.serializeUser((user, done) => done(null, user.id));
 passport.deserializeUser(async (id, done) => {
