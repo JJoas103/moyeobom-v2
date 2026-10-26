@@ -9,9 +9,7 @@ const nicknameRule = () =>
     .isLength({ min: 2, max: 15 })
     .withMessage('닉네임은 2~15자로 적어 주세요');
 
-const joinValidationRules = [
-  body('email').trim().notEmpty().withMessage('이메일을 적어 주세요').bail().isEmail().withMessage('이메일 형식이 아니에요'),
-  nicknameRule(),
+const passwordRules = () => [
   body('password')
     .notEmpty()
     .withMessage('비밀번호를 적어 주세요')
@@ -24,7 +22,17 @@ const joinValidationRules = [
   }),
 ];
 
+const joinValidationRules = [
+  body('email').trim().notEmpty().withMessage('이메일을 적어 주세요').bail().isEmail().withMessage('이메일 형식이 아니에요'),
+  nicknameRule(),
+  ...passwordRules(),
+];
+
 const socialJoinValidationRules = [nicknameRule()];
+
+// 마이 › 계정 설정
+const profileValidationRules = [nicknameRule()];
+const passwordChangeRules = [body('currentPassword').notEmpty().withMessage('지금 비밀번호를 적어 주세요'), ...passwordRules()];
 
 // 검증 결과 → { success:false, fieldErrors: { 필드: 메시지 } } (프론트 폼이 칸 아래에 표시)
 const validate = (req, res, next) => {
@@ -38,4 +46,4 @@ const validate = (req, res, next) => {
   res.status(400).json({ success: false, message: '입력한 내용을 확인해 주세요', fieldErrors });
 };
 
-module.exports = { joinValidationRules, socialJoinValidationRules, validate };
+module.exports = { joinValidationRules, socialJoinValidationRules, profileValidationRules, passwordChangeRules, validate };

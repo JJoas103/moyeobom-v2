@@ -416,6 +416,23 @@
   color: var(--text-sub);
 }
 
+/* 신청 취소 · 참여 취소 — 눈에 덜 띄는 글자 버튼 */
+.side-box__leave {
+  align-self: flex-start;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-sub);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.side-box__leave:hover {
+  color: var(--cat-stage);
+}
+
 /* 날짜 배지 (행사 상세 안 모임 카드) */
 .poster__badge--date {
   font-weight: 700;

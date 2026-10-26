@@ -38,3 +38,9 @@ export async function saveFriendMemo(friendId, memo) {
 export const unfriend = (friendId) => apiDelete(`/api/friends/${friendId}`)
 
 export const blockUser = (userId) => apiPost('/api/friends/block', { userId })
+
+/** 내가 차단한 사람 → { blocks: [{ user, blockedAt }] } */
+export const fetchBlocks = () => apiGet('/api/friends/blocks')
+
+/** 차단 풀기 — 끊긴 친구는 다시 이어지지 않음 */
+export const unblockUser = (userId) => apiDelete(`/api/friends/blocks/${userId}`)

@@ -1,0 +1,445 @@
+/* 내 모임 */
+
+.my-page {
+  width: var(--content-width);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.my-page .page-head {
+  align-items: center;
+}
+
+.my-page__stats {
+  font-size: 13px;
+  color: var(--text-sub);
+}
+
+.my-page__stats a:hover {
+  text-decoration: underline;
+}
+
+/* 탭 — 작은 밑줄 탭 */
+.my-tabs {
+  display: flex;
+  gap: 20px;
+  margin-top: 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.my-tabs__tab {
+  height: 44px;
+  margin-bottom: -1px;
+  border-bottom: 2px solid transparent;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-sub);
+}
+
+.my-tabs__tab:hover {
+  color: var(--text);
+}
+
+.my-tabs__tab.is-active {
+  border-bottom-color: var(--text);
+  color: var(--text);
+  font-weight: 700;
+}
+
+.my-tabs__count {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-sub);
+}
+
+.my-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.my-section__title {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.my-section__title span {
+  margin-left: 4px;
+  font-weight: 500;
+  color: var(--text-sub);
+}
+
+.my-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  column-gap: 20px;
+  row-gap: 40px;
+  margin-bottom: 32px;
+}
+
+.my-note--pending {
+  color: var(--status-soon);
+  font-weight: 600;
+}
+
+.my-empty__action {
+  margin-top: 20px;
+}
+
+/* ---------- 마이 (/my) — 프로필 카드 + 상단 탭. 시안 html/moyeobom-my/my.html ---------- */
+
+.mypage {
+  width: var(--content-width);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.mypage-profile {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 28px 32px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+
+.mypage-profile__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mypage-profile__info h1 {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.mypage-profile__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-sub);
+}
+
+.mypage-chip {
+  height: 24px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  border-radius: var(--radius-pill);
+  background: var(--bg-muted);
+  font-size: 13px;
+  color: var(--text-body);
+}
+
+.mypage-stats {
+  display: flex;
+}
+
+.mypage-stats__item {
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  border-left: 1px solid var(--line);
+}
+
+.mypage-stats__item:first-child {
+  border-left: none;
+}
+
+.mypage-stats__item b {
+  font-size: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.mypage-stats__item span {
+  font-size: 13px;
+  color: var(--text-sub);
+  white-space: nowrap;
+}
+
+.mypage-stats__item:hover span {
+  text-decoration: underline;
+}
+
+.mypage-btn {
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.mypage-btn--text {
+  padding: 0 4px;
+  background: transparent;
+  color: var(--text-sub);
+  font-weight: 500;
+}
+
+.mypage-btn--text:hover {
+  text-decoration: underline;
+}
+
+.mypage__tabs {
+  margin-top: 4px;
+}
+
+.mypage__tabs .my-tabs__tab {
+  height: 48px;
+  font-size: 16px;
+}
+
+.mypage-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 짧은 안내 태그 — 문장 대신 */
+.mypage-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.mypage-tag {
+  height: 26px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-pill);
+  background: var(--bg-muted);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-body);
+  white-space: nowrap;
+}
+
+.mypage-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.mypage-panel__head strong {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.mypage-panel__head strong span {
+  margin-left: 4px;
+  font-weight: 500;
+  color: var(--text-sub);
+}
+
+/* 줄 목록 — 받은 칭찬 · 차단 목록 */
+.mypage-list {
+  border-top: 1px solid var(--line);
+}
+
+.mypage-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 4px;
+  border-bottom: 1px solid var(--line);
+}
+
+.mypage-list li > a.mypage-row:hover .mypage-row__title {
+  text-decoration: underline;
+}
+
+.mypage-row__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.mypage-row__title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.mypage-row__sub {
+  font-size: 14px;
+  color: var(--text-sub);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 받은 칭찬 */
+.praise-sum {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 24px 28px;
+  border-radius: var(--radius-lg);
+  background: var(--primary-soft);
+}
+
+.praise-sum__big {
+  font-size: 40px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.praise-sum .mypage-tags {
+  margin-left: auto;
+}
+
+.praise-sum .mypage-tag {
+  background: var(--surface);
+}
+
+.praise-sum__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.praise-sum__text strong {
+  font-size: 17px;
+}
+
+.praise-sum__text span {
+  font-size: 14px;
+  color: var(--text-body);
+}
+
+.praise-meter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.praise-meter__dots {
+  display: flex;
+  gap: 4px;
+}
+
+.praise-meter__dots i {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-pill);
+  background: var(--line);
+}
+
+.praise-meter__dots i.is-on {
+  background: var(--primary);
+}
+
+.praise-meter b {
+  min-width: 52px;
+  text-align: right;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 계정 설정 — 왼쪽 프로필 · 오른쪽 계정 (가입 방식과 상관없이 두 칸이 다 참) */
+.mypage-settings {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 64px;
+  align-items: start;
+}
+
+.mypage-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.mypage-form__title {
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.mypage-form--sub {
+  gap: 16px;
+  padding: 24px;
+  border-radius: var(--radius-lg);
+  background: var(--bg-muted);
+}
+
+.mypage-form--sub .input {
+  height: 48px;
+}
+
+.mypage-form__subtitle {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.mypage-form__row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mypage-form .input[readonly] {
+  background: var(--bg-muted);
+  color: var(--text-sub);
+}
+
+.mypage-photo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mypage-form__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+}
+
+.mypage-saved {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.mypage-settings__foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.mypage-settings__foot .btn--danger {
+  font-weight: 600;
+}
+
+/* 탈퇴 확인 팝업 */
+.mypage-withdraw {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mypage-withdraw .input {
+  height: 48px;
+}

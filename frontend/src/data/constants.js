@@ -61,3 +61,6 @@ export function categoryText(event, { withRunType = false } = {}) {
   if (withRunType) parts.push(RUN_TYPE_LABEL[event.runType])
   return [...new Set(parts.filter(Boolean))].join(' · ')
 }
+
+// 가입 방식 (User.provider)
+export const PROVIDER_LABEL = { local: '이메일 가입', google: '구글 계정', naver: '네이버 계정' }

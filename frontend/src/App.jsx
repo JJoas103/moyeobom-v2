@@ -4,6 +4,9 @@ import ScrollToTop from './components/ScrollToTop'
 import ErrorMessage from './components/ErrorMessage'
 import Home from './pages/Home'
 import ComingSoon from './pages/ComingSoon'
+import MyMeetups from './pages/my/MyMeetups'
+import MyPage from './pages/my/MyPage'
+import RequireAuth from './components/RequireAuth'
 import eventRoutes from './pages/event/routes'
 import meetupRoutes from './pages/meetup/routes'
 import memberRoutes from './pages/member/routes'
@@ -28,6 +31,22 @@ function App() {
           <Route path="member" element={<Outlet />}>{memberRoutes}</Route>
           <Route path="friends" element={<Outlet />}>{friendRoutes}</Route>
           <Route path="chat" element={<Outlet />}>{chatRoutes}</Route>
+          <Route
+            path="my/meetups"
+            element={
+              <RequireAuth>
+                <MyMeetups />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="my"
+            element={
+              <RequireAuth>
+                <MyPage />
+              </RequireAuth>
+            }
+          />
           <Route path="my/*" element={<ComingSoon />} />
           <Route path="*" element={<ErrorMessage />} />
         </Routes>

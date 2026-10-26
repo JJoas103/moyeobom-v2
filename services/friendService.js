@@ -278,6 +278,30 @@ async function block(me, targetId) {
   emitToUsers([me], 'chat:rooms', {}); // 모임 채팅에서 상대 메시지 숨김 반영
 }
 
+/** 내가 차단한 사람 → { blocks: [{ user, blockedAt }] } 최근 순 (탈퇴한 사람 제외) */
+async function listBlocks(me) {
+  const docs = await Block.find({ blocker: oid(me) }).sort({ createdAt: -1 }).populate('blocked', 'nickname profileImage').lean();
+  return { blocks: docs.filter((d) => d.blocked).map((d) => ({ user: publicUser(d.blocked), blockedAt: d.createdAt })) };
+}
+
+/** 차단 풀기 — 끊긴 친구 · 지나간 요청 자리는 되살리지 않음 */
+async function unblock(me, targetId) {
+  if (!mongoose.isValidObjectId(targetId)) throw httpError(404, '사용자를 찾을 수 없습니다');
+  await Block.deleteOne({ blocker: oid(me), blocked: oid(targetId) });
+  notify([me]);
+  emitToUsers([me], 'chat:rooms', {}); // 모임 채팅에서 상대 메시지 다시 보임
+}
+
+/** 탈퇴 — 친구 끊기(1:1 방 닫힘) · 요청 자리 · 차단 기록 정리 */
+async function removeUser(me) {
+  const friendships = await Friendship.find(partyQuery(me)).lean();
+  for (const doc of friendships) await endFriendship(doc);
+  await Promise.all([
+    FriendLink.deleteMany({ ...partyQuery(me), status: 'open' }),
+    Block.deleteMany({ $or: [{ blocker: oid(me) }, { blocked: oid(me) }] }),
+  ]);
+}
+
 // ---------- 정리 (매일 12:00) ----------
 
 async function expireLinks(now = new Date()) {
@@ -294,5 +318,8 @@ module.exports = {
   setMemo,
   unfriend,
   block,
+  listBlocks,
+  unblock,
+  removeUser,
   expireLinks,
 };

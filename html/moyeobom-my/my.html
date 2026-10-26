@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>모여봄 마이페이지</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap">
+<style>
+/* 레이아웃: 상단 헤더 → 프로필 카드 → 가로 탭(받은 칭찬 · 찜 목록 · 계정 설정 · 차단 목록) → 탭 내용. 1080px 한 단.
+   제품이 라이트 전용이라 시안도 라이트 한 가지로 고정 (frontend/src/index.css 토큰 그대로) */
+:root{
+  --bg:#FBFAF7;--bg-muted:#F4F2EC;--surface:#FFFFFF;--line:#E6E1D7;--line-strong:#26221E;
+  --text:#26221E;--text-body:#5E5850;--text-sub:#736D64;--text-disabled:#B8B2A8;
+  --brand:#1F6B52;--primary:#1F6B52;--primary-hover:#185843;--primary-soft:#E5F1EC;--primary-highlight:#CFE5DA;
+  --cat-stage:#A23B4A;--cat-exhibit:#3D4ACC;--cat-festival:#B06F0F;--cat-etc:#5E5850;
+  --status-open:#2E5AAC;--status-open-soft:#EAF0FB;--status-soon:#8F5500;--status-soon-soft:#FFF3DC;--status-closed:#8C867D;
+  --danger:#A23B4A;
+  --shadow-hover:0 2px 4px rgba(38,34,30,.04),0 8px 24px rgba(38,34,30,.08);
+  --img-edge:inset 0 0 0 1px rgba(0,0,0,.06);
+  --font:'Pretendard Variable',Pretendard,'Noto Sans KR',-apple-system,system-ui,sans-serif;
+  color-scheme:light;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;font-family:var(--font);background:var(--bg);color:var(--text);letter-spacing:-0.01em;line-height:1.5;word-break:keep-all;overflow-wrap:anywhere;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.wrap{width:100%;max-width:1080px;margin:0 auto}
+.gutter{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* 헤더 */
+header{border-bottom:1px solid var(--line);background:var(--bg)}
+header .wrap{height:72px;display:flex;align-items:center;gap:48px}
+.logo{font-size:22px;font-weight:800;letter-spacing:-0.03em;color:var(--brand)}
+.gnb{display:flex;gap:28px;font-size:16px;font-weight:600;overflow-x:auto;min-width:0}
+.gnb a{height:72px;display:flex;align-items:center;border-bottom:2px solid transparent;color:var(--text-sub);white-space:nowrap}
+.gnb a[aria-current]{border-bottom-color:var(--brand);color:var(--text)}
+.hd-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.icon-btn{width:44px;height:44px;border:none;background:transparent;color:var(--text-body);display:flex;align-items:center;justify-content:center;border-radius:10px;cursor:pointer}
+.me-dot{width:36px;height:36px;border-radius:9999px;background:#C9A66B}
+
+main .wrap{padding-block:40px 80px;display:flex;flex-direction:column;gap:28px}
+
+/* 프로필 카드 */
+.profile{display:flex;align-items:center;gap:24px;padding:28px 32px;border-radius:16px;background:var(--surface);border:1px solid var(--line);flex-wrap:wrap}
+.avatar{width:88px;height:88px;border-radius:9999px;background:#C9A66B;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#FFFFFF;font-size:32px;font-weight:700}
+.p-info{display:flex;flex-direction:column;gap:6px;min-width:0;flex:1 1 240px}
+.p-name{margin:0;font-size:24px;font-weight:700;letter-spacing:-0.02em}
+.p-meta{font-size:14px;color:var(--text-sub);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.provider{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:9999px;background:var(--bg-muted);font-size:13px;color:var(--text-body)}
+.p-stats{display:flex;gap:0;margin-left:auto}
+.p-stat{display:flex;flex-direction:column;align-items:center;gap:2px;padding:0 24px;border-left:1px solid var(--line)}
+.p-stat:first-child{border-left:none}
+.p-stat b{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+.p-stat span{font-size:13px;color:var(--text-sub);white-space:nowrap}
+.btn{height:40px;padding:0 16px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-size:14px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;white-space:nowrap}
+.btn:hover{background:var(--bg-muted)}
+.btn-p{background:var(--primary);border-color:var(--primary);color:#FFFFFF}
+.btn-p:hover{background:var(--primary-hover)}
+.btn-text{border:none;background:transparent;padding:0 4px;color:var(--text-sub);font-weight:500}
+.btn-text:hover{background:transparent;text-decoration:underline}
+
+/* 탭 */
+.tabs{display:flex;gap:28px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tab{height:48px;padding:0 4px;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--text-sub);font-size:17px;font-weight:500;display:flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap}
+.tab[aria-selected="true"]{border-bottom-color:var(--text);color:var(--text);font-weight:700}
+.tab .cnt{font-size:15px;font-weight:500;color:var(--text-sub)}
+.panel{display:flex;flex-direction:column;gap:20px}
+.panel-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.panel-head h2{margin:0;font-size:20px;font-weight:700;letter-spacing:-0.02em}
+.panel-head p{margin:0;font-size:14px;color:var(--text-sub)}
+
+/* 받은 칭찬 */
+.praise-sum{display:flex;align-items:center;gap:20px;padding:24px 28px;border-radius:16px;background:var(--primary-soft);flex-wrap:wrap}
+.praise-sum .big{font-size:40px;font-weight:800;color:var(--primary);font-variant-numeric:tabular-nums;line-height:1}
+.praise-sum .txt{display:flex;flex-direction:column;gap:2px;min-width:0}
+.praise-sum .txt b{font-size:17px}
+.praise-sum .txt span{font-size:14px;color:var(--text-body)}
+.list{display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.row{display:flex;align-items:center;gap:16px;padding:16px 4px;border-bottom:1px solid var(--line)}
+.thumb{width:48px;height:64px;border-radius:6px;flex-shrink:0;box-shadow:var(--img-edge)}
+.row-main{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0}
+.row-title{font-size:16px;font-weight:600}
+.row-sub{font-size:14px;color:var(--text-sub);font-variant-numeric:tabular-nums}
+.meter{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.dots{display:flex;gap:4px}
+.dots i{width:10px;height:10px;border-radius:9999px;background:var(--line)}
+.dots i.on{background:var(--primary)}
+.meter b{font-size:15px;font-variant-numeric:tabular-nums;min-width:62px;text-align:right}
+.note{font-size:13px;color:var(--text-sub);margin:0}
+
+/* 찜 목록 */
+.chips{display:flex;gap:8px}
+.chip{height:36px;padding:0 14px;border-radius:9999px;border:1px solid var(--line);background:var(--surface);font-size:14px;font-weight:500;color:var(--text-body);cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.chip[aria-pressed="true"]{background:var(--text);border-color:var(--text);color:#FFFFFF;font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:32px 20px}
+.pc{display:flex;flex-direction:column;gap:10px;min-width:0}
+.poster{position:relative;aspect-ratio:3/4;max-width:100%;border-radius:10px;box-shadow:var(--img-edge);transition:transform .2s ease-out,box-shadow .2s ease-out;display:flex;align-items:flex-end;padding:14px;color:rgba(255,255,255,.92);font-size:18px;font-weight:800;line-height:1.25;letter-spacing:-0.03em}
+.pc:hover .poster{transform:scale(1.02);box-shadow:var(--shadow-hover),var(--img-edge)}
+.pc:hover h3{text-decoration:underline}
+.heart{position:absolute;top:8px;right:8px;width:36px;height:36px;border-radius:9999px;border:none;background:rgba(255,255,255,.92);color:var(--primary);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.heart[aria-pressed="false"]{color:var(--text-sub)}
+.badge{align-self:flex-start;height:24px;padding:0 8px;border-radius:6px;font-size:12px;font-weight:700;display:inline-flex;align-items:center}
+.b-open{background:var(--status-open-soft);color:var(--status-open)}
+.b-soon{background:var(--status-soon-soft);color:var(--status-soon)}
+.b-closed{background:var(--bg-muted);color:var(--status-closed)}
+.pc h3{margin:0;font-size:16px;font-weight:700;line-height:1.4}
+.cat{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-sub)}
+.cat i{width:7px;height:7px;border-radius:9999px}
+.pc .sub{font-size:14px;color:var(--text-sub);font-variant-numeric:tabular-nums}
+.mlist{display:flex;flex-direction:column;gap:12px}
+.mcard{display:flex;align-items:center;gap:20px;padding:16px;border-radius:12px;background:var(--surface);border:1px solid var(--line);flex-wrap:wrap}
+.mcard .thumb{width:60px;height:80px}
+.mcard .row-main{flex:1 1 240px}
+
+/* 계정 설정 */
+.form{display:flex;flex-direction:column;border-top:1px solid var(--line);max-width:720px}
+.field{display:grid;grid-template-columns:140px minmax(0,1fr);gap:16px;align-items:center;padding:20px 4px;border-bottom:1px solid var(--line)}
+.field>label,.field>.lbl{font-size:15px;font-weight:600}
+.ctrl{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0}
+.input{height:44px;width:280px;max-width:100%;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-size:15px}
+.input:focus{outline:none;border-color:var(--text)}
+.input[readonly]{background:var(--bg-muted);color:var(--text-sub)}
+.hint{font-size:13px;color:var(--text-sub);width:100%}
+.hint.ok{color:var(--primary)}
+.avatar-sm{width:56px;height:56px;border-radius:9999px;background:#C9A66B;color:#FFFFFF;font-weight:700;font-size:22px;display:flex;align-items:center;justify-content:center}
+.form-foot{display:flex;align-items:center;gap:12px;max-width:720px;padding-top:4px}
+.form-foot .btn-p{margin-left:auto}
+.leave{max-width:720px;margin-top:20px;padding-top:20px;border-top:1px solid var(--line);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.leave span{font-size:14px;color:var(--text-sub)}
+
+/* 차단 목록 */
+.ava{width:48px;height:48px;border-radius:9999px;flex-shrink:0}
+.confirm{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.confirm span{font-size:14px;color:var(--text-body)}
+.empty{padding:48px 0;text-align:center;color:var(--text-sub);font-size:15px}
+.toast{position:fixed;left:50%;bottom:calc(32px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);padding:12px 20px;border-radius:10px;background:var(--text);color:#FFFFFF;font-size:14px;font-weight:500;box-shadow:0 8px 24px rgba(38,34,30,.2)}
+
+footer .wrap{padding-block:32px;border-top:1px solid var(--line);display:flex;gap:24px;font-size:13px;color:var(--text-sub);flex-wrap:wrap}
+footer b{color:var(--text);font-weight:800}
+
+@media (max-width:720px){
+  header .wrap{gap:20px}
+  .p-stats{margin-left:0;width:100%;justify-content:space-between}
+  .p-stat{padding:0 12px}
+  .field{grid-template-columns:1fr;gap:8px}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 12px}
+  .profile{padding:20px}
+}
+@media (prefers-reduced-motion:reduce){.pc:hover .poster{transform:none}.poster{transition:none}}
+</style>
+</head>
+<body>
+
+<header class="gutter">
+  <div class="wrap">
+    <a href="#" class="logo">모여봄</a>
+    <nav class="gnb" aria-label="주 메뉴">
+      <a href="#">홈</a><a href="#">행사</a><a href="#">모임</a><a href="#">내 모임</a><a href="#">친구</a><a href="#" aria-current="page">마이</a>
+    </nav>
+    <div class="hd-right">
+      <button class="icon-btn" aria-label="알림"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></button>
+      <span class="me-dot" aria-hidden="true"></span>
+    </div>
+  </div>
+</header>
+
+<main class="gutter">
+  <div class="wrap">
+
+    <section class="profile" aria-label="내 프로필">
+      <div class="avatar" aria-hidden="true">봄</div>
+      <div class="p-info">
+        <h1 class="p-name">봄날의관객</h1>
+        <div class="p-meta">
+          <span class="provider"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>구글 계정</span>
+          <span>2026년 9월부터 함께했어요</span>
+        </div>
+      </div>
+      <div class="p-stats">
+        <div class="p-stat"><b>5</b><span>참여한 모임</span></div>
+        <div class="p-stat"><b>3</b><span>친구</span></div>
+        <div class="p-stat"><b>12</b><span>받은 칭찬</span></div>
+      </div>
+      <button class="btn" data-go="settings">프로필 수정</button>
+    </section>
+
+    <div class="tabs" role="tablist" aria-label="마이페이지 메뉴">
+      <button class="tab" role="tab" id="tab-praise" aria-controls="praise" aria-selected="true">받은 칭찬 <span class="cnt">12</span></button>
+      <button class="tab" role="tab" id="tab-likes" aria-controls="likes" aria-selected="false">찜 목록 <span class="cnt">6</span></button>
+      <button class="tab" role="tab" id="tab-settings" aria-controls="settings" aria-selected="false">계정 설정</button>
+      <button class="tab" role="tab" id="tab-blocks" aria-controls="blocks" aria-selected="false">차단 목록 <span class="cnt" id="block-cnt">2</span></button>
+    </div>
+
+    <!-- 받은 칭찬: Review.praised 에 내가 들어간 횟수. 누가 칭찬했는지는 보여주지 않음 -->
+    <section class="panel" role="tabpanel" id="praise" aria-labelledby="tab-praise">
+      <div class="praise-sum">
+        <span class="big">12</span>
+        <div class="txt"><b>모임 4곳에서 칭찬 12번 받았어요</b><span>함께한 사람 중 누가 칭찬했는지는 보이지 않아요</span></div>
+      </div>
+      <div class="list">
+        <div class="row">
+          <span class="thumb" style="background:linear-gradient(160deg,#6B2430,#A23B4A)"></span>
+          <div class="row-main"><span class="row-title">〈햄릿〉 끝나고 2막 얘기해요</span><span class="row-sub">10.12 (일) · 연극 · 함께한 사람 4명</span></div>
+          <div class="meter"><span class="dots" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span><b>4/4명</b></div>
+        </div>
+        <div class="row">
+          <span class="thumb" style="background:linear-gradient(160deg,#28307F,#3D4ACC)"></span>
+          <div class="row-main"><span class="row-title">모네 전시 보고 커피 한 잔</span><span class="row-sub">10.04 (토) · 전시 · 함께한 사람 5명</span></div>
+          <div class="meter"><span class="dots" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span><b>3/5명</b></div>
+        </div>
+        <div class="row">
+          <span class="thumb" style="background:linear-gradient(160deg,#7A4C0A,#B06F0F)"></span>
+          <div class="row-main"><span class="row-title">서울재즈페스타 같이 듣고 수다</span><span class="row-sub">09.27 (토) · 축제 · 함께한 사람 3명</span></div>
+          <div class="meter"><span class="dots" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i></span><b>3/3명</b></div>
+        </div>
+        <div class="row">
+          <span class="thumb" style="background:linear-gradient(160deg,#3A3631,#5E5850)"></span>
+          <div class="row-main"><span class="row-title">〈패스트 라이브즈〉 보고 이야기</span><span class="row-sub">09.20 (토) · 영화 · 함께한 사람 4명</span></div>
+          <div class="meter"><span class="dots" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i><i></i></span><b>2/4명</b></div>
+        </div>
+      </div>
+      <p class="note">평가가 마감된 모임만 보여요. 칭찬은 매너 점수에 쓰일 수 있어요.</p>
+    </section>
+
+    <!-- 찜 목록: 찜 기능 아직 없음 — 시안만 -->
+    <section class="panel" role="tabpanel" id="likes" aria-labelledby="tab-likes" hidden>
+      <div class="chips" role="group" aria-label="찜 종류">
+        <button class="chip" aria-pressed="true" data-like="ev">행사 4</button>
+        <button class="chip" aria-pressed="false" data-like="mt">모임 2</button>
+      </div>
+      <div class="grid" id="like-ev">
+        <a href="#" class="pc">
+          <span class="poster" style="background:linear-gradient(170deg,#3B1218,#A23B4A)">레베카<button class="heart" aria-pressed="true" aria-label="찜 풀기"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-7.5-10.1A4.4 4.4 0 0 1 12 7.6a4.4 4.4 0 0 1 7.5 2.8c0 5.5-7.5 10.1-7.5 10.1z"/></svg></button></span>
+          <span class="badge b-open">진행 중</span>
+          <h3>뮤지컬 〈레베카〉</h3>
+          <span class="cat"><i style="background:var(--cat-stage)"></i>공연 · 블루스퀘어</span>
+          <span class="sub">08.20 ~ 11.16 · 모임 3</span>
+        </a>
+        <a href="#" class="pc">
+          <span class="poster" style="background:linear-gradient(170deg,#1A2066,#3D4ACC)">빛의 정원<button class="heart" aria-pressed="true" aria-label="찜 풀기"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-7.5-10.1A4.4 4.4 0 0 1 12 7.6a4.4 4.4 0 0 1 7.5 2.8c0 5.5-7.5 10.1-7.5 10.1z"/></svg></button></span>
+          <span class="badge b-soon">D-5</span>
+          <h3>빛의 정원 — 인상주의 특별전</h3>
+          <span class="cat"><i style="background:var(--cat-exhibit)"></i>전시 · 서울시립미술관</span>
+          <span class="sub">10.29 ~ 2027.01.31 · 모임 1</span>
+        </a>
+        <a href="#" class="pc">
+          <span class="poster" style="background:linear-gradient(170deg,#24443A,#1F6B52)">국악의 밤<button class="heart" aria-pressed="true" aria-label="찜 풀기"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-7.5-10.1A4.4 4.4 0 0 1 12 7.6a4.4 4.4 0 0 1 7.5 2.8c0 5.5-7.5 10.1-7.5 10.1z"/></svg></button></span>
+          <span class="badge b-soon">D-12</span>
+          <h3>가을 국악의 밤</h3>
+          <span class="cat"><i style="background:var(--cat-etc)"></i>클래식/국악 · 국립국악원</span>
+          <span class="sub">11.05 · 모임 0</span>
+        </a>
+        <a href="#" class="pc">
+          <span class="poster" style="background:linear-gradient(170deg,#5A3A08,#B06F0F);opacity:.6">한강 불빛축제<button class="heart" aria-pressed="true" aria-label="찜 풀기"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-7.5-10.1A4.4 4.4 0 0 1 12 7.6a4.4 4.4 0 0 1 7.5 2.8c0 5.5-7.5 10.1-7.5 10.1z"/></svg></button></span>
+          <span class="badge b-closed">끝남</span>
+          <h3>한강 불빛축제</h3>
+          <span class="cat"><i style="background:var(--cat-festival)"></i>축제 · 여의도한강공원</span>
+          <span class="sub">10.10 ~ 10.19 · 모임 5</span>
+        </a>
+      </div>
+      <div class="mlist" id="like-mt" hidden>
+        <a href="#" class="mcard">
+          <span class="thumb" style="background:linear-gradient(160deg,#3B1218,#A23B4A)"></span>
+          <div class="row-main"><span class="row-title">〈레베카〉 2부 넘버 얘기해요</span><span class="row-sub">뮤지컬 〈레베카〉 · 10.30 (목) 22:00 · 혜화역 근처</span></div>
+          <span class="badge b-soon">1자리 남음</span>
+        </a>
+        <a href="#" class="mcard">
+          <span class="thumb" style="background:linear-gradient(160deg,#1A2066,#3D4ACC)"></span>
+          <div class="row-main"><span class="row-title">전시 보고 조용히 감상 나눠요</span><span class="row-sub">빛의 정원 — 인상주의 특별전 · 11.02 (일) 16:00 · 시청역 근처</span></div>
+          <span class="badge b-open">모집 중 2/4</span>
+        </a>
+      </div>
+      <p class="note">끝난 행사도 찜에 남아요. 모임이 취소되면 찜에서 빠져요.</p>
+    </section>
+
+    <!-- 계정 설정 -->
+    <section class="panel" role="tabpanel" id="settings" aria-labelledby="tab-settings" hidden>
+      <form class="form" id="settings-form" novalidate>
+        <div class="field">
+          <span class="lbl">프로필 사진</span>
+          <div class="ctrl"><span class="avatar-sm" aria-hidden="true">봄</span><label class="btn" for="photo">사진 바꾸기</label><input type="file" id="photo" accept="image/*" hidden><button type="button" class="btn btn-text">기본 사진으로</button></div>
+        </div>
+        <div class="field">
+          <label for="nickname">닉네임</label>
+          <div class="ctrl"><input class="input" id="nickname" value="봄날의관객" maxlength="12"><button type="button" class="btn" id="dup">중복 확인</button><span class="hint" id="nick-hint">2~12자, 다른 사람과 겹치지 않게 해요</span></div>
+        </div>
+        <div class="field">
+          <label for="email">이메일</label>
+          <div class="ctrl"><input class="input" id="email" value="spring.audience@gmail.com" readonly><span class="hint">로그인에 쓰는 주소라 바꿀 수 없어요</span></div>
+        </div>
+        <div class="field">
+          <span class="lbl">로그인 방식</span>
+          <div class="ctrl"><span class="provider">구글 계정</span><span class="hint">이메일로 가입했다면 여기서 비밀번호를 바꿀 수 있어요</span></div>
+        </div>
+      </form>
+      <div class="form-foot">
+        <button type="button" class="btn">로그아웃</button>
+        <button type="submit" form="settings-form" class="btn btn-p">저장하기</button>
+      </div>
+      <div class="leave">
+        <span>모임 기록과 채팅이 모두 사라져요.</span>
+        <button type="button" class="btn btn-text" style="color:var(--danger)">회원 탈퇴</button>
+      </div>
+    </section>
+
+    <!-- 차단 목록: Block 모델 -->
+    <section class="panel" role="tabpanel" id="blocks" aria-labelledby="tab-blocks" hidden>
+      <div class="panel-head"><h2>차단한 사람</h2><p>차단하면 친구가 끊기고, 모임 채팅에서 서로의 메시지가 보이지 않아요.</p></div>
+      <div class="list" id="block-list">
+        <div class="row">
+          <span class="ava" style="background:#A9B7C6"></span>
+          <div class="row-main"><span class="row-title">새벽세시</span><span class="row-sub">10.12 차단 · 〈햄릿〉 모임에서 만났어요</span></div>
+          <div class="confirm"><button class="btn" data-unblock>차단 풀기</button></div>
+        </div>
+        <div class="row">
+          <span class="ava" style="background:#9FB2A1"></span>
+          <div class="row-main"><span class="row-title">골목영화관</span><span class="row-sub">10.03 차단 · 〈패스트 라이브즈〉 모임에서 만났어요</span></div>
+          <div class="confirm"><button class="btn" data-unblock>차단 풀기</button></div>
+        </div>
+      </div>
+      <p class="note">차단을 풀어도 끊긴 친구는 다시 이어지지 않아요.</p>
+    </section>
+
+  </div>
+</main>
+
+<footer class="gutter">
+  <div class="wrap"><b>모여봄</b><span>행사 정보 · 서울시 문화행사 정보</span><span style="margin-left:auto">대학 팀 프로젝트</span></div>
+</footer>
+
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+(function(){
+  var tabs=[].slice.call(document.querySelectorAll('.tab'));
+  function show(id,push){
+    tabs.forEach(function(t){
+      var on=t.getAttribute('aria-controls')===id;
+      t.setAttribute('aria-selected',on);
+      document.getElementById(t.getAttribute('aria-controls')).hidden=!on;
+    });
+    if(push){try{history.replaceState(null,'','#'+id)}catch(e){}}
+  }
+  tabs.forEach(function(t){t.addEventListener('click',function(){show(t.getAttribute('aria-controls'),true)})});
+  document.querySelectorAll('[data-go]').forEach(function(b){b.addEventListener('click',function(){show(b.dataset.go,true);document.querySelector('.tabs').scrollIntoView({behavior:'smooth',block:'start'})})});
+  var h=(location.hash||'').slice(1);
+  if(['praise','likes','settings','blocks'].indexOf(h)>-1)show(h,false);
+
+  var toastT;
+  function toast(msg){var el=document.getElementById('toast');el.textContent=msg;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(function(){el.hidden=true},2200)}
+
+  // 찜 종류
+  document.querySelectorAll('[data-like]').forEach(function(c){c.addEventListener('click',function(){
+    document.querySelectorAll('[data-like]').forEach(function(x){x.setAttribute('aria-pressed',x===c)});
+    document.getElementById('like-ev').hidden=c.dataset.like!=='ev';
+    document.getElementById('like-mt').hidden=c.dataset.like!=='mt';
+  })});
+  // 하트
+  document.querySelectorAll('.heart').forEach(function(b){b.addEventListener('click',function(e){
+    e.preventDefault();e.stopPropagation();
+    var on=b.getAttribute('aria-pressed')!=='true';
+    b.setAttribute('aria-pressed',on);b.setAttribute('aria-label',on?'찜 풀기':'찜하기');
+    b.querySelector('svg').setAttribute('fill',on?'currentColor':'none');
+    b.querySelector('svg').setAttribute('stroke',on?'none':'currentColor');
+    b.querySelector('svg').setAttribute('stroke-width','1.75');
+    toast(on?'찜했어요':'찜을 풀었어요');
+  })});
+  document.querySelectorAll('.pc, .mcard').forEach(function(a){a.addEventListener('click',function(e){e.preventDefault()})});
+
+  // 닉네임
+  document.getElementById('dup').addEventListener('click',function(){
+    var v=document.getElementById('nickname').value.trim(),hint=document.getElementById('nick-hint');
+    if(v.length<2){hint.className='hint';hint.style.color='var(--danger)';hint.textContent='2자 이상 써 주세요';return}
+    hint.style.color='';hint.className='hint ok';hint.textContent='쓸 수 있는 닉네임이에요';
+  });
+  document.getElementById('settings-form').addEventListener('submit',function(e){e.preventDefault();toast('저장했어요')});
+
+  // 차단 풀기 — 페이지 안에서 확인
+  var list=document.getElementById('block-list');
+  list.addEventListener('click',function(e){
+    var b=e.target.closest('button');if(!b)return;
+    var box=b.closest('.confirm'),row=b.closest('.row');
+    if(b.hasAttribute('data-unblock')){
+      box.innerHTML='<span>차단을 풀까요?</span><button class="btn" data-cancel>취소</button><button class="btn btn-p" data-yes>풀기</button>';
+    }else if(b.hasAttribute('data-cancel')){
+      box.innerHTML='<button class="btn" data-unblock>차단 풀기</button>';
+    }else if(b.hasAttribute('data-yes')){
+      var name=row.querySelector('.row-title').textContent;row.remove();
+      var n=list.querySelectorAll('.row').length;document.getElementById('block-cnt').textContent=n;
+      if(!n)list.innerHTML='<div class="empty">차단한 사람이 없어요</div>';
+      toast(name+' 님 차단을 풀었어요');
+    }
+  });
+})();
+</script>
+</body>
+</html>

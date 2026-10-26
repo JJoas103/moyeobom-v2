@@ -21,6 +21,7 @@ const PAGE_SIZE = 50;
 const SYSTEM = {
   meetupOpened: '모임 채팅방이 열렸어요. 호스트가 승인한 참여자만 들어올 수 있어요.',
   joined: (nickname) => `${nickname}님이 들어왔어요`,
+  left: (nickname) => `${nickname}님이 나갔어요`,
   cancelled: '호스트가 모임을 취소했어요. 대화는 읽기만 할 수 있어요.',
   // 두 사람이 같은 문장을 보므로 '○○님과' 대신 중립 문구
   friends: (eventTitle) => (eventTitle ? `친구가 되었어요. ${eventTitle} 이야기 자리에서 만났어요.` : '친구가 되었어요.'),
@@ -120,6 +121,17 @@ async function addMeetupMember(meetup, userId) {
   }
   const user = await User.findById(userId, { nickname: 1 }).lean();
   await postSystem(room, SYSTEM.joined(user?.nickname || '새 참여자'));
+  emitToUsers([userId], 'chat:rooms', {});
+}
+
+/** 참여 취소(승인된 참여자) → 방에서 빼고 '○○님이 나갔어요' */
+async function removeMeetupMember(meetupId, userId) {
+  const room = await ChatRoom.findOne({ type: 'meetup', meetup: meetupId });
+  if (!room || isClosed(room) || !room.users.some((u) => idEq(u, userId))) return;
+  await ChatRoom.updateOne({ _id: room._id }, { $pull: { users: oid(userId), reads: { user: oid(userId) } } });
+  room.users = room.users.filter((u) => !idEq(u, userId));
+  const user = await User.findById(userId, { nickname: 1 }).lean();
+  await postSystem(room, SYSTEM.left(user?.nickname || '참여자'));
   emitToUsers([userId], 'chat:rooms', {});
 }
 
@@ -448,6 +460,7 @@ async function purgeClosedRooms(now = new Date()) {
 module.exports = {
   ensureMeetupRoom,
   addMeetupMember,
+  removeMeetupMember,
   syncMeetupRoom,
   closeMeetupRoom,
   createDirectRoom,

@@ -71,4 +71,23 @@ const block = async (req, res, next) => {
   }
 };
 
-module.exports = { list, requests, sendRequest, sendRequests, memo, unfriend, block };
+// GET /api/friends/blocks → { blocks }
+const blocks = async (req, res, next) => {
+  try {
+    res.json({ success: true, ...(await friendService.listBlocks(req.user._id)) });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// DELETE /api/friends/blocks/:userId — 차단 풀기
+const unblock = async (req, res, next) => {
+  try {
+    await friendService.unblock(req.user._id, req.params.userId);
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { list, requests, sendRequest, sendRequests, memo, unfriend, block, blocks, unblock };

@@ -48,11 +48,13 @@ npm run sync:places         # 공중화장실 · 지하철역 수동 동기화 (
 | 모임 평가 ①② · 완료 · 마감 | `/meetup/:id/review` | 완료 (실제 API) — 시안 `html/moyeobom-chat-friends/review-*` |
 | 친구 · 요청 | `/friends` · `/friends/requests` | 완료 (실제 API) — 메모 팝업 · 일괄 확인 팝업 포함 |
 | 채팅 (모임 · 친구 1:1) | `/chat` · `/chat/:roomId` · `/chat/meetup/:meetupId` | 완료 (실제 API + socket.io) |
+| 내 모임 | `/my/meetups?tab=hosted\|joined` | 완료 (실제 API `GET /api/meetup/mine`) — 내가 연 / 참여한(신청 중 포함) 탭, 다가오는 · 지난 모임 카드. 매너 온도는 미결정이라 숨김 |
+| 마이 | `/my?tab=praise\|likes\|settings\|blocks` | 완료 (실제 API `GET/PATCH /api/member/me` · `PATCH /api/member/me/password` · `GET/DELETE /api/friends/blocks`) — 프로필 카드 + 상단 탭. 시안 `html/moyeobom-my/my.html`. 찜은 기능 없어 안내만. 탈퇴 `POST /api/member/withdraw` — 다가오는 연 모임 · 참여(신청 중 포함) 모임 있으면 막음, 비밀번호(소셜은 '탈퇴' 입력) 확인, 친구 · 요청 자리 · 차단 · 회원 삭제(지난 모임 · 평가 · 메시지는 남김) |
 | 홈 | `/` | **미구현** — 추천 홈 / 지도로 보기 / 달력으로 보기 탭. 나중에 |
 
 - 행사 · 모임 모두 실제 API 연결됨 (`USE_MOCK_EVENTS = false`, `USE_MOCK_MEETUPS = false`). 표의 '(목업)'은 화면을 처음 만든 시점 기준.
 - 인증(passport·session, connect-mongo) 붙음 — `/member/login` · `/member/join` · `/member/social-join`. 찜·추천 이유는 아직.
-- 모임: 만들기(로그인 · 만든 사람이 호스트) · 사진 업로드(`public/images/upload`) · 참여 신청(pending 저장) · 호스트 승인 · 수정(`/meetup/:id/edit`, 행사 빼고 전부, 정원은 승인 인원 이상) · 모집 마감/다시 열기 · 취소(되돌리기 없음, 목록 · 행사 모임 수에서 제외). 종료 시각은 없음. 신청자는 `Meetup.members` 배열에 임베드, 정원(`capacity`)은 **호스트 제외**. `talk.place` · `members` 는 호스트와 승인된 참여자에게만 내려준다.
+- 모임: 만들기(로그인 · 만든 사람이 호스트) · 사진 업로드(`public/images/upload`) · 참여 신청(pending 저장) · 호스트 승인 · 참여 취소(`POST /api/meetup/:id/leave` — 신청 중 · 승인 모두 이야기 자리 시작 전까지, members 에서 빼서 다시 신청 가능, 승인된 사람은 채팅방에서도 빠지고 '○○님이 나갔어요') · 수정(`/meetup/:id/edit`, 행사 빼고 전부, 정원은 승인 인원 이상) · 모집 마감/다시 열기 · 취소(되돌리기 없음, 목록 · 행사 모임 수에서 제외). 종료 시각은 없음. 신청자는 `Meetup.members` 배열에 임베드, 정원(`capacity`)은 **호스트 제외**. `talk.place` · `members` 는 호스트와 승인된 참여자에게만 내려준다.
 
 ## 평가 · 친구 · 채팅 (결정 로그 2026-10)
 
@@ -111,5 +113,5 @@ npm run sync:places         # 공중화장실 · 지하철역 수동 동기화 (
 - 친구 메모 글자 수 — 지금 임시 30자 (시안 제안값, `models/Friendship.js` `MEMO_MAX` · `frontend/src/data/friends.js`)
 - 만료된 '보낸 요청'을 목록에 남겨 두는 기간 — 지금 임시 7일 (`services/socialRules.js` `SENT_EXPIRED_SHOW_DAYS`)
 - 매너 점수 산정 방식 · 노출 위치, 노쇼 판정 주체
-- 모임 채팅 '채팅방 나가기' 의미 (모임 참여 취소인지, 목록에서만 숨김인지) — 시안엔 있지만 버튼 뺐음
+- 모임 채팅 '채팅방 나가기' 버튼 — 참여 취소와 같은 동작으로 하기로 함(2026-10). 버튼은 아직 모임 상세 신청 박스에만 있음
 - 신고 처리 주체 · 화면, 알림 대상 이벤트 · 전달 수단

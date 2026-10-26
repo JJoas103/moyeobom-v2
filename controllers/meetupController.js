@@ -41,6 +41,15 @@ const list = async (req, res, next) => {
   }
 };
 
+// GET /api/meetup/mine → { hosted, joined, friendCount }
+const mine = async (req, res, next) => {
+  try {
+    res.json({ success: true, ...(await meetupService.listMyMeetups(req.user._id)) });
+  } catch (err) {
+    next(err);
+  }
+};
+
 // GET /api/meetup/:id
 const detail = async (req, res, next) => {
   try {
@@ -106,4 +115,14 @@ const approve = async (req, res, next) => {
   }
 };
 
-module.exports = { list, detail, uploadImage, create, update, changeStatus, apply, approve };
+// POST /api/meetup/:id/leave — 참여 취소 (신청 중 · 승인 모두, 이야기 자리 시작 전까지)
+const leave = async (req, res, next) => {
+  try {
+    const meetup = await meetupService.leaveMeetup(req.params.id, req.user._id);
+    res.json({ success: true, meetup });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { list, mine, detail, uploadImage, create, update, changeStatus, apply, approve, leave };

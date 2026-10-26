@@ -7,8 +7,9 @@ import { JOIN_KIND, budgetLabel } from '../../data/constants'
 /**
  * 모임 카드 — 대표 이미지(없으면 행사 포스터) + 상태 · 제목 · 행사 · 언제/어디 · 정원 게이지
  * variant="inEvent": 행사 상세 안에서 사용 — 행사명 줄 빼고 포스터 배지에 날짜
+ * note: 참여 방식 자리에 대신 보일 한 줄 (내 모임 — '승인 기다리는 중' 등)
  */
-export default function MeetupCard({ meetup, variant = 'default' }) {
+export default function MeetupCard({ meetup, variant = 'default', note }) {
   const inEvent = variant === 'inEvent'
   const { event } = meetup
   const status = meetupStatus(meetup)
@@ -32,14 +33,16 @@ export default function MeetupCard({ meetup, variant = 'default' }) {
             </span>
           )}
           {status.tone === 'closed' && (
-            <span className="poster__veil">{meetup.status === 'cancelled' ? '취소된 모임' : '마감된 모임'}</span>
+            <span className="poster__veil">
+              {meetup.status === 'cancelled' ? '취소된 모임' : status.label === '끝난 모임' ? '끝난 모임' : '마감된 모임'}
+            </span>
           )}
         </Poster>
 
         <div className="card__body">
           <div className="card__row">
             <span className={`status status--${status.tone}`}>{status.label}</span>
-            <span className="card__kind one-line">{meetup.watch?.enabled ? JOIN_KIND.watch : JOIN_KIND.talk}</span>
+            {note || <span className="card__kind one-line">{meetup.watch?.enabled ? JOIN_KIND.watch : JOIN_KIND.talk}</span>}
           </div>
           <h3 className="card__title clamp2">{meetup.title}</h3>
           {inEvent ? (

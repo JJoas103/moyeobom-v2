@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { ShareIcon } from '../common/Icons'
 import ReviewBox from './ReviewBox'
+import { ConfirmDialog } from '../common/Dialog'
 import { useAuth } from '../../context/AuthContext'
-import { applyMeetup } from '../../data/meetups'
+import { applyMeetup, leaveMeetup } from '../../data/meetups'
 import { JOIN_LABEL } from '../../data/constants'
 import { formatMeetupWhen, formatTime } from '../../utils/format'
 
@@ -188,6 +189,7 @@ function ApplyForm({ meetup, status, onChange, confirmed }) {
           {state.error}
         </p>
       )}
+      {mine && !started && meetup.status !== 'cancelled' && <LeaveButton meetup={meetup} approved={mine.status === 'approved'} />}
       {confirmed && meetup.status !== 'cancelled' ? (
         <Link to={`/chat/meetup/${meetup._id}`} className="review-box__chat">
           모임 채팅 열기 ›
@@ -196,5 +198,52 @@ function ApplyForm({ meetup, status, onChange, confirmed }) {
         <p className="side-box__note">호스트가 승인하면 참여가 확정돼요. 승인되면 정확한 장소와 모임 채팅이 열려요.</p>
       )}
     </aside>
+  )
+}
+
+// 참여 취소 — 신청 중이면 '신청 취소', 확정이면 '참여 취소'(모임 채팅에서도 나감). 다시 신청할 수 있음
+//   취소하면 모임 목록(/meetup)으로 이동
+function LeaveButton({ meetup, approved }) {
+  const navigate = useNavigate()
+  const [open, setOpen] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const label = approved ? '참여 취소' : '신청 취소'
+
+  const close = () => {
+    setOpen(false)
+    setError('')
+  }
+
+  const onConfirm = async () => {
+    setBusy(true)
+    try {
+      await leaveMeetup(meetup._id)
+      navigate('/meetup', { replace: true })
+    } catch (e) {
+      setError(e.message)
+      setBusy(false)
+    }
+  }
+
+  return (
+    <>
+      <button type="button" className="side-box__leave" onClick={() => setOpen(true)}>
+        {label}하기
+      </button>
+      {open && (
+        <ConfirmDialog
+          title={approved ? '모임 참여를 취소할까요?' : '참여 신청을 취소할까요?'}
+          confirmLabel={label}
+          danger
+          busy={busy}
+          error={error}
+          onConfirm={onConfirm}
+          onClose={close}
+        >
+          <p className="dialog__text">{approved ? '모임 채팅에서도 나가요. 자리가 남아 있으면 다시 신청할 수 있어요.' : '자리가 남아 있으면 다시 신청할 수 있어요.'}</p>
+        </ConfirmDialog>
+      )}
+    </>
   )
 }

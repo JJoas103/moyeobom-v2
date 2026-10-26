@@ -5,6 +5,7 @@ const Meetup = require('../models/Meetup');
 const Event = require('../models/Event');
 const User = require('../models/User');
 const Review = require('../models/Review');
+const Friendship = require('../models/Friendship');
 const { BUDGETS } = require('../models/Meetup');
 const { periodRange, RECENT_ENDED_DAYS } = require('./eventService');
 const chatService = require('./chatService');
@@ -176,6 +177,32 @@ async function findDoc(id) {
   const doc = await Meetup.findById(id).lean();
   if (!doc) throw httpError(404, '모임을 찾을 수 없습니다');
   return doc;
+}
+
+/**
+ * 내 모임 — 내가 연 모임 · 참여한 모임(신청 중 포함). 취소된 모임도 포함 (카드에 '취소된 모임')
+ * 순서: 다가오는 모임 가까운 순 → 지난 모임 최근 순
+ */
+async function listMyMeetups(userId) {
+  const me = new mongoose.Types.ObjectId(String(userId));
+  const [docs, friendCount] = await Promise.all([
+    Meetup.find({ $or: [{ host: me }, { 'members.user': me }] }).lean(),
+    Friendship.countDocuments({ $or: [{ userA: me }, { userB: me }] }),
+  ]);
+  const now = Date.now();
+  const time = (d) => new Date(d.talk.startAt).getTime();
+  docs.sort((a, b) => {
+    const pastA = time(a) <= now;
+    const pastB = time(b) <= now;
+    if (pastA !== pastB) return pastA ? 1 : -1;
+    return pastA ? time(b) - time(a) : time(a) - time(b);
+  });
+  const meetups = await serializeMany(docs, userId);
+  return {
+    hosted: meetups.filter((m) => m.isHost),
+    joined: meetups.filter((m) => !m.isHost),
+    friendCount,
+  };
 }
 
 /** 모임 하나 — 보는 사람에 따라 talk.place · members 포함. 확정 참여자면 내 평가 제출 여부도 */
@@ -408,4 +435,21 @@ async function approveMember(id, hostId, memberUserId) {
   return getMeetup(doc._id, hostId);
 }
 
-module.exports = { listMeetups, getMeetup, createMeetup, updateMeetup, setMeetupStatus, applyMeetup, approveMember };
+/**
+ * 참여 취소 — 신청 중 · 승인 모두 이야기 자리 시작 전까지. members 에서 빼므로 다시 신청할 수 있음
+ * 승인된 참여자였으면 모임 채팅방에서도 빠짐 ('○○님이 나갔어요')
+ */
+async function leaveMeetup(id, userId) {
+  const doc = await findDoc(id);
+  const member = (doc.members || []).find((m) => idEq(m.user, userId));
+  if (!member) throw httpError(404, '신청한 모임이 아니에요');
+  if (doc.status === 'cancelled') throw httpError(400, '취소된 모임이에요');
+  if (new Date(doc.talk.startAt) <= new Date()) throw httpError(400, '이미 시작한 모임이에요');
+
+  const userObjectId = new mongoose.Types.ObjectId(String(userId));
+  await Meetup.updateOne({ _id: doc._id }, { $pull: { members: { user: userObjectId } } });
+  if (member.status === 'approved') await sideEffect('참여자 내보내기', () => chatService.removeMeetupMember(doc._id, userId));
+  return getMeetup(doc._id, userId);
+}
+
+module.exports = { listMeetups, listMyMeetups, getMeetup, createMeetup, updateMeetup, setMeetupStatus, applyMeetup, approveMember, leaveMeetup };

@@ -9,6 +9,7 @@ const router = express.Router();
 
 // 조회는 누구나 (로그인 시 내 신청 상태 · 호스트 여부 포함)
 router.get('/list', meetupController.list);
+router.get('/mine', isLoggedIn, meetupController.mine); // 내 모임 — '/:id' 보다 앞
 
 // 만들기 · 수정 · 신청 · 승인은 로그인 필요 (수정 · 상태 · 승인은 호스트만)
 router.post('/image', isLoggedIn, handleUpload(uploadMeetup.single('image'), 'image'), meetupController.uploadImage);
@@ -16,6 +17,7 @@ router.post('/', isLoggedIn, meetupController.create);
 router.patch('/:id', isLoggedIn, meetupController.update);
 router.post('/:id/status', isLoggedIn, meetupController.changeStatus);
 router.post('/:id/apply', isLoggedIn, meetupController.apply);
+router.post('/:id/leave', isLoggedIn, meetupController.leave); // 참여 취소
 router.post('/:id/members/:userId/approve', isLoggedIn, meetupController.approve);
 
 // 모임 평가 — 확정 참여자만

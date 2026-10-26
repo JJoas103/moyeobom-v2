@@ -79,6 +79,19 @@ export async function fetchMeetups(params = {}) {
   return meetups
 }
 
+/**
+ * 내 모임 — 로그인 필요. → { hosted(내가 연), joined(신청 · 참여한, myMembership 포함), friendCount }
+ * 각 목록은 다가오는 모임 가까운 순 → 지난 모임 최근 순. 취소된 모임도 포함
+ */
+export async function fetchMyMeetups() {
+  if (USE_MOCK) {
+    await delay()
+    return { hosted: [], joined: [], friendCount: 0 } // 목업엔 로그인 사용자 없음
+  }
+  const { hosted, joined, friendCount } = await apiGet('/api/meetup/mine')
+  return { hosted, joined, friendCount }
+}
+
 export async function fetchMeetup(id) {
   if (USE_MOCK) {
     await delay()
@@ -159,6 +172,16 @@ export async function applyMeetup(id, joinType) {
   }
   const { member } = await apiPost(`/api/meetup/${id}/apply`, { joinType })
   return member
+}
+
+/** 참여 취소 — 신청 중 · 승인 모두 이야기 자리 시작 전까지. 다시 신청할 수 있음. 바뀐 모임(상세 응답 모양) 반환 */
+export async function leaveMeetup(id) {
+  if (USE_MOCK) {
+    await delay()
+    throw new Error('목업에서는 참여를 취소할 수 없어요')
+  }
+  const { meetup } = await apiPost(`/api/meetup/${id}/leave`)
+  return meetup
 }
 
 /** 신청 승인 — 호스트만. 바뀐 모임(상세 응답 모양) 반환 */
