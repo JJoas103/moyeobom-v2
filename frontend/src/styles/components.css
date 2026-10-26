@@ -453,48 +453,27 @@
   color: var(--cat-stage);
 }
 
-/* ---------- 탭 (친구 · 요청) ---------- */
+/* ---------- 화면 머리글 (친구) ---------- */
 .tab-head {
   display: flex;
-  align-items: flex-end;
-  gap: 32px;
+  align-items: baseline;
+  gap: 10px;
   border-bottom: 1px solid var(--line);
 }
 
 .tab-head h1 {
-  margin: 0 16px 10px 0;
+  margin: 0 0 10px;
   font-size: 30px;
   font-weight: 700;
   line-height: 1.3;
   letter-spacing: -0.02em;
 }
 
-.tab-head__tabs {
-  display: flex;
-  gap: 28px;
-}
-
-.tab-head__tab {
-  height: 44px;
-  padding: 0 4px;
-  border-bottom: 2px solid transparent;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 17px;
-  font-weight: 500;
-  color: var(--text-sub);
-}
-
-.tab-head__tab.active {
-  border-bottom-color: var(--text);
-  color: var(--text);
-  font-weight: 700;
-}
-
+/* 제목 옆 인원수 — 숫자가 바뀌는 게 보여야 해서 제목 기준선에 맞춘다 */
 .tab-head__count {
-  font-size: 15px;
-  font-weight: 500;
+  margin-bottom: 10px;
+  font-size: 20px;
+  font-weight: 600;
   color: var(--text-sub);
 }
 

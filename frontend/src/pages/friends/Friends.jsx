@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, NavLink } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import DataState from '../../components/common/DataState'
 import Avatar from '../../components/common/Avatar'
 import MoreMenu from '../../components/common/MoreMenu'
@@ -20,7 +20,7 @@ export default function Friends() {
 
   return (
     <div className="friends">
-      <FriendsTabs friendCount={data?.friends.length} receivedCount={data?.receivedCount} />
+      <FriendsHead friendCount={data?.friends.length} />
       <div className="friends__grid">
         <DataState loading={loading && !data} error={error}>
           {data && <FriendList friends={data.friends} onChange={reload} />}
@@ -31,33 +31,24 @@ export default function Friends() {
   )
 }
 
-/** 친구 · 요청 탭 — 두 화면이 같이 씀 */
-export function FriendsTabs({ friendCount, receivedCount }) {
+function FriendsHead({ friendCount }) {
   return (
     <div className="tab-head">
       <h1>친구</h1>
-      <div className="tab-head__tabs" role="tablist">
-        <NavLink to="/friends" end role="tab" className="tab-head__tab">
-          친구 {friendCount != null && <span className="tab-head__count">{friendCount}</span>}
-        </NavLink>
-        <NavLink to="/friends/requests" role="tab" className="tab-head__tab">
-          요청 {receivedCount > 0 && <span className="count-badge">{receivedCount}</span>}
-        </NavLink>
-      </div>
+      {friendCount != null && <span className="tab-head__count">{friendCount}</span>}
     </div>
   )
 }
 
-export function HowFriendsWork() {
+function HowFriendsWork() {
   return (
     <aside className="friends-how">
       <span className="friends-how__title">친구는 이렇게 생겨요</span>
       <ol>
         <li>모임이 끝나면 평가에서 '또 만나고 싶어요'를 골라요</li>
-        <li>서로 골랐다면 평가 마감 뒤 '요청' 탭에서 친구 요청을 보내요</li>
-        <li>상대가 수락하면 친구가 되고 1:1 채팅이 열려요</li>
+        <li>서로 골랐다면 바로 친구가 되고 1:1 채팅이 열려요</li>
       </ol>
-      <span className="friends-how__note">요청은 평가 마감부터 7일 동안 보낼 수 있어요.</span>
+      <span className="friends-how__note">한쪽만 골랐다면 아무 일도 일어나지 않고, 상대는 알 수 없어요.</span>
     </aside>
   )
 }

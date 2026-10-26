@@ -40,7 +40,7 @@ function ReviewView({ meetupId, review }) {
 
   const closed = review.state === 'closed' || (review.state === 'open' && now >= new Date(review.closesAt))
 
-  if (result) return <ReviewDone meetup={review.meetup} praisedCount={result.praisedCount} closesAt={review.closesAt} />
+  if (result) return <ReviewDone meetup={review.meetup} praisedCount={result.praisedCount} />
   if (closed) return <ReviewClosed meetupId={meetupId} review={review} />
 
   const toggle = (setList) => (userId) =>
@@ -216,7 +216,7 @@ function PeopleGrid({ targets, selected, onToggle, kind }) {
   )
 }
 
-function ReviewDone({ meetup, praisedCount, closesAt }) {
+function ReviewDone({ meetup, praisedCount }) {
   return (
     <div className="review-done">
       <span className="review-done__check">
@@ -243,14 +243,12 @@ function ReviewDone({ meetup, praisedCount, closesAt }) {
           </span>
           <span className="review-done__label">또 만나고 싶어요</span>
           <strong className="review-done__saved">비공개로 저장됐어요</strong>
-          <span className="review-done__note">
-            서로 골랐다면 평가 마감({formatDeadline(closesAt)}) 뒤 '요청' 탭에 나타나요
-          </span>
+          <span className="review-done__note">서로 골랐다면 바로 친구가 되고 1:1 채팅이 열려요</span>
         </div>
       </div>
       <div className="review-done__actions">
-        <Link to="/friends/requests" className="btn btn--primary">
-          친구 요청 확인하기
+        <Link to="/friends" className="btn btn--primary">
+          친구 목록 보기
         </Link>
         <Link to="/meetup" className="btn btn--line">
           다른 모임 보기
