@@ -101,7 +101,7 @@ function ReviewView({ meetupId, review }) {
                 <h2>개인적으로 다시 보고 싶은 사람이 있나요?</h2>
                 <p className="review-step__private">
                   <LockIcon size={14} />
-                  이 선택은 아무에게도 알려지지 않아요. 서로 골랐을 때만 친구 요청을 보낼 수 있어요.
+                  이 선택은 아무에게도 알려지지 않아요. 서로 골랐을 때만 친구가 돼요.
                 </p>
                 <p>고르지 않고 보내도 돼요.</p>
               </div>

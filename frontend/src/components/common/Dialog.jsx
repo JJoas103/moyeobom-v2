@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 
 /**
  * 작은 확인 팝업 — 바깥 클릭 · Esc 로 닫힘. 열리면 첫 입력칸(없으면 팝업)에 초점
- *   <Dialog label="2명에게 친구 요청을 보낼까요?" onClose={...}>...</Dialog>
+ *   <Dialog label="이지은님과 친구를 끊을까요?" onClose={...}>...</Dialog>
  */
 export default function Dialog({ label, onClose, width = 360, children }) {
   const boxRef = useRef(null)
