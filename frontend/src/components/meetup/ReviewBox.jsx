@@ -61,8 +61,8 @@ export default function ReviewBox({ meetup }) {
         모임 평가하기
       </button>
     ) : review.submitted ? (
-      <Link to="/friends/requests" className="btn btn--line btn--lg">
-        친구 요청 확인하기
+      <Link to="/friends" className="btn btn--line btn--lg">
+        친구 목록 보기
       </Link>
     ) : (
       <Link to="/meetup" className="btn btn--line btn--lg">

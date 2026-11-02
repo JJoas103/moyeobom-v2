@@ -56,10 +56,10 @@ async function getReview(meetupId, me) {
   };
 }
 
-/** 평가 보내기 — 서로 '또 만나고 싶어요'면 친구 요청 자리 생성 (평가 마감에 보임) */
+/** 평가 보내기 — 서로 '또 만나고 싶어요'면 그 자리에서 친구 + 1:1 방 */
 async function submitReview(meetupId, me, body) {
   const { meetup, targetIds } = await loadForReviewer(meetupId, me);
-  const { state, closesAt } = reviewState(meetup);
+  const { state } = reviewState(meetup);
   if (state === 'before') throw httpError(400, '아직 평가가 열리지 않았어요');
   if (state === 'closed') throw httpError(400, '평가가 마감됐어요');
 
@@ -78,7 +78,7 @@ async function submitReview(meetupId, me, body) {
   // 상대도 나를 골랐는지
   if (again.length) {
     const mutual = await Review.find({ meetup: meetup._id, reviewer: { $in: again }, again: me }, { reviewer: 1 }).lean();
-    for (const { reviewer } of mutual) await friendService.createLink(meetup._id, me, reviewer, closesAt);
+    for (const { reviewer } of mutual) await friendService.makeFriends(meetup._id, me, reviewer);
   }
   return { praisedCount: praised.length, againCount: again.length };
 }

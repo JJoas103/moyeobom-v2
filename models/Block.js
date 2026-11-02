@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-// 차단 — 친구 끊김 · 1:1 방 닫힘 · 친구 요청 안 보임 · 모임 채팅에서 상대 메시지 숨김
+// 차단 — 친구 끊김 · 1:1 방 닫힘 · 이후 친구 성립 안 됨 · 모임 채팅에서 상대 메시지 숨김
 const blockSchema = new mongoose.Schema(
   {
     blocker: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },

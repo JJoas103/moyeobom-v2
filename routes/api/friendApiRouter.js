@@ -8,9 +8,6 @@ const router = express.Router();
 router.use(isLoggedIn);
 
 router.get('/', friendController.list);
-router.get('/requests', friendController.requests);
-router.post('/links/request', friendController.sendRequests); // '/links/:id/request' 보다 앞
-router.post('/links/:id/request', friendController.sendRequest);
 router.post('/block', friendController.block);
 router.get('/blocks', friendController.blocks);
 router.delete('/blocks/:userId', friendController.unblock); // '/:id' 보다 앞

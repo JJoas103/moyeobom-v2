@@ -44,13 +44,6 @@ export function formatTimeLeft(until, now = new Date()) {
   return h > 0 ? `${h}시간 ${min % 60}분` : `${min}분`
 }
 
-/** 남은 날 'n일 남음' — 친구 요청 기한 (하루 안이면 'n시간 남음') */
-export function formatDaysLeft(until, now = new Date()) {
-  const ms = toDate(until) - now
-  if (ms <= 0) return '만료됨'
-  const days = Math.floor(ms / (24 * 60 * 60 * 1000))
-  return days >= 1 ? `${days}일 남음` : `${Math.max(1, Math.ceil(ms / (60 * 60 * 1000)))}시간 남음`
-}
 
 /** 채팅 시각 '오후 7:05' */
 export function formatChatTime(v) {

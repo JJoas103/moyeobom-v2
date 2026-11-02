@@ -46,10 +46,10 @@ npm run sync:places         # 공중화장실 · 지하철역 수동 동기화 (
 | 모임 만들기 ① | `/meetup/new` | 완료 (목업) |
 | 모임 만들기 ② | `/meetup/new/:eventId` | 완료 (목업) |
 | 모임 평가 ①② · 완료 · 마감 | `/meetup/:id/review` | 완료 (실제 API) — 시안 `html/moyeobom-chat-friends/review-*` |
-| 친구 · 요청 | `/friends` · `/friends/requests` | 완료 (실제 API) — 메모 팝업 · 일괄 확인 팝업 포함 |
+| 친구 | `/friends` | 완료 (실제 API) — 메모 팝업 포함. 요청 탭 없음(서로 고르면 바로 친구) |
 | 채팅 (모임 · 친구 1:1) | `/chat` · `/chat/:roomId` · `/chat/meetup/:meetupId` | 완료 (실제 API + socket.io) |
 | 내 모임 | `/my/meetups?tab=hosted\|joined` | 완료 (실제 API `GET /api/meetup/mine`) — 내가 연 / 참여한(신청 중 포함) 탭, 다가오는 · 지난 모임 카드. 매너 온도는 미결정이라 숨김 |
-| 마이 | `/my?tab=praise\|likes\|settings\|blocks` | 완료 (실제 API `GET/PATCH /api/member/me` · `PATCH /api/member/me/password` · `GET/DELETE /api/friends/blocks`) — 프로필 카드 + 상단 탭. 시안 `html/moyeobom-my/my.html`. 찜은 기능 없어 안내만. 탈퇴 `POST /api/member/withdraw` — 다가오는 연 모임 · 참여(신청 중 포함) 모임 있으면 막음, 비밀번호(소셜은 '탈퇴' 입력) 확인, 친구 · 요청 자리 · 차단 · 회원 삭제(지난 모임 · 평가 · 메시지는 남김) |
+| 마이 | `/my?tab=praise\|likes\|settings\|blocks` | 완료 (실제 API `GET/PATCH /api/member/me` · `PATCH /api/member/me/password` · `GET/DELETE /api/friends/blocks`) — 프로필 카드 + 상단 탭. 시안 `html/moyeobom-my/my.html`. 찜은 기능 없어 안내만. 탈퇴 `POST /api/member/withdraw` — 다가오는 연 모임 · 참여(신청 중 포함) 모임 있으면 막음, 비밀번호(소셜은 '탈퇴' 입력) 확인, 친구 · 차단 · 회원 삭제(지난 모임 · 평가 · 메시지는 남김) |
 | 홈 | `/` | **미구현** — 추천 홈 / 지도로 보기 / 달력으로 보기 탭. 나중에 |
 
 - 행사 · 모임 모두 실제 API 연결됨 (`USE_MOCK_EVENTS = false`, `USE_MOCK_MEETUPS = false`). 표의 '(목업)'은 화면을 처음 만든 시점 기준.
@@ -61,11 +61,11 @@ npm run sync:places         # 공중화장실 · 지하철역 수동 동기화 (
 시안: `html/moyeobom-chat-friends/` (index.html 에 화면 목록 · 확정 규칙). 기한 계산은 전부 `services/socialRules.js` 한 곳.
 
 - **평가**: 이야기 자리 날짜 다음날 12:00 열림 → 48시간 뒤 마감. 대상 = 확정 참여자(호스트 포함, 나 제외). 한 번만 제출. 칭찬은 `Review.praised` 저장만(매너 점수 미결정), '또 만나고 싶어요'는 비공개.
-- **친구 요청**: 서로 고르면 `FriendLink` 생성 → **평가 마감 시각**에 '요청 가능'으로 보이고 그로부터 7일에 만료('요청 가능' · '보낸 요청' 같은 때). 거절 없음 · 만료 뒤 재요청 불가. 요청 = 수락(같은 API) — 둘 다 요청하면 바로 친구 + 1:1 방.
+- **친구**(2026-10 변경): 서로 '또 만나고 싶어요'를 고른 게 확정되는 순간 — 즉 **양쪽 평가가 다 들어온 때** — 바로 친구 + 1:1 방이 생긴다 (`friendService.makeFriends`). 요청 · 수락 · 거절 · 기한이 전부 없다. 한쪽만 골랐으면 아무 일도 없고 상대는 알 수 없다. 양쪽 제출이 조건이라 평가 기간 중에 성립해도 비공개는 깨지지 않는다(아직 안 낸 사람은 그 전에 아무것도 못 보고, 평가는 한 번만 제출 가능).
 - **채팅**: 모임 방은 모임 만들 때 생기고(호스트), 승인하면 들어감. 평가 마감에 읽기 전용(취소하면 즉시) → 30일 동안 목록에 흐리게 · 신고 가능 → 닫힌 뒤 90일에 삭제(처리 중 신고가 있으면 보류). 1:1 방은 친구 끊기 · 차단하면 바로 목록에서 사라지고 90일 뒤 삭제.
-- **cron**: `schedulers/socialCleanup.js` 매일 12:00(서울) — 요청 만료 · 90일 지난 방 삭제. 조회도 지금 시각과 비교하므로 cron 이 늦어도 화면은 맞음.
+- **cron**: `schedulers/socialCleanup.js` 매일 12:00(서울) — 90일 지난 방 삭제. 조회도 지금 시각과 비교하므로 cron 이 늦어도 화면은 맞음.
 - **socket.io**: `config/socket.js` — 세션으로 로그인 확인, 각자 `user:<id>` 방에만 들어감. 서버가 받는 사람 user 방으로 `chat:message` · `chat:read` · `chat:notices` · `chat:rooms` · `friends:changed` 를 보냄. 프론트는 `context/SocketContext.jsx` `useSocketEvent`.
-- **차단**: 친구 끊김 + 요청 자리 숨김 + 내 모임 채팅에서 상대 메시지 숨김. **신고**: `Report` 저장만 — 처리(관리자) 화면 없음, DB에서 `status: 'done'` 으로 바꾸면 처리 끝.
+- **차단**: 친구 끊김 + 이후 친구 성립 안 됨 + 내 모임 채팅에서 상대 메시지 숨김. **신고**: `Report` 저장만 — 처리(관리자) 화면 없음, DB에서 `status: 'done'` 으로 바꾸면 처리 끝.
 - 새 도메인(평가 · 친구 · 채팅)은 목업 없이 실제 API 전용 (`data/reviews.js` · `data/friends.js` · `data/chat.js` 맨 위 주석이 응답 모양).
 
 ## 행사장 근처 정보 (서울 열린데이터광장)
@@ -111,7 +111,6 @@ npm run sync:places         # 공중화장실 · 지하철역 수동 동기화 (
 - 홈 첫 화면 구성
 - 채팅 공지 최대 개수 — 지금 임시 3개 (`services/chatService.js` `NOTICE_MAX`)
 - 친구 메모 글자 수 — 지금 임시 30자 (시안 제안값, `models/Friendship.js` `MEMO_MAX` · `frontend/src/data/friends.js`)
-- 만료된 '보낸 요청'을 목록에 남겨 두는 기간 — 지금 임시 7일 (`services/socialRules.js` `SENT_EXPIRED_SHOW_DAYS`)
 - 매너 점수 산정 방식 · 노출 위치, 노쇼 판정 주체
 - 모임 채팅 '채팅방 나가기' 버튼 — 참여 취소와 같은 동작으로 하기로 함(2026-10). 버튼은 아직 모임 상세 신청 박스에만 있음
 - 신고 처리 주체 · 화면, 알림 대상 이벤트 · 전달 수단

@@ -5,30 +5,14 @@
 //                        event: { _id, title, posterUrl, category, venue, area } }
 //   friend  = { _id(친구 관계 id), user: { _id, nickname, profileImage }, memo(본인만 보는 메모),
 //               roomId(1:1 채팅방), meetup(처음 만난 모임), since }
-//   request = { _id(요청 자리 id), user, meetup(만난 모임), expiresAt, expired }
-//     received(받은 요청 — 수락만) · available(요청 가능) · sent(보낸 요청 — 대기 / 만료)
-//     기한: 평가 마감 + 7일. '요청 가능'과 '보낸 요청'이 같은 때 만료. 만료 뒤엔 다시 요청할 수 없음
+// 친구는 평가에서 서로 '또 만나고 싶어요'를 고르면 그 자리에서 생긴다 (요청 · 수락 없음).
+// 새로 생기면 서버가 'friends:changed' 를 보내므로 목록을 다시 불러오면 된다.
 import { apiDelete, apiGet, apiPatch, apiPost } from '../api'
 
 export const MEMO_MAX = 30 // 임시 — 메모 글자 수 (목업 제안값)
 
-/** → { friends, receivedCount } */
+/** → { friends } */
 export const fetchFriends = () => apiGet('/api/friends')
-
-/** → { received, available, sent, friendCount } */
-export const fetchFriendRequests = () => apiGet('/api/friends/requests')
-
-/** 친구 요청 보내기 = 받은 요청 수락. → 'requested' | 'friends' */
-export async function sendFriendRequest(linkId) {
-  const { status } = await apiPost(`/api/friends/links/${linkId}/request`)
-  return status
-}
-
-/** 모두 요청 보내기 · 모두 수락 → { requested, friends, failed } */
-export async function sendFriendRequests(linkIds) {
-  const { result } = await apiPost('/api/friends/links/request', { ids: linkIds })
-  return result
-}
 
 export async function saveFriendMemo(friendId, memo) {
   const data = await apiPatch(`/api/friends/${friendId}/memo`, { memo })

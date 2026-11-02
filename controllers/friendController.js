@@ -6,37 +6,10 @@ const sendError = (res, next, err) => {
   next(err);
 };
 
-// GET /api/friends → { friends, receivedCount }
+// GET /api/friends → { friends }
 const list = async (req, res, next) => {
   try {
     res.json({ success: true, ...(await friendService.listFriends(req.user._id)) });
-  } catch (err) {
-    next(err);
-  }
-};
-
-// GET /api/friends/requests → { received, available, sent, friendCount }
-const requests = async (req, res, next) => {
-  try {
-    res.json({ success: true, ...(await friendService.listRequests(req.user._id)) });
-  } catch (err) {
-    next(err);
-  }
-};
-
-// POST /api/friends/links/:id/request — 친구 요청 보내기 · 받은 요청 수락 → { status: 'requested'|'friends' }
-const sendRequest = async (req, res, next) => {
-  try {
-    res.json({ success: true, ...(await friendService.sendRequest(req.params.id, req.user._id)) });
-  } catch (err) {
-    next(err);
-  }
-};
-
-// POST /api/friends/links/request { ids } — 모두 요청 보내기 · 모두 수락 → { requested, friends, failed }
-const sendRequests = async (req, res, next) => {
-  try {
-    res.json({ success: true, result: await friendService.sendRequests(req.body?.ids, req.user._id) });
   } catch (err) {
     next(err);
   }
@@ -90,4 +63,4 @@ const unblock = async (req, res, next) => {
   }
 };
 
-module.exports = { list, requests, sendRequest, sendRequests, memo, unfriend, block, blocks, unblock };
+module.exports = { list, memo, unfriend, block, blocks, unblock };
