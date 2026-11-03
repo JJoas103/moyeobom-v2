@@ -1,14 +1,14 @@
 import { Link } from 'react-router-dom'
 import Poster from '../common/Poster'
 import InfoRow from '../common/InfoRow'
+import MetaLine from '../common/MetaLine'
 import { CalendarIcon, ClockIcon, CupIcon, PinIcon, UsersIcon, WonIcon } from '../common/Icons'
-import { budgetLabel, categoryOf, JOIN_KIND } from '../../data/constants'
+import { budgetLabel, JOIN_KIND } from '../../data/constants'
 import { formatMonthDay, formatTime, formatWeekday } from '../../utils/format'
 
 // 모임 상세 상단 — 포스터 · 상태 · 제목 · 날짜 · 장소 · 인원 · 조건
 export default function MeetupHero({ meetup, status }) {
   const { event, talk, watch } = meetup
-  const cat = categoryOf(event?.category)
 
   return (
     <section className="event-hero">
@@ -34,8 +34,7 @@ export default function MeetupHero({ meetup, status }) {
         </div>
         <h1 className="detail__title">{meetup.title}</h1>
         <Link to={`/event/${event?._id}`} className="event-link">
-          <span className="cat-dot" style={{ background: cat.color }} />
-          {event?.title} 보고 나서 ›
+          {event?.title} 보고 나서
         </Link>
 
         <ul className="info-list info-list--compact">
@@ -58,7 +57,7 @@ export default function MeetupHero({ meetup, status }) {
             )}
           </InfoRow>
           <InfoRow icon={<UsersIcon size={18} />} label="인원">
-            {meetup.approvedCount}/{meetup.capacity}명 · 호스트 승인제
+            <MetaLine items={[`${meetup.approvedCount}/${meetup.capacity}명`, '호스트 승인제']} />
           </InfoRow>
         </ul>
 

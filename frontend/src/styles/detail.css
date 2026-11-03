@@ -30,6 +30,7 @@
 }
 
 .detail__title {
+  text-wrap: balance;
   font-size: 30px;
   font-weight: 700;
   line-height: 1.3;

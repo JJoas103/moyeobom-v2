@@ -16,11 +16,13 @@ function toPublicUser(user) {
     nickname: user.nickname,
     profileImage: user.profileImage,
     provider: user.provider,
+    tastes: user.tastes || [],
+    districts: user.districts || [],
   };
 }
 
 // 회원가입 (로컬)
-async function createUser({ email, password, nickname, uploadFile }) {
+async function createUser({ email, password, nickname, uploadFile, tastes, districts }) {
   if (await User.exists({ nickname })) throw nicknameDuplicate();
 
   return User.create({
@@ -29,11 +31,13 @@ async function createUser({ email, password, nickname, uploadFile }) {
     nickname,
     profileImage: uploadFile ? uploadFile.filename : '',
     provider: 'local',
+    tastes,
+    districts,
   });
 }
 
-// 소셜 가입 마무리 — 세션에 담아 둔 소셜 정보 + 사용자가 고른 닉네임
-async function createSocialUser({ email, nickname, provider, uploadFile }) {
+// 소셜 가입 마무리 — 세션에 담아 둔 소셜 정보 + 사용자가 고른 닉네임 · 취향
+async function createSocialUser({ email, nickname, provider, uploadFile, tastes, districts }) {
   const existing = await User.findOne({ email });
   if (existing) return existing;
 
@@ -44,6 +48,8 @@ async function createSocialUser({ email, nickname, provider, uploadFile }) {
     nickname,
     profileImage: uploadFile ? uploadFile.filename : '',
     provider,
+    tastes,
+    districts,
   });
 }
 
@@ -82,6 +88,14 @@ async function updateProfile(user, { nickname, uploadFile, removeImage }) {
   return user;
 }
 
+/** 취향 · 관심 지역 바꾸기 */
+async function updateTastes(user, { tastes, districts }) {
+  user.tastes = tastes;
+  user.districts = districts;
+  await user.save();
+  return user;
+}
+
 /** 회원 지우기 — 정리 순서 · 막는 조건은 myPageService.withdraw */
 async function deleteUser(user) {
   await User.deleteOne({ _id: user._id });
@@ -105,6 +119,7 @@ module.exports = {
   findUserByEmail,
   verifyPassword,
   updateProfile,
+  updateTastes,
   changePassword,
   deleteUser,
 };

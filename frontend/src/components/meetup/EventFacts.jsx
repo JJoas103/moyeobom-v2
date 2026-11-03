@@ -46,7 +46,6 @@ export default function EventFacts({ event, canChange = true }) {
           ))}
         </dl>
       </div>
-      <p className="facts__note">공공데이터에서 가져온 정보라 입력할 필요도, 고칠 수도 없어요.</p>
     </aside>
   )
 }

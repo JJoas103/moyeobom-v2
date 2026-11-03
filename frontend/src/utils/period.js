@@ -47,6 +47,14 @@ export function periodRange(key, now = new Date()) {
   }
 }
 
+const pad = (n) => String(n).padStart(2, '0')
+
+/** 날짜 → 'YYYY-MM-DD' — 달력 · API from/to */
+export const dayKey = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+
+/** from · to('YYYY-MM-DD') → [시작, 끝]. 없으면 null */
+export const dayRange = (from, to) => (from && to ? [startOfDay(`${from}T00:00:00`), endOfDay(`${to}T00:00:00`)] : null)
+
 /** 행사 기간이 범위와 겹치는지 (endDate 없으면 계속 진행 중) */
 export function overlaps(event, range) {
   if (!range) return true

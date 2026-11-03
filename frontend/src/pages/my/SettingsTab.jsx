@@ -3,9 +3,11 @@ import { Link, useNavigate } from 'react-router-dom'
 import Avatar from '../../components/common/Avatar'
 import Dialog from '../../components/common/Dialog'
 import Field from '../../components/common/Field'
+import TastePicker from '../../components/member/TastePicker'
+import DistrictPicker from '../../components/member/DistrictPicker'
 import { useAuth } from '../../context/AuthContext'
-import { WITHDRAW_TEXT, changePassword, updateProfile, withdraw } from '../../data/member'
-import { PROVIDER_LABEL } from '../../data/constants'
+import { WITHDRAW_TEXT, changePassword, updateProfile, updateTastes, withdraw } from '../../data/member'
+import { DISTRICT_MAX, PROVIDER_LABEL } from '../../data/constants'
 import '../../styles/create.css'
 
 const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp']
@@ -13,7 +15,7 @@ const IMAGE_MAX = 5 * 1024 * 1024 // 백엔드 uploadProfile 과 같은 5MB
 const NICKNAME_MAX = 15
 const PASSWORD_HINT = '영문 · 숫자 · 특수문자(@$!%*?&) 8자 이상'
 
-// 계정 설정 — 프로필(사진 · 닉네임) · 비밀번호(이메일 가입자만) · 로그아웃 · 회원 탈퇴
+// 계정 설정 — 내 취향(취향 · 관심 지역) · 프로필(사진 · 닉네임) · 비밀번호(이메일 가입자만) · 로그아웃 · 회원 탈퇴
 export default function SettingsTab({ profile, upcoming, onSaved }) {
   const { logout } = useAuth()
   const navigate = useNavigate()
@@ -26,6 +28,7 @@ export default function SettingsTab({ profile, upcoming, onSaved }) {
 
   return (
     <div className="mypage-settings">
+      <TasteForm profile={profile} onSaved={onSaved} />
       <ProfileForm profile={profile} onSaved={onSaved} />
 
       <section className="mypage-form" aria-label="계정">
@@ -125,11 +128,77 @@ function WithdrawDialog({ profile, upcoming, onClose }) {
             취소
           </button>
           <button type="submit" className="btn btn--danger dialog__btn" disabled={!ready || busy}>
-            {busy ? '탈퇴하는 중...' : '탈퇴하기'}
+            {busy ? '탈퇴하는 중…' : '탈퇴하기'}
           </button>
         </div>
       </form>
     </Dialog>
+  )
+}
+
+const sameItems = (a, b) => a.length === b.length && a.every((v) => b.includes(v))
+
+function TasteForm({ profile, onSaved }) {
+  const { refreshUser } = useAuth()
+  const [tastes, setTastes] = useState(profile.tastes)
+  const [districts, setDistricts] = useState(profile.districts)
+  const [saving, setSaving] = useState(false)
+  const [done, setDone] = useState(false)
+  const [error, setError] = useState(null)
+
+  const changed = !sameItems(tastes, profile.tastes) || !sameItems(districts, profile.districts)
+
+  const onSubmit = async (e) => {
+    e.preventDefault()
+    setSaving(true)
+    setError(null)
+    try {
+      await updateTastes({ tastes, districts })
+      setDone(true)
+      await refreshUser() // 홈 추천도 바로 바뀌게
+      onSaved()
+    } catch (err) {
+      setError(err.fieldErrors?.tastes || err.fieldErrors?.districts || err.message)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <form className="mypage-form mypage-form--taste" onSubmit={onSubmit} noValidate>
+      <h2 className="mypage-form__title">내 취향</h2>
+      <TastePicker
+        value={tastes}
+        onChange={(next) => {
+          setTastes(next)
+          setDone(false)
+        }}
+      />
+      <div className="mypage-form__row">
+        <span className="field__label">
+          관심 지역 <span className="field__optional">선택 · 최대 {DISTRICT_MAX}곳</span>
+        </span>
+        <DistrictPicker
+          value={districts}
+          onChange={(next) => {
+            setDistricts(next)
+            setDone(false)
+          }}
+        />
+      </div>
+      {error && (
+        <p className="field__error" role="alert">
+          {error}
+        </p>
+      )}
+      <div className="mypage-form__actions">
+        {tastes.length === 0 && <span className="field__hint">취향을 하나 이상 골라 주세요</span>}
+        {done && !changed && <span className="mypage-saved" role="status">저장했어요</span>}
+        <button type="submit" className="btn btn--primary" disabled={saving || !changed || tastes.length === 0}>
+          {saving ? '저장하는 중…' : '저장하기'}
+        </button>
+      </div>
+    </form>
   )
 }
 
@@ -153,7 +222,7 @@ function ProfileForm({ profile, onSaved }) {
     const next = e.target.files?.[0]
     e.target.value = '' // 같은 파일을 다시 골라도 onChange 가 오도록
     if (!next) return
-    if (!IMAGE_TYPES.includes(next.type)) return setErrors({ uploadFile: 'JPG · PNG · WEBP 사진만 올릴 수 있어요.' })
+    if (!IMAGE_TYPES.includes(next.type)) return setErrors({ uploadFile: 'JPG, PNG, WEBP 사진만 올릴 수 있어요.' })
     if (next.size > IMAGE_MAX) return setErrors({ uploadFile: '5MB 이하 사진만 올릴 수 있어요.' })
     setErrors({})
     setFile(next)
@@ -235,7 +304,7 @@ function ProfileForm({ profile, onSaved }) {
       <div className="mypage-form__actions">
         {done && !changed && <span className="mypage-saved" role="status">저장했어요</span>}
         <button type="submit" className="btn btn--primary" disabled={saving || !changed}>
-          {saving ? '저장하는 중...' : '저장하기'}
+          {saving ? '저장하는 중…' : '저장하기'}
         </button>
       </div>
     </form>
@@ -274,7 +343,7 @@ function PasswordForm() {
 
   return (
     <form className="mypage-form mypage-form--sub" onSubmit={onSubmit} noValidate>
-      <h3 className="mypage-form__subtitle">비밀번호 바꾸기</h3>
+      <h3 className="mypage-form__subtitle">비밀번호 변경</h3>
       <Field label="지금 비밀번호" error={errors.currentPassword}>
         <input className="input" type="password" autoComplete="current-password" value={form.currentPassword} onChange={set('currentPassword')} />
       </Field>
@@ -292,7 +361,7 @@ function PasswordForm() {
       <div className="mypage-form__actions">
         {done && <span className="mypage-saved" role="status">비밀번호를 바꿨어요</span>}
         <button type="submit" className="btn btn--primary" disabled={saving || !filled}>
-          {saving ? '바꾸는 중...' : '비밀번호 바꾸기'}
+          {saving ? '바꾸는 중…' : '비밀번호 변경'}
         </button>
       </div>
     </form>

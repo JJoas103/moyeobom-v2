@@ -54,7 +54,7 @@ export default function EventMeetups({ event, meetups, loading }) {
       )}
 
       {loading && !meetups ? (
-        <div className="state-box">불러오는 중...</div>
+        <div className="state-box">불러오는 중…</div>
       ) : total === 0 ? (
         <div className="empty-inline">
           <strong>아직 이 행사로 열린 모임이 없어요</strong>

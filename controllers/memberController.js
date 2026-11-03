@@ -2,12 +2,12 @@ const userService = require('../services/userService');
 const myPageService = require('../services/myPageService');
 const { removeUploaded } = require('../middlewares/uploadMiddleware');
 
-// POST /api/member/join (multipart: email, password, password2, nickname, uploadFile?)
+// POST /api/member/join (multipart: email, password, password2, nickname, tastes[], districts[], uploadFile?)
 // 가입만 처리, 로그인 안 함 — 이동은 프론트(로그인 화면)
 const join = async (req, res, next) => {
   try {
-    const { email, password, nickname } = req.body;
-    await userService.createUser({ email, password, nickname, uploadFile: req.file });
+    const { email, password, nickname, tastes, districts } = req.body;
+    await userService.createUser({ email, password, nickname, tastes, districts, uploadFile: req.file });
     res.json({ success: true });
   } catch (error) {
     removeUploaded(req);
@@ -59,6 +59,16 @@ const updateProfile = async (req, res, next) => {
   }
 };
 
+// PATCH /api/member/me/tastes { tastes, districts } → { user }
+const updateTastes = async (req, res, next) => {
+  try {
+    const user = await userService.updateTastes(req.user, req.body);
+    res.json({ success: true, user: userService.toPublicUser(user) });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // PATCH /api/member/me/password { currentPassword, password, password2 }
 const changePassword = async (req, res, next) => {
   try {
@@ -87,4 +97,4 @@ const withdraw = async (req, res, next) => {
   }
 };
 
-module.exports = { join, checkEmail, myPage, updateProfile, changePassword, withdraw };
+module.exports = { join, checkEmail, myPage, updateProfile, updateTastes, changePassword, withdraw };

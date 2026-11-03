@@ -55,11 +55,17 @@ export const SEOUL_DISTRICTS = [
   '양천구', '영등포구', '용산구', '은평구', '종로구', '중구', '중랑구',
 ]
 
+// 관심 지역 최대 개수 — models/User.js DISTRICT_MAX 와 같음
+export const DISTRICT_MAX = 3
+
 /** '공연 · 뮤지컬 · 회차형' — 분류와 장르가 같으면(연극 · 연극) 한 번만 */
+// 세부 분류 — 분류 이름에 이미 들어 있으면('클래식 · 국악'의 '국악') 빈 값
+export const genreText = (event) => (categoryOf(event.category).label.includes(event.genre) ? '' : event.genre)
+
 export function categoryText(event, { withRunType = false } = {}) {
-  const parts = [categoryOf(event.category).label, event.genre]
+  const parts = [categoryOf(event.category).label, genreText(event)]
   if (withRunType) parts.push(RUN_TYPE_LABEL[event.runType])
-  return [...new Set(parts.filter(Boolean))].join(' · ')
+  return parts.filter(Boolean).join(', ')
 }
 
 // 가입 방식 (User.provider)

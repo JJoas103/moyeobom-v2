@@ -1,4 +1,5 @@
 const meetupService = require('../services/meetupService');
+const { isValidDayRange } = require('../services/eventService');
 
 const PERIODS = ['', 'today', 'week', 'weekend', 'month'];
 
@@ -13,12 +14,15 @@ const sendError = (res, next, err) => {
   next(err);
 };
 
-// GET /api/meetup/list?eventId=&category=&district=&period=&joinType=&alcohol=&budget=&q=&openOnly=&includePast=
+// GET /api/meetup/list?eventId=&category=&district=&period=&from=&to=&joinType=&alcohol=&budget=&q=&openOnly=&includePast=
 const list = async (req, res, next) => {
   try {
     const { query } = req;
     const period = str(query.period);
+    const from = str(query.from);
+    const to = str(query.to);
     if (!PERIODS.includes(period)) return res.status(400).json({ success: false, message: '기간 값이 올바르지 않습니다' });
+    if (!isValidDayRange(from, to)) return res.status(400).json({ success: false, message: '날짜 값이 올바르지 않습니다' });
 
     const meetups = await meetupService.listMeetups(
       {
@@ -26,6 +30,8 @@ const list = async (req, res, next) => {
         category: str(query.category),
         district: str(query.district),
         period,
+        from,
+        to,
         joinType: str(query.joinType),
         alcohol: str(query.alcohol),
         budget: str(query.budget),

@@ -20,5 +20,5 @@ export default function MeetupRoomRedirect() {
   }, [meetupId, navigate])
 
   if (error) return <ErrorMessage title="모임 채팅에 들어갈 수 없어요" message={error.message} />
-  return <div className="state-box">채팅방 여는 중...</div>
+  return <div className="state-box">채팅방 여는 중…</div>
 }

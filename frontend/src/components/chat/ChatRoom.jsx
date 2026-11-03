@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Avatar from '../common/Avatar'
 import MoreMenu from '../common/MoreMenu'
+import MetaLine from '../common/MetaLine'
 import { ConfirmDialog } from '../common/Dialog'
 import { ChevronDownIcon, MegaphoneIcon, SendIcon } from '../common/Icons'
 import ChatSide from './ChatSide'
@@ -100,7 +101,7 @@ export default function ChatRoom({ roomId, onRead }) {
       </div>
     )
   }
-  if (!data) return <div className="chat-empty chat-empty--wide">불러오는 중...</div>
+  if (!data) return <div className="chat-empty chat-empty--wide">불러오는 중…</div>
 
   return (
     <RoomView
@@ -261,8 +262,7 @@ function RoomView({ data, setData, me, onReload, onLeft }) {
             </span>
             {isMeetup && room.meetup ? (
               <Link to={`/meetup/${room.meetup._id}`} className="thread__sub thread__sub--link">
-                {room.meetup.event?.title ? `${room.meetup.event.title} · ` : ''}
-                {formatMeetupWhen(room.meetup.talk.startAt)} · 모임 상세 ›
+                <MetaLine items={[room.meetup.event?.title, formatMeetupWhen(room.meetup.talk.startAt), '모임 상세']} />
               </Link>
             ) : (
               <span className="thread__sub">친구</span>
@@ -276,7 +276,7 @@ function RoomView({ data, setData, me, onReload, onLeft }) {
         <div className="thread__messages" ref={listRef} onScroll={onScroll}>
           {hasMore && (
             <button type="button" className="thread__older" disabled={loadingOlder} onClick={loadOlder}>
-              {loadingOlder ? '불러오는 중...' : '이전 대화 더 보기'}
+              {loadingOlder ? '불러오는 중…' : '이전 대화 더 보기'}
             </button>
           )}
           {rows.map(({ key, divider, message }) => {

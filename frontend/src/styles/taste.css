@@ -1,0 +1,134 @@
+/* 취향 · 관심 지역 고르기 — 가입 단계 · 마이 계정 설정 */
+
+.taste-picker {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.taste-tile {
+  position: relative;
+  height: 132px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 2px;
+  overflow: hidden;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--tile-fallback); /* 사진을 못 불러와도 흰 글자가 보이게 */
+  color: var(--on-fill);
+  box-shadow: var(--img-edge);
+  text-align: left;
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+
+.taste-tile__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 밝은 사진에서도 글자가 읽히게 아래쪽을 어둡게 */
+.taste-tile::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, var(--scrim-85), var(--scrim-60) 40%, var(--scrim-05) 75%);
+}
+
+.taste-tile__eng,
+.taste-tile__label,
+.taste-tile__check {
+  z-index: 1;
+}
+
+.taste-tile__eng,
+.taste-tile__label {
+  position: relative;
+}
+
+.taste-tile:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover), var(--img-edge);
+}
+
+.taste-tile.is-on {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.taste-tile:focus-visible {
+  outline: 3px solid var(--text);
+  outline-offset: 2px;
+}
+
+.taste-tile__eng {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.taste-tile__label {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.taste-tile__check {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  background: var(--primary);
+  color: var(--on-fill);
+}
+
+.district-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.district-picker .chip:disabled {
+  color: var(--text-disabled);
+  cursor: default;
+}
+
+.taste-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.taste-actions__count {
+  flex-grow: 1;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-body);
+}
+
+.taste-actions .btn--primary:disabled {
+  background: var(--bg-muted);
+  color: var(--text-disabled);
+  cursor: default;
+}
+
+/* 마이 › 계정 설정 — 두 칸을 다 씀 */
+.mypage-form--taste {
+  grid-column: 1 / -1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .taste-tile:hover {
+    transform: none;
+  }
+}

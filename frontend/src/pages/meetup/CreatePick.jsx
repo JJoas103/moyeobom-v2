@@ -9,6 +9,7 @@ import { useDebounced } from '../../utils/useDebounced'
 import { useQueryFilters } from '../../utils/useQueryFilters'
 import { fetchEvent, fetchEvents, fetchRecentEndedEvents, RECENT_ENDED_DAYS } from '../../data/events'
 import { categoryText } from '../../data/constants'
+import MetaLine from '../../components/common/MetaLine'
 import { posterTone } from '../../utils/poster'
 import { formatEventPeriod } from '../../utils/format'
 import '../../styles/detail.css' // section-head · side-box 같은 공통 조각
@@ -89,7 +90,7 @@ export default function CreatePick() {
           )}
           <div className="side-box__line" />
           <p className="side-box__note">
-            행사 정보(기간 · 회차 · 장소)는 공공데이터에서 그대로 가져와요. 다음 단계에서는 모임 정보만 채우면 돼요.
+            행사 정보(기간, 회차, 장소)는 공공데이터에서 그대로 가져와요. 다음 단계에서는 모임 정보만 채우면 돼요.
           </p>
           <button
             type="button"
@@ -115,7 +116,7 @@ function PickSection({ title, count, hint, loading, empty, children }) {
         {hint && <span className="section-head__hint">{hint}</span>}
         {count != null && <span className="section-head__hint">{count}개</span>}
       </div>
-      {loading ? <div className="pick-empty">불러오는 중...</div> : items.length === 0 ? <div className="pick-empty">{empty}</div> : items}
+      {loading ? <div className="pick-empty">불러오는 중…</div> : items.length === 0 ? <div className="pick-empty">{empty}</div> : items}
     </section>
   )
 }
@@ -130,7 +131,7 @@ function PickedSummary({ event }) {
       <div className="picked__body">
         <span className="picked__title">{event.title}</span>
         <span>{categoryText(event, { withRunType: true })}</span>
-        <span>{[formatEventPeriod(event), event.area || event.district].filter(Boolean).join(' · ')}</span>
+        <span><MetaLine items={[formatEventPeriod(event), event.area || event.district]} /></span>
       </div>
     </div>
   )

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ExternalIcon, HeartIcon } from '../common/Icons'
+import MetaLine from '../common/MetaLine'
 import { eventStatus, meetupStatus } from '../../utils/status'
 import { formatEventPeriod, formatMeetupWhen } from '../../utils/format'
 import { canOpenMeetup, sourceOf } from '../../utils/event'
@@ -25,7 +26,7 @@ export default function EventSideBox({ event, meetups }) {
   return (
     <aside className="side-box">
       <h2 className="side-box__title">{event.title}</h2>
-      <span className="side-box__sub">{[formatEventPeriod(event), event.district, event.area].filter(Boolean).join(' · ')}</span>
+      <span className="side-box__sub"><MetaLine items={[formatEventPeriod(event), event.district, event.area]} /></span>
       <div className="side-box__line" />
       <dl className="side-box__stats">
         <dt>열린 모임</dt>

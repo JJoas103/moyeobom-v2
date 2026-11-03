@@ -136,7 +136,7 @@ export default function MeetupForm({ event, meetup }) {
     const file = e.target.files?.[0]
     e.target.value = '' // 같은 파일을 다시 골라도 onChange 가 오도록
     if (!file) return
-    if (!IMAGE_TYPES.includes(file.type)) return setErrors((x) => ({ ...x, image: 'JPG · PNG · WEBP 사진만 올릴 수 있어요.' }))
+    if (!IMAGE_TYPES.includes(file.type)) return setErrors((x) => ({ ...x, image: 'JPG, PNG, WEBP 사진만 올릴 수 있어요.' }))
     if (file.size > IMAGE_MAX) return setErrors((x) => ({ ...x, image: '20MB 이하 사진만 올릴 수 있어요.' }))
     setErrors((x) => ({ ...x, image: undefined }))
     setImage({ file, url: URL.createObjectURL(file) })
@@ -278,7 +278,7 @@ export default function MeetupForm({ event, meetup }) {
                     <path d="M21 16l-5-5-9 9" />
                   </svg>
                   <strong>{image || savedImage ? '다른 사진으로 바꾸기' : '사진 올리기'}</strong>
-                  <span>JPG · PNG · 세로 3:4로 보여요</span>
+                  <span>JPG, PNG. 세로 3:4로 보여요</span>
                 </label>
               </div>
               <div className="field__foot">
@@ -425,7 +425,7 @@ export default function MeetupForm({ event, meetup }) {
 
           <div className="form-actions">
             <button type="submit" className="btn btn--primary btn--lg" disabled={submitting}>
-              {editing ? (submitting ? '저장하는 중...' : '수정 내용 저장') : submitting ? '만드는 중...' : '모임 만들기'}
+              {editing ? (submitting ? '저장하는 중…' : '수정 내용 저장') : submitting ? '만드는 중…' : '모임 만들기'}
             </button>
             <Link to={backTo} className="btn btn--line btn--lg">
               취소

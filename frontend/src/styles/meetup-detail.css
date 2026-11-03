@@ -5,6 +5,8 @@
 }
 
 .event-link {
+  text-decoration: underline;
+  text-underline-offset: 3px;
   align-self: flex-start;
   display: inline-flex;
   align-items: center;
@@ -15,7 +17,7 @@
 }
 
 .event-link:hover {
-  text-decoration: underline;
+  color: var(--text);
 }
 
 .info-list--compact {
@@ -198,9 +200,9 @@
 
 .host-quote {
   padding: 20px 24px;
-  border-left: 3px solid var(--brand);
+  border: 1px solid var(--line);
   background: var(--surface);
-  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  border-radius: var(--radius-md);
   font-size: 16px;
   line-height: 1.75;
   color: var(--text-body);
@@ -247,14 +249,19 @@
 
 .chat-lock__preview span {
   align-self: flex-start;
-  padding: 10px 14px;
+  width: 44%;
+  height: 40px;
   border-radius: var(--radius-md);
   background: var(--surface);
-  font-size: 14px;
+}
+
+.chat-lock__preview span:nth-child(2) {
+  width: 60%;
 }
 
 .chat-lock__preview span.is-mine {
   align-self: flex-end;
+  width: 34%;
   background: var(--primary-soft);
 }
 
@@ -279,7 +286,7 @@
 /* 확정 참여자 — 잠금 대신 채팅 열기 */
 .chat-lock__badge--open {
   background: var(--primary);
-  color: #ffffff;
+  color: var(--on-fill);
   transition: background 0.2s ease-out;
 }
 
@@ -457,7 +464,7 @@
   margin: 2px 0 0;
   border-radius: var(--radius-pill);
   border: 1.5px solid var(--text-disabled);
-  background: #ffffff;
+  background: var(--surface);
 }
 
 .join-option input:checked {

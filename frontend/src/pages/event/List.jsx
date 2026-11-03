@@ -11,6 +11,7 @@ import { useDebounced } from '../../utils/useDebounced'
 import { useQueryFilters } from '../../utils/useQueryFilters'
 import { fetchEvents } from '../../data/events'
 import { SEOUL_DISTRICTS } from '../../data/constants'
+import MetaLine from '../../components/common/MetaLine'
 import { PERIODS, periodLabel } from '../../utils/period'
 import '../../styles/list.css'
 
@@ -84,8 +85,8 @@ export default function EventList() {
       </div>
 
       <p className="list-summary">
-        {district || '서울 전체'} · {periodLabel(period)} · 모임이 많은 순
-        {loading && events && <span className="list-summary__loading"> · 불러오는 중</span>}
+        <MetaLine items={[district || '서울 전체', periodLabel(period), '모임이 많은 순']} />
+        {loading && events && <span className="list-summary__loading meta-item"> 불러오는 중</span>}
       </p>
 
       <DataState loading={firstLoad} error={error} empty={events?.length === 0} emptyText={<EmptyResult title="조건에 맞는 행사가 없어요" onReset={resetAll} />}>

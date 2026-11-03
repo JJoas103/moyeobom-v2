@@ -2,7 +2,7 @@
 //
 // 응답 모양 (백엔드 services/myPageService.js 와 같음):
 //   GET /api/member/me → {
-//     profile: { _id, email, nickname, profileImage, provider, createdAt },
+//     profile: { _id, email, nickname, profileImage, provider, tastes, districts, createdAt },
 //     stats:   { meetupCount(연 모임 + 승인된 모임, 취소 제외), friendCount, praiseCount },
 //     praise:  { total, meetups: [{ meetup(작은 요약 — data/friends.js 와 같음), praisedCount, othersCount }] },
 //     upcoming: { hosted, joined },   // 아직 안 끝난 연 모임 · 참여(신청 중 포함) 모임 수 — 하나라도 있으면 탈퇴 불가
@@ -21,6 +21,12 @@ export async function updateProfile({ nickname, file, removeImage }) {
   if (file) form.append('uploadFile', file)
   else if (removeImage) form.append('removeImage', 'true')
   const { user } = await apiPatchForm('/api/member/me', form)
+  return user
+}
+
+/** 취향 · 관심 지역 바꾸기 — tastes 는 하나 이상. → user */
+export async function updateTastes({ tastes, districts }) {
+  const { user } = await apiPatch('/api/member/me/tastes', { tastes, districts })
   return user
 }
 

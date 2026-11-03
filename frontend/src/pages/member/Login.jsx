@@ -64,7 +64,7 @@ export default function Login() {
           />
         </Field>
         <button type="submit" className="btn btn--primary btn--lg auth__submit" disabled={submitting}>
-          {submitting ? '로그인 중...' : '로그인'}
+          {submitting ? '로그인 중…' : '로그인'}
         </button>
       </form>
 

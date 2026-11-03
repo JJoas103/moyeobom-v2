@@ -7,7 +7,7 @@ const User = require('../models/User');
 const Review = require('../models/Review');
 const Friendship = require('../models/Friendship');
 const { BUDGETS } = require('../models/Meetup');
-const { periodRange, RECENT_ENDED_DAYS } = require('./eventService');
+const { periodRange, dayRange, RECENT_ENDED_DAYS } = require('./eventService');
 const chatService = require('./chatService');
 const { reviewWindow } = require('./socialRules');
 
@@ -132,10 +132,11 @@ const notFullExpr = {
 
 /**
  * 모임 목록 — 가까운 날짜순. 이미 시작한 모임은 기본 제외
- * @param params { eventId, category, district, period, joinType, alcohol, budget, q, openOnly, includePast }
+ * @param params { eventId, category, district, period, from, to, joinType, alcohol, budget, q, openOnly, includePast }
+ *   from · to 가 있으면 period 대신 그 날짜 범위
  */
 async function listMeetups(params, viewerId) {
-  const { eventId, category, district, period, joinType, alcohol, budget, q, openOnly, includePast } = params;
+  const { eventId, category, district, period, from, to, joinType, alcohol, budget, q, openOnly, includePast } = params;
   const now = new Date();
   const and = [{ status: { $ne: 'cancelled' } }]; // 취소된 모임은 목록에서 제외
 
@@ -144,7 +145,7 @@ async function listMeetups(params, viewerId) {
     if (!mongoose.isValidObjectId(eventId)) return [];
     and.push({ event: new mongoose.Types.ObjectId(eventId) });
   }
-  const range = periodRange(period, now);
+  const range = dayRange(from, to) || periodRange(period, now);
   if (range) and.push({ 'talk.startAt': { $gte: range[0], $lte: range[1] } });
   if (joinType === 'watch') and.push({ 'watch.enabled': true });
   if (joinType === 'talk') and.push({ 'watch.enabled': { $ne: true } });

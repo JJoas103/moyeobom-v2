@@ -53,7 +53,7 @@ export default function RoomList({ rooms, error, currentId }) {
 
       <div className="room-list__items">
         {error && <p className="room-list__empty">{error.message}</p>}
-        {!error && !rooms && <p className="room-list__empty">불러오는 중...</p>}
+        {!error && !rooms && <p className="room-list__empty">불러오는 중…</p>}
         {rooms && shown.length === 0 && (
           <p className="room-list__empty">
             {keyword ? '찾는 채팅방이 없어요.' : activeTab === 'direct' ? '아직 친구와 나눈 대화가 없어요.' : '아직 들어간 채팅방이 없어요.'}

@@ -10,7 +10,7 @@ import EventSideBox from '../../components/event/EventSideBox'
 import { useAsync } from '../../utils/useAsync'
 import { fetchEvent } from '../../data/events'
 import { fetchMeetups } from '../../data/meetups'
-import { categoryOf } from '../../data/constants'
+import { categoryOf, genreText } from '../../data/constants'
 import '../../styles/detail.css'
 
 // 시안 v2 · 행사 상세 (V2EventDetail)
@@ -38,7 +38,7 @@ function EventDetailView({ event, meetups, meetupsLoading }) {
     <div className="detail">
       <nav className="breadcrumb" aria-label="위치">
         <Link to="/event">행사</Link> › <Link to={`/event?category=${event.category}`}>{cat.label}</Link>
-        {event.genre && <> › {event.genre}</>}
+        {genreText(event) && <> › {genreText(event)}</>}
       </nav>
 
       <div className="detail__grid">

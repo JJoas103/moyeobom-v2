@@ -1,4 +1,5 @@
 const eventService = require('../services/eventService');
+const recommendService = require('../services/recommendService');
 
 const PERIODS = ['', 'today', 'week', 'weekend', 'month'];
 const SORTS = ['meetups', 'endingSoon'];
@@ -7,13 +8,16 @@ const SORTS = ['meetups', 'endingSoon'];
 const toBool = (v) => v === 'true' || v === '1';
 const str = (v) => (typeof v === 'string' ? v.trim() : '');
 
-// GET /api/event/list?category=&genre=&district=&period=&q=&hasMeetup=&includeEnded=&sort=
+// GET /api/event/list?category=&genre=&district=&period=&from=&to=&q=&hasMeetup=&includeEnded=&sort=
 const list = async (req, res, next) => {
   try {
     const { query } = req;
     const period = str(query.period);
+    const from = str(query.from);
+    const to = str(query.to);
     const sort = str(query.sort) || 'meetups';
     if (!PERIODS.includes(period)) return res.status(400).json({ success: false, message: '기간 값이 올바르지 않습니다' });
+    if (!eventService.isValidDayRange(from, to)) return res.status(400).json({ success: false, message: '날짜 값이 올바르지 않습니다' });
     if (!SORTS.includes(sort)) return res.status(400).json({ success: false, message: '정렬 값이 올바르지 않습니다' });
 
     const events = await eventService.listEvents({
@@ -21,6 +25,8 @@ const list = async (req, res, next) => {
       genre: str(query.genre),
       district: str(query.district),
       period,
+      from,
+      to,
       q: str(query.q),
       hasMeetup: toBool(query.hasMeetup),
       includeEnded: toBool(query.includeEnded),
@@ -42,14 +48,26 @@ const recentEnded = async (req, res, next) => {
   }
 };
 
+const viewerOf = (req) => (req.isAuthenticated() ? req.user : null);
+
+// GET /api/event/recommended → { event, reasons, basis }
+const recommended = async (req, res, next) => {
+  try {
+    res.json({ success: true, ...(await recommendService.recommendEvent(viewerOf(req))) });
+  } catch (err) {
+    next(err);
+  }
+};
+
 // GET /api/event/:id
 const detail = async (req, res, next) => {
   try {
     const event = await eventService.getEvent(req.params.id);
+    event.recommendReasons = await recommendService.reasonsForEvent(event, viewerOf(req));
     res.json({ success: true, event });
   } catch (err) {
     next(err);
   }
 };
 
-module.exports = { list, recentEnded, detail };
+module.exports = { list, recentEnded, recommended, detail };

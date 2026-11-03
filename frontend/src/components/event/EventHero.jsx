@@ -1,4 +1,5 @@
 import Poster from '../common/Poster'
+import MetaLine from '../common/MetaLine'
 import { ExternalIcon } from '../common/Icons'
 import { RUN_TYPE_LABEL, categoryText } from '../../data/constants'
 import { eventStatus } from '../../utils/status'
@@ -9,7 +10,7 @@ import { sourceOf, timeLineOf } from '../../utils/event'
 export default function EventHero({ event }) {
   const status = eventStatus(event)
   const source = sourceOf(event)
-  const placeLine = [formatEventPeriod(event), event.venue].filter(Boolean).join(' · ')
+  const placeLine = [formatEventPeriod(event), event.venue]
   const timeLine = timeLineOf(event)
 
   return (
@@ -33,7 +34,7 @@ export default function EventHero({ event }) {
         </div>
         <h1 className="detail__title">{event.title}</h1>
         <div className="event-hero__lines">
-          <span>{placeLine}</span>
+          <span><MetaLine items={placeLine} /></span>
           {timeLine && <span>{timeLine}</span>}
         </div>
 
@@ -49,7 +50,7 @@ export default function EventHero({ event }) {
         )}
 
         <div className="event-hero__source">
-          <span>행사 정보 출처 · {source.label}</span>
+          <span>행사 정보 출처: {source.label}</span>
           {source.url && (
             <a href={source.url} target="_blank" rel="noreferrer" className="btn btn--line btn--sm">
               행사 원문 보기 <ExternalIcon />

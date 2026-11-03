@@ -26,6 +26,8 @@ npm run sync:places         # 공중화장실 · 지하철역 수동 동기화 (
 
 `.env`(루트)·`frontend/.env` 는 커밋하지 않는다. 키 이름은 `.env_sample`, `frontend/.env_example` 참고.
 
+`MongoDB 연결 실패: querySrv ENODATA` 가 나오면 코드보다 네트워크의 DNS 를 먼저 본다. 일부 공용 Wi-Fi 의 DNS 는 `mongodb+srv` 에 필요한 SRV · TXT 조회를 처리하지 못한다.
+
 ## 지켜야 할 규칙
 
 - **목업 = 스키마.** `frontend/src/data/mock/*` 필드 이름은 `models/*.js` 와 똑같이. API 응답 모양은 `data/events.js`, `data/meetups.js` 맨 위 주석에 적힌 그대로 맞춘다 (USE_MOCK 한 줄로 전환되도록).
@@ -50,10 +52,12 @@ npm run sync:places         # 공중화장실 · 지하철역 수동 동기화 (
 | 채팅 (모임 · 친구 1:1) | `/chat` · `/chat/:roomId` · `/chat/meetup/:meetupId` | 완료 (실제 API + socket.io) |
 | 내 모임 | `/my/meetups?tab=hosted\|joined` | 완료 (실제 API `GET /api/meetup/mine`) — 내가 연 / 참여한(신청 중 포함) 탭, 다가오는 · 지난 모임 카드. 매너 온도는 미결정이라 숨김 |
 | 마이 | `/my?tab=praise\|likes\|settings\|blocks` | 완료 (실제 API `GET/PATCH /api/member/me` · `PATCH /api/member/me/password` · `GET/DELETE /api/friends/blocks`) — 프로필 카드 + 상단 탭. 시안 `html/moyeobom-my/my.html`. 찜은 기능 없어 안내만. 탈퇴 `POST /api/member/withdraw` — 다가오는 연 모임 · 참여(신청 중 포함) 모임 있으면 막음, 비밀번호(소셜은 '탈퇴' 입력) 확인, 친구 · 차단 · 회원 삭제(지난 모임 · 평가 · 메시지는 남김) |
-| 홈 | `/` | **미구현** — 추천 홈 / 지도로 보기 / 달력으로 보기 탭. 나중에 |
+| 홈 | `/?view=rec\|map\|cal` | 완료 (실제 API) — 시안 `html/home.html`. 추천 · 지도 · 달력 탭 + 이번 주 모임 + 지금 열려 있는 행사. 달력은 자동 넘김 · 기간 설정 없음(오늘 · 이번 주말 · 날짜 선택). 실제 카카오 지도는 도메인 등록 뒤 확인 필요 |
+| 가입 취향 | `/member/join` · `/member/social-join` · `/my?tab=settings` | 완료 (실제 API) — 가입 ① 계정 ② 취향 ③ 지역. 마이 계정 설정에서 확인 · 수정 |
 
 - 행사 · 모임 모두 실제 API 연결됨 (`USE_MOCK_EVENTS = false`, `USE_MOCK_MEETUPS = false`). 표의 '(목업)'은 화면을 처음 만든 시점 기준.
-- 인증(passport·session, connect-mongo) 붙음 — `/member/login` · `/member/join` · `/member/social-join`. 찜·추천 이유는 아직.
+- 인증(passport·session, connect-mongo) 붙음 — `/member/login` · `/member/join` · `/member/social-join`. 찜은 다음 작업에서 추가 (지금 카드 하트는 저장 안 되는 로컬 상태, 추천 영역엔 하트 없음).
+- 취향 · 추천(2026-11): `User.tastes`(행사 카테고리 키 6개, 1개 이상 필수) · `User.districts`(서울 자치구, 선택, 최대 3곳). 기존 회원은 비어 있을 수 있음. `GET /api/event/recommended` 순위 = 취향 일치 → 관심 지역 일치 → 참여했던 모임과 같은 분류 → 모집 중인 모임 많은 순 → 곧 끝나는 순 (`services/recommendService.js`). 행사 · 모임 목록 API 는 달력용 `from` · `to`(`YYYY-MM-DD`)도 받음.
 - 모임: 만들기(로그인 · 만든 사람이 호스트) · 사진 업로드(`public/images/upload`) · 참여 신청(pending 저장) · 호스트 승인 · 참여 취소(`POST /api/meetup/:id/leave` — 신청 중 · 승인 모두 이야기 자리 시작 전까지, members 에서 빼서 다시 신청 가능, 승인된 사람은 채팅방에서도 빠지고 '○○님이 나갔어요') · 수정(`/meetup/:id/edit`, 행사 빼고 전부, 정원은 승인 인원 이상) · 모집 마감/다시 열기 · 취소(되돌리기 없음, 목록 · 행사 모임 수에서 제외). 종료 시각은 없음. 신청자는 `Meetup.members` 배열에 임베드, 정원(`capacity`)은 **호스트 제외**. `talk.place` · `members` 는 호스트와 승인된 참여자에게만 내려준다.
 
 ## 평가 · 친구 · 채팅 (결정 로그 2026-10)
@@ -108,7 +112,6 @@ npm run sync:places         # 공중화장실 · 지하철역 수동 동기화 (
 - 최근 끝난 행사로 모임을 열 수 있는 기간 — 지금 임시 14일 (`frontend/src/data/events.js` `RECENT_ENDED_DAYS`)
 - 승인 기한 · 신청 마감 시점, 신청 거절 기능 여부
 - 비용 필터 기준, 모임 목록 필터(참여 방식 · 술 · 예산) 확정 여부
-- 홈 첫 화면 구성
 - 채팅 공지 최대 개수 — 지금 임시 3개 (`services/chatService.js` `NOTICE_MAX`)
 - 친구 메모 글자 수 — 지금 임시 30자 (시안 제안값, `models/Friendship.js` `MEMO_MAX` · `frontend/src/data/friends.js`)
 - 매너 점수 산정 방식 · 노출 위치, 노쇼 판정 주체

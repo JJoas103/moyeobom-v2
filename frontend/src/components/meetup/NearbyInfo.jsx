@@ -1,4 +1,5 @@
 import SectionHead from '../common/SectionHead'
+import MetaLine from '../common/MetaLine'
 import { RestroomIcon, TrainIcon } from '../common/Icons'
 import { useAsync } from '../../utils/useAsync'
 import { fetchNearby } from '../../data/nearby'
@@ -19,7 +20,7 @@ export default function NearbyInfo({ event }) {
     <section className="detail-section">
       <SectionHead title="행사장 근처" />
       {loading && !data ? (
-        <div className="state-box">불러오는 중...</div>
+        <div className="state-box">불러오는 중…</div>
       ) : (
         <div className="nearby">
           <div className="nearby__col">
@@ -35,7 +36,7 @@ export default function NearbyInfo({ event }) {
                   <li key={s.name} className="nearby__item">
                     <span className="nearby__name">{s.name}</span>
                     <span className="nearby__meta">
-                      {s.lines.join(' · ')} · 도보 약 {s.walkMinutes}분
+                      <MetaLine items={[s.lines.join(', '), `도보 약 ${s.walkMinutes}분`]} />
                     </span>
                   </li>
                 ))}
@@ -56,7 +57,7 @@ export default function NearbyInfo({ event }) {
                   <li key={t._id} className="nearby__item">
                     <span className="nearby__name">{t.name}</span>
                     <span className="nearby__meta">
-                      도보 약 {t.walkMinutes}분 · {t.is24h ? '24시간' : t.hoursText || '개방 시간 정보 없음'}
+                      <MetaLine items={[`도보 약 ${t.walkMinutes}분`, t.is24h ? '24시간' : t.hoursText || '개방 시간 정보 없음']} />
                     </span>
                     {(t.emergencyBell || t.cctv) && (
                       <span className="nearby__tags">

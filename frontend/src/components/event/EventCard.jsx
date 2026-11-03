@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import Poster from '../common/Poster'
+import MetaLine from '../common/MetaLine'
 import { HeartIcon, UsersIcon } from '../common/Icons'
 import { eventStatus } from '../../utils/status'
 import { formatEventPeriod } from '../../utils/format'
@@ -11,7 +12,6 @@ export default function EventCard({ event }) {
   const [liked, setLiked] = useState(false)
   const status = eventStatus(event)
   const place = event.district || (event.runType === 'screening' ? '상영 중' : '')
-  const meta = [formatEventPeriod(event), place].filter(Boolean).join(' · ')
   return (
     <article className="card">
       <Link to={`/event/${event._id}`} className="card__link">
@@ -25,7 +25,7 @@ export default function EventCard({ event }) {
         <div className="card__body">
           <span className={`status status--${status.tone}`}>{status.label}</span>
           <h3 className="card__title clamp2">{event.title}</h3>
-          <span className="card__meta">{meta}</span>
+          <span className="card__meta"><MetaLine items={[formatEventPeriod(event), place]} /></span>
           {event.meetupCount > 0 ? (
             <span className="card__meet">
               <UsersIcon /> 이 행사로 열린 모임 {event.meetupCount}
