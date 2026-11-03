@@ -135,7 +135,7 @@ export default function Join() {
               onChange={set('email')}
             />
             <button type="button" className="btn btn--line" onClick={checkEmail} disabled={checking || !email}>
-              {checking ? '확인 중...' : '중복확인'}
+              {checking ? '확인 중…' : '중복확인'}
             </button>
           </div>
         </Field>

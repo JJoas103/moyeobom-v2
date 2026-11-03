@@ -23,7 +23,7 @@
   padding: 18px 24px;
   border-radius: 14px;
   background: var(--status-soon-soft);
-  border: 1px solid #f0d9a8;
+  border: 1px solid var(--status-soon-line);
   display: flex;
   align-items: center;
   gap: 16px;
@@ -34,7 +34,7 @@
   height: 44px;
   flex-shrink: 0;
   border-radius: var(--radius-pill);
-  background: #ffffff;
+  background: var(--surface);
   color: var(--status-soon);
   display: flex;
   align-items: center;
@@ -159,7 +159,7 @@
 
 .stepper__num.is-on {
   background: var(--primary);
-  color: #ffffff;
+  color: var(--on-fill);
 }
 
 .stepper__line {
@@ -268,7 +268,7 @@
 
 .person-card--praise.is-on .person-card__mark {
   background: var(--primary);
-  color: #ffffff;
+  color: var(--on-fill);
 }
 
 /* ② 또 만나고 싶어요 — 비공개라 글자색 */
@@ -279,7 +279,7 @@
 
 .person-card--again.is-on .person-card__mark {
   background: var(--text);
-  color: #ffffff;
+  color: var(--on-fill);
 }
 
 /* 마감 — 고를 수 없음 */

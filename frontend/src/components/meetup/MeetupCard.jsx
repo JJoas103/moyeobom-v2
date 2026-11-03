@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import Poster from '../common/Poster'
+import MetaLine from '../common/MetaLine'
 import { meetupStatus } from '../../utils/status'
 import { formatMeetupWhen, formatMonthDay, formatWeekday, formatTime } from '../../utils/format'
 import { JOIN_KIND, budgetLabel } from '../../data/constants'
@@ -14,7 +15,7 @@ export default function MeetupCard({ meetup, variant = 'default', note }) {
   const { event } = meetup
   const status = meetupStatus(meetup)
   const fill = Math.min(100, Math.round(((meetup.approvedCount || 0) / meetup.capacity) * 100))
-  const conditions = `술 ${meetup.alcohol ? '있음' : '없음'} · ${budgetLabel(meetup.budget)}`
+  const conditions = [`술 ${meetup.alcohol ? '있음' : '없음'}`, budgetLabel(meetup.budget)]
 
   return (
     <article className={`card${status.tone === 'closed' ? ' card--closed' : ''}`}>
@@ -53,7 +54,7 @@ export default function MeetupCard({ meetup, variant = 'default', note }) {
             <>
               <span className="card__event one-line">{event?.title}</span>
               <span className="card__meta one-line">
-                {formatMeetupWhen(meetup.talk.startAt)} · {meetup.talk.area}
+                <MetaLine items={[formatMeetupWhen(meetup.talk.startAt), meetup.talk.area]} />
               </span>
             </>
           )}
@@ -65,7 +66,7 @@ export default function MeetupCard({ meetup, variant = 'default', note }) {
               <span className="sr-only">정원 중 확정 </span>
               {meetup.approvedCount}/{meetup.capacity}
             </span>
-            <span className="one-line">{conditions}</span>
+            <span className="one-line"><MetaLine items={conditions} /></span>
           </div>
         </div>
       </Link>

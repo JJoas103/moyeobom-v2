@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import SectionHead from '../common/SectionHead'
 import InfoRow from '../common/InfoRow'
+import MetaLine from '../common/MetaLine'
 import { CalendarIcon, ClockIcon, FlagIcon, PersonIcon, TagIcon, TicketIcon, UsersIcon } from '../common/Icons'
 import { categoryText } from '../../data/constants'
 import { formatFullDate, formatMonthDay } from '../../utils/format'
@@ -35,7 +36,7 @@ export default function EventInfo({ event }) {
           </InfoRow>
         )}
         <InfoRow icon={<TicketIcon />} label="요금">
-          {event.priceText || '정보 없음'} · 티켓은 각자 예매해요
+          <MetaLine items={[event.priceText || '정보 없음', '티켓은 각자 예매해요']} />
         </InfoRow>
         <InfoRow icon={<PersonIcon />} label="관람 연령">
           {event.ageLimit || '정보 없음'}

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { ShareIcon } from '../common/Icons'
+import MetaLine from '../common/MetaLine'
 import ReviewBox from './ReviewBox'
 import { ConfirmDialog } from '../common/Dialog'
 import { useAuth } from '../../context/AuthContext'
@@ -93,7 +94,7 @@ function ApplyForm({ meetup, status, onChange, confirmed }) {
       <div className="apply-done" role="status">
         <strong>참여가 확정됐어요</strong>
         <span>
-          {JOIN_LABEL[mine.joinType]} · {talk.place}
+          <MetaLine items={[JOIN_LABEL[mine.joinType], talk.place]} />
         </span>
       </div>
     )
@@ -143,7 +144,7 @@ function ApplyForm({ meetup, status, onChange, confirmed }) {
     : started
       ? '이미 시작한 모임이에요'
       : state.sending
-        ? '신청 중...'
+        ? '신청 중…'
         : user
           ? '참여 신청하기'
           : '로그인하고 신청하기'
@@ -153,7 +154,7 @@ function ApplyForm({ meetup, status, onChange, confirmed }) {
       <div className="side-box__head">
         <span className="side-box__title">{meetup.title}</span>
         <span className="side-box__sub">
-          {formatMeetupWhen(talk.startAt)} · {talk.area}
+          <MetaLine items={[formatMeetupWhen(talk.startAt), talk.area]} />
         </span>
       </div>
       <div className="side-box__line" />
@@ -192,7 +193,7 @@ function ApplyForm({ meetup, status, onChange, confirmed }) {
       {mine && !started && meetup.status !== 'cancelled' && <LeaveButton meetup={meetup} approved={mine.status === 'approved'} />}
       {confirmed && meetup.status !== 'cancelled' ? (
         <Link to={`/chat/meetup/${meetup._id}`} className="review-box__chat">
-          모임 채팅 열기 ›
+          모임 채팅 열기
         </Link>
       ) : (
         <p className="side-box__note">호스트가 승인하면 참여가 확정돼요. 승인되면 정확한 장소와 모임 채팅이 열려요.</p>

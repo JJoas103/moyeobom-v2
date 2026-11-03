@@ -5,7 +5,7 @@
 
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
 
-const NETWORK_ERROR = '서버에 연결할 수 없습니다. 백엔드가 실행 중인지 확인해주세요.'
+const NETWORK_ERROR = '서버에 연결하지 못했어요. 잠시 뒤 다시 시도해 주세요.'
 
 function buildUrl(path, params) {
   const url = new URL(`${API_BASE_URL}${path}`)

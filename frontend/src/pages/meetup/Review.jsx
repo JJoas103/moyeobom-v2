@@ -9,6 +9,7 @@ import { useAsync } from '../../utils/useAsync'
 import { useNow } from '../../utils/useNow'
 import { fetchReview, submitReview } from '../../data/reviews'
 import { formatDeadline, formatMonthDay, formatTimeLeft, formatWeekday } from '../../utils/format'
+import MetaLine from '../../components/common/MetaLine'
 import '../../styles/review.css'
 
 // 시안 · 모임 평가 (review-step1 · step2 · done · closed)
@@ -137,7 +138,7 @@ function ReviewView({ meetupId, review }) {
                   이전
                 </button>
                 <button type="button" className="btn btn--primary btn--lg review-bar__next" disabled={sending} onClick={send}>
-                  {sending ? '보내는 중...' : '평가 보내기'}
+                  {sending ? '보내는 중…' : '평가 보내기'}
                 </button>
               </>
             )}
@@ -167,8 +168,7 @@ function MeetupLine({ meetup }) {
       <MiniPoster meetup={meetup} width={48} height={64} />
       <span className="review-meetup__text">
         <span className="review-meetup__sub">
-          {meetup.event?.title ? `${meetup.event.title} · ` : ''}
-          {formatMonthDay(meetup.talk.startAt)} {formatWeekday(meetup.talk.startAt)} 이야기 자리
+          <MetaLine items={[meetup.event?.title, `${formatMonthDay(meetup.talk.startAt)} ${formatWeekday(meetup.talk.startAt)} 이야기 자리`]} />
         </span>
         <span className="review-meetup__title">{meetup.title}</span>
       </span>
@@ -225,7 +225,7 @@ function ReviewDone({ meetup, praisedCount }) {
       <div className="review-done__head">
         <h1>평가를 보냈어요</h1>
         <span>
-          {meetup.title} · {formatMonthDay(meetup.talk.startAt)}
+          <MetaLine items={[meetup.title, formatMonthDay(meetup.talk.startAt)]} />
         </span>
       </div>
       <div className="review-done__card">

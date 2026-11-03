@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import DataState from '../common/DataState'
 import { PinIcon } from '../common/Icons'
+import MetaLine from '../common/MetaLine'
 import { posterTone } from '../../utils/poster'
 import { assetUrl } from '../../utils/asset'
 import { useAsync } from '../../utils/useAsync'
@@ -153,7 +154,7 @@ export default function HomeMap() {
                 <Thumb event={event} width={36} height={48} />
                 <span className="home-map__row-text">
                   <span className="home-map__row-title one-line">{event.title}</span>
-                  <span className="home-map__row-meta one-line">{[event.district, formatEventPeriod(event)].filter(Boolean).join(' · ')}</span>
+                  <span className="home-map__row-meta one-line"><MetaLine items={[event.district, formatEventPeriod(event)]} /></span>
                 </span>
                 <span className={`home-map__row-meet${event.meetupCount > 0 ? ' has-meetup' : ''}`}>{event.meetupCount > 0 ? `모임 ${event.meetupCount}` : '모임 없음'}</span>
               </button>
@@ -166,7 +167,7 @@ export default function HomeMap() {
           {mapError ? (
             <div className="home-map__error">
               <PinIcon />
-              <span>지도를 불러오지 못했어요 — {mapError}</span>
+              <span>지도를 불러오지 못했어요</span>
             </div>
           ) : (
             <>
@@ -175,14 +176,14 @@ export default function HomeMap() {
                   <Thumb event={selected} width={48} height={64} />
                   <span className="home-map__card-text">
                     <span className="home-map__card-title one-line">{selected.title}</span>
-                    <span className="home-map__row-meta one-line">{[formatEventPeriod(selected), selected.district].filter(Boolean).join(' · ')}</span>
+                    <span className="home-map__row-meta one-line"><MetaLine items={[formatEventPeriod(selected), selected.district]} /></span>
                     {selected.meetupCount > 0 ? (
                       <Link to={`/meetup?event=${selected._id}&period=all`} className="home-map__card-link">
-                        이 행사로 열린 모임 {selected.meetupCount} ›
+                        이 행사로 열린 모임 {selected.meetupCount}
                       </Link>
                     ) : (
                       <Link to={`/event/${selected._id}`} className="home-map__card-link">
-                        행사 정보 ›
+                        행사 정보
                       </Link>
                     )}
                   </span>

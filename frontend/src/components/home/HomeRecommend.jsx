@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import DataState from '../common/DataState'
 import Poster from '../common/Poster'
+import MetaLine from '../common/MetaLine'
 import { UsersIcon } from '../common/Icons'
 import { useAuth } from '../../context/AuthContext'
 import { fetchRecommendedEvent } from '../../data/events'
@@ -53,7 +54,7 @@ export default function HomeRecommend() {
             </div>
             <h2 className="home-rec__title">{event.title}</h2>
             <span className="home-rec__meta">
-              {[formatEventPeriod(event), event.district, event.venue, timeLineOf(event)].filter(Boolean).join(' · ')}
+              <MetaLine items={[formatEventPeriod(event), event.district, event.venue, timeLineOf(event)]} />
             </span>
             {data.reasons.length > 0 ? (
               <div className="home-rec__reasons">
@@ -71,7 +72,7 @@ export default function HomeRecommend() {
               <UsersIcon />
               {event.meetupCount > 0 ? (
                 <>
-                  이 행사로 열린 모임 {event.meetupCount} <span className="home-rec__open">· {event.openMeetupCount}개 모집 중</span>
+                  이 행사로 열린 모임 {event.meetupCount} <span className="home-rec__open">{event.openMeetupCount}개 모집 중</span>
                 </>
               ) : (
                 '아직 열린 모임이 없어요'

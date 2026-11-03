@@ -1,3 +1,7 @@
+/* Hallmark · checked: 2026-11-03 · genre: editorial (inferred) · shape: app screen
+ * floor: 0 open on desktop · fixed: 7a 19 39a 40 48 63 67 · not fixed: 34 (desktop only, min-width 1200)
+ * linter misreads: 33 (aria-hidden spread in Icons.jsx), 73 (clamped titles), 20 (reads styles/ apart from this file)
+ * built: the project · redesign: polish · v2.0.0 */
 /* =========================================================
    모여봄 v2 — 디자인 토큰 + 기본 스타일
    "차분하게 읽히고, 포스터가 먼저, 누를 곳은 그린 하나"
@@ -8,8 +12,11 @@
   /* 바탕 · 면 · 선 */
   --bg: #fbfaf7;
   --bg-muted: #f4f2ec;
-  --surface: #ffffff;
+  --surface: #fffefb;
+  --on-fill: #fffefb; /* 색 면 위 글자 */
+  --bg-track: #e9e6de;
   --line: #e6e1d7;
+  --line-field: #8f897f; /* 입력칸 테두리 — 바탕과 3:1 이상 */
   --line-strong: #26221e;
 
   /* 글자 */
@@ -36,12 +43,37 @@
   --status-open-soft: #eaf0fb;
   --status-soon: #8f5500;
   --status-soon-soft: #fff3dc;
+  --status-soon-line: #f0d9a8;
   --status-closed: #8c867d;
 
+  /* 위험 · 취향 타일 */
+  --danger-soft: #fbeef0;
+  --danger-hover: #8a3140;
+  --tile-fallback: #2f3a4a;
+  --scrim-85: rgba(0, 0, 0, 0.85);
+  --scrim-60: rgba(0, 0, 0, 0.6);
+  --scrim-05: rgba(0, 0, 0, 0.05);
+
+  /* 반투명 면 */
+  --veil-60: rgba(255, 255, 255, 0.6);
+  --veil-88: rgba(255, 255, 255, 0.88);
+  --veil-92: rgba(255, 255, 255, 0.92);
+  --veil-bg: rgba(251, 250, 247, 0.72);
+  --primary-ring: rgba(31, 107, 82, 0.25);
+
   /* 그림자 */
+  --shade-04: rgba(38, 34, 30, 0.04);
+  --shade-08: rgba(38, 34, 30, 0.08);
+  --shade-12: rgba(38, 34, 30, 0.12);
+  --shade-20: rgba(38, 34, 30, 0.2);
+  --shade-25: rgba(38, 34, 30, 0.25);
+  --shade-32: rgba(38, 34, 30, 0.32);
   --shadow-tile: 0 2px 8px rgba(38, 34, 30, 0.08);
   --shadow-hover: 0 2px 4px rgba(38, 34, 30, 0.04), 0 8px 24px rgba(38, 34, 30, 0.08);
   --img-edge: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+
+  /* 글꼴 */
+  --font-body: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 
   /* 레이아웃 */
   --content-width: 1080px;
@@ -67,7 +99,7 @@ body {
 
 body {
   min-width: 1200px; /* 이번 범위는 데스크톱 전용 */
-  font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-family: var(--font-body);
   background: var(--bg);
   color: var(--text);
   letter-spacing: -0.01em;
@@ -162,6 +194,7 @@ img {
 }
 
 .page-head h1 {
+  text-wrap: balance;
   font-size: 30px;
   font-weight: 700;
   line-height: 1.3;
@@ -192,12 +225,12 @@ img {
   font-size: 15px;
   font-weight: 700;
   white-space: nowrap;
-  transition: background 0.2s ease-out;
+  transition: background 0.2s ease-out, transform 0.1s ease-out;
 }
 
 .btn--primary {
   background: var(--primary);
-  color: #ffffff;
+  color: var(--on-fill);
 }
 
 .btn--primary:hover {
@@ -213,6 +246,11 @@ img {
 
 .btn--line:hover {
   background: var(--bg-muted);
+}
+
+.btn:active:not(:disabled),
+.chip:active:not(:disabled) {
+  transform: translateY(1px);
 }
 
 .btn--lg {
@@ -269,12 +307,9 @@ img {
   color: var(--text-sub);
 }
 
-/* 카테고리 점 */
-.cat-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: var(--radius-pill);
-  flex-shrink: 0;
+/* 짧은 정보 나열 (MetaLine) */
+.meta-item + .meta-item {
+  margin-left: 8px;
 }
 
 /* 로딩 · 빈 상태 */

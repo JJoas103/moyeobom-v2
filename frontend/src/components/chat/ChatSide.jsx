@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import Avatar from '../common/Avatar'
 import MiniPoster from '../common/MiniPoster'
+import MetaLine from '../common/MetaLine'
 import MoreMenu from '../common/MoreMenu'
 import { JOIN_LABEL } from '../../data/constants'
 import { formatMonthDay } from '../../utils/format'
@@ -22,8 +23,7 @@ export default function ChatSide({ room, onReportUser, onBlock, onUnfriend, onBl
               <span className="chat-side__meetup-text">
                 <strong>{room.meetup.title}</strong>
                 <span>
-                  {room.meetup.event?.title ? `${room.meetup.event.title} · ` : ''}
-                  {formatMonthDay(room.meetup.talk.startAt)}
+                  <MetaLine items={[room.meetup.event?.title, formatMonthDay(room.meetup.talk.startAt)]} />
                 </span>
               </span>
             </Link>
@@ -53,11 +53,11 @@ export default function ChatSide({ room, onReportUser, onBlock, onUnfriend, onBl
             <MiniPoster meetup={meetup} width={48} height={64} radius={8} />
             <span className="chat-side__meetup-text">
               <strong>{meetup.event?.title || meetup.title}</strong>
-              <span>{[meetup.event?.venue, meetup.talk.area].filter(Boolean).join(' · ')}</span>
+              <span><MetaLine items={[meetup.event?.venue, meetup.talk.area]} /></span>
             </span>
           </div>
           <Link to={`/meetup/${meetup._id}`} className="chat-side__link">
-            모임 상세 보기 ›
+            모임 상세 보기
           </Link>
         </div>
       )}

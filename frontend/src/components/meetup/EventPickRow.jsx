@@ -1,11 +1,11 @@
-import { categoryOf, categoryText } from '../../data/constants'
+import MetaLine from '../common/MetaLine'
+import { categoryText } from '../../data/constants'
 import { posterTone } from '../../utils/poster'
 import { eventStatus } from '../../utils/status'
 import { formatEventPeriod } from '../../utils/format'
 
 /** 모임 만들기 ① — 라디오로 고르는 행사 한 줄 */
 export default function EventPickRow({ event, checked, onChange }) {
-  const cat = categoryOf(event.category)
   const tone = posterTone(event._id)
   const ended = eventStatus(event).tone === 'closed'
   const place = event.district || (event.runType === 'screening' ? '상영 중' : '')
@@ -20,13 +20,12 @@ export default function EventPickRow({ event, checked, onChange }) {
       <span className="pick-row__body">
         <span className="pick-row__tags">
           <span className="pick-row__cat">
-            <span className="cat-dot" style={{ background: cat.color }} />
             {categoryText(event)}
           </span>
           {ended && <span className="pick-row__ended">끝난 행사</span>}
         </span>
         <span className="pick-row__title">{event.title}</span>
-        <span className="pick-row__meta">{[period, place].filter(Boolean).join(' · ')}</span>
+        <span className="pick-row__meta"><MetaLine items={[period, place]} /></span>
       </span>
       <span className="pick-row__count">
         {event.meetupCount > 0 ? `이 행사로 열린 모임 ${event.meetupCount}` : '아직 열린 모임 없음'}

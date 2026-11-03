@@ -13,7 +13,7 @@ export default function Poster({ id, imageUrl, category, subtitle, title, showBa
   return (
     <div className={`poster poster--${size}`} style={imageUrl ? undefined : { background: tone.bg }}>
       {imageUrl ? (
-        <img src={assetUrl(imageUrl)} alt="" loading="lazy" />
+        <img src={assetUrl(imageUrl)} alt="" {...(size === 'lg' ? { fetchPriority: 'high' } : { loading: 'lazy' })} />
       ) : (
         <div className="poster__fallback" style={{ color: tone.ink }}>
           {subtitle && <span className="poster__eng">{subtitle}</span>}
@@ -23,7 +23,6 @@ export default function Poster({ id, imageUrl, category, subtitle, title, showBa
 
       {showBadge && (
         <span className="poster__badge">
-          <span className="cat-dot" style={{ background: cat.color }} />
           {cat.label}
         </span>
       )}

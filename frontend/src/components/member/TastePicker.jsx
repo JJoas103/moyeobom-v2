@@ -20,7 +20,7 @@ export default function TastePicker({ value, onChange }) {
             aria-pressed={on}
             onClick={() => toggle(category.key)}
           >
-            <span className="taste-tile__eng">{category.key.toUpperCase()}</span>
+            <span className="taste-tile__eng">{category.key}</span>
             <span className="taste-tile__label">{category.label}</span>
             {on && (
               <span className="taste-tile__check">

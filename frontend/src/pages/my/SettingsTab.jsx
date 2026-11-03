@@ -128,7 +128,7 @@ function WithdrawDialog({ profile, upcoming, onClose }) {
             취소
           </button>
           <button type="submit" className="btn btn--danger dialog__btn" disabled={!ready || busy}>
-            {busy ? '탈퇴하는 중...' : '탈퇴하기'}
+            {busy ? '탈퇴하는 중…' : '탈퇴하기'}
           </button>
         </div>
       </form>
@@ -195,7 +195,7 @@ function TasteForm({ profile, onSaved }) {
         {tastes.length === 0 && <span className="field__hint">취향을 하나 이상 골라 주세요</span>}
         {done && !changed && <span className="mypage-saved" role="status">저장했어요</span>}
         <button type="submit" className="btn btn--primary" disabled={saving || !changed || tastes.length === 0}>
-          {saving ? '저장하는 중...' : '저장하기'}
+          {saving ? '저장하는 중…' : '저장하기'}
         </button>
       </div>
     </form>
@@ -222,7 +222,7 @@ function ProfileForm({ profile, onSaved }) {
     const next = e.target.files?.[0]
     e.target.value = '' // 같은 파일을 다시 골라도 onChange 가 오도록
     if (!next) return
-    if (!IMAGE_TYPES.includes(next.type)) return setErrors({ uploadFile: 'JPG · PNG · WEBP 사진만 올릴 수 있어요.' })
+    if (!IMAGE_TYPES.includes(next.type)) return setErrors({ uploadFile: 'JPG, PNG, WEBP 사진만 올릴 수 있어요.' })
     if (next.size > IMAGE_MAX) return setErrors({ uploadFile: '5MB 이하 사진만 올릴 수 있어요.' })
     setErrors({})
     setFile(next)
@@ -304,7 +304,7 @@ function ProfileForm({ profile, onSaved }) {
       <div className="mypage-form__actions">
         {done && !changed && <span className="mypage-saved" role="status">저장했어요</span>}
         <button type="submit" className="btn btn--primary" disabled={saving || !changed}>
-          {saving ? '저장하는 중...' : '저장하기'}
+          {saving ? '저장하는 중…' : '저장하기'}
         </button>
       </div>
     </form>
@@ -361,7 +361,7 @@ function PasswordForm() {
       <div className="mypage-form__actions">
         {done && <span className="mypage-saved" role="status">비밀번호를 바꿨어요</span>}
         <button type="submit" className="btn btn--primary" disabled={saving || !filled}>
-          {saving ? '바꾸는 중...' : '비밀번호 바꾸기'}
+          {saving ? '바꾸는 중…' : '비밀번호 바꾸기'}
         </button>
       </div>
     </form>

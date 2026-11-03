@@ -74,7 +74,7 @@ export function JoinTasteSteps({ step, tastes, districts, onTastes, onDistricts,
               이전
             </button>
             <button type="submit" className="btn btn--primary btn--lg" disabled={submitting}>
-              {submitting ? '가입하는 중...' : submitLabel}
+              {submitting ? '가입하는 중…' : submitLabel}
             </button>
           </div>
         </form>

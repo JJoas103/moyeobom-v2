@@ -12,6 +12,7 @@ import { useDebounced } from '../../utils/useDebounced'
 import { useQueryFilters } from '../../utils/useQueryFilters'
 import { fetchMeetups } from '../../data/meetups'
 import { BUDGETS, JOIN_KIND, SEOUL_DISTRICTS } from '../../data/constants'
+import MetaLine from '../../components/common/MetaLine'
 import { PERIODS, periodLabel } from '../../utils/period'
 import '../../styles/list.css'
 
@@ -96,8 +97,8 @@ export default function MeetupList() {
       )}
 
       <p className="list-summary">
-        {district || '서울 전체'} · {periodLabel(period)} · 가까운 날짜순
-        {loading && meetups && <span className="list-summary__loading"> · 불러오는 중</span>}
+        <MetaLine items={[district || '서울 전체', periodLabel(period), '가까운 날짜순']} />
+        {loading && meetups && <span className="list-summary__loading meta-item"> 불러오는 중</span>}
       </p>
 
       <DataState

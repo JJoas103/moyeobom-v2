@@ -56,7 +56,7 @@
 }
 
 .home-tabs__tab.is-active {
-  background: linear-gradient(transparent 60%, var(--primary-highlight) 60%);
+  box-shadow: inset 0 -2px 0 var(--primary);
   color: var(--text);
   font-weight: 700;
 }
@@ -83,13 +83,9 @@
   display: block;
 }
 
-.home-rec__poster .poster {
-  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
-}
-
-.home-rec__poster:hover .poster {
-  transform: scale(1.02);
-  box-shadow: var(--shadow-hover), var(--img-edge);
+.home-rec__poster:hover ~ .home-rec__info .home-rec__title {
+  text-wrap: balance;
+  text-decoration: underline;
 }
 
 .home-rec__info {
@@ -101,6 +97,7 @@
 }
 
 .home-rec__title {
+  text-wrap: balance;
   font-size: 30px;
   font-weight: 700;
   line-height: 1.3;
@@ -156,6 +153,7 @@
 }
 
 .home-rec__open {
+  margin-left: 4px;
   font-weight: 400;
   color: var(--text-sub);
 }
@@ -188,7 +186,7 @@
   gap: 4px;
   padding: 4px;
   border-radius: var(--radius-pill);
-  background: #e9e6de;
+  background: var(--bg-track);
 }
 
 .home-cal__preset {
@@ -284,7 +282,7 @@
 
 .home-cal__day.is-selected .home-cal__num {
   background: var(--primary);
-  color: #ffffff;
+  color: var(--on-fill);
   font-weight: 700;
 }
 
@@ -590,10 +588,10 @@
   height: 28px;
   padding: 0;
   display: block;
-  border: 2px solid #ffffff;
+  border: 2px solid var(--surface);
   border-radius: var(--radius-pill);
   background: var(--pin);
-  box-shadow: 0 2px 6px rgba(38, 34, 30, 0.25);
+  box-shadow: 0 2px 6px var(--shade-25);
 }
 
 .home-pin::after {
@@ -601,13 +599,13 @@
   position: absolute;
   inset: 8px;
   border-radius: var(--radius-pill);
-  background: #ffffff;
+  background: var(--surface);
 }
 
 .home-pin.is-selected {
   z-index: 1;
   transform: scale(1.2);
-  box-shadow: 0 2px 6px rgba(38, 34, 30, 0.25), 0 0 0 4px rgba(31, 107, 82, 0.25);
+  box-shadow: 0 2px 6px var(--shade-25), 0 0 0 4px var(--primary-ring);
 }
 
 .home-pin__badge {
@@ -621,15 +619,12 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-pill);
-  background: #ffffff;
+  background: var(--surface);
   color: var(--text);
   font-size: 11px;
   font-weight: 700;
-  box-shadow: 0 1px 3px rgba(38, 34, 30, 0.2);
+  box-shadow: 0 1px 3px var(--shade-20);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .home-rec__poster:hover .poster {
-    transform: none;
-  }
 }

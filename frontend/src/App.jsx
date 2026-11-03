@@ -18,7 +18,7 @@ function App() {
   const { authLoading } = useAuth()
 
   // 첫 세션 확인이 끝나기 전엔 대기 — 로그인한 사람에게 로그인 버튼이 깜빡이지 않게
-  if (authLoading) return <div className="state-box">불러오는 중...</div>
+  if (authLoading) return <div className="state-box">불러오는 중…</div>
 
   return (
     <>

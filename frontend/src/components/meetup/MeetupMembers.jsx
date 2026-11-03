@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { approveMember } from '../../data/meetups'
+import MetaLine from '../common/MetaLine'
 import { JOIN_LABEL } from '../../data/constants'
 import { posterTone } from '../../utils/poster'
 import { formatMeetupWhen } from '../../utils/format'
@@ -76,7 +77,7 @@ function HostMembers({ meetup, onChange }) {
                 <span className="applicant__text">
                   <strong>{m.user?.nickname || '알 수 없음'}</strong>
                   <span>
-                    {JOIN_LABEL[m.joinType]} · {formatMeetupWhen(m.appliedAt)} 신청
+                    <MetaLine items={[JOIN_LABEL[m.joinType], `${formatMeetupWhen(m.appliedAt)} 신청`]} />
                   </span>
                 </span>
                 <button
@@ -85,7 +86,7 @@ function HostMembers({ meetup, onChange }) {
                   disabled={full || busy === m.user?._id}
                   onClick={() => approve(m.user._id)}
                 >
-                  {busy === m.user?._id ? '승인 중...' : '승인'}
+                  {busy === m.user?._id ? '승인 중…' : '승인'}
                 </button>
               </li>
             ))}

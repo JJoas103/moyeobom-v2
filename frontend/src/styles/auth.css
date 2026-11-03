@@ -15,6 +15,7 @@
 }
 
 .auth__head h1 {
+  text-wrap: balance;
   font-size: 28px;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -43,7 +44,7 @@
 }
 
 .auth__alert--error {
-  background: #fbeef0;
+  background: var(--danger-soft);
   color: var(--cat-stage);
 }
 

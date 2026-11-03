@@ -59,10 +59,13 @@ export const SEOUL_DISTRICTS = [
 export const DISTRICT_MAX = 3
 
 /** '공연 · 뮤지컬 · 회차형' — 분류와 장르가 같으면(연극 · 연극) 한 번만 */
+// 세부 분류 — 분류 이름에 이미 들어 있으면('클래식 · 국악'의 '국악') 빈 값
+export const genreText = (event) => (categoryOf(event.category).label.includes(event.genre) ? '' : event.genre)
+
 export function categoryText(event, { withRunType = false } = {}) {
-  const parts = [categoryOf(event.category).label, event.genre]
+  const parts = [categoryOf(event.category).label, genreText(event)]
   if (withRunType) parts.push(RUN_TYPE_LABEL[event.runType])
-  return [...new Set(parts.filter(Boolean))].join(' · ')
+  return parts.filter(Boolean).join(', ')
 }
 
 // 가입 방식 (User.provider)

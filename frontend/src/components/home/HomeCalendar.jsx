@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import DataState from '../common/DataState'
+import { ChevronLeftIcon, ChevronRightIcon } from '../common/Icons'
+import MetaLine from '../common/MetaLine'
 import EventCard from '../event/EventCard'
 import { useAsync } from '../../utils/useAsync'
 import { fetchEvents } from '../../data/events'
@@ -82,13 +84,13 @@ export default function HomeCalendar() {
 
         <div className="home-cal__month">
           <button type="button" className="home-cal__arrow" aria-label="이전 달" disabled={month <= thisMonth} onClick={() => setMonth(addMonths(month, -1))}>
-            ‹
+            <ChevronLeftIcon />
           </button>
           <span className="home-cal__month-label">
             {month.getFullYear()}.{String(month.getMonth() + 1).padStart(2, '0')}
           </span>
           <button type="button" className="home-cal__arrow" aria-label="다음 달" onClick={() => setMonth(addMonths(month, 1))}>
-            ›
+            <ChevronRightIcon />
           </button>
         </div>
 
@@ -129,12 +131,12 @@ export default function HomeCalendar() {
         <div className="home-cal__head">
           <span className="home-cal__title">{title}</span>
           <span className="home-cal__counts">
-            행사 {events.data?.length ?? '-'} · 모임 {meetups.data?.length ?? '-'}
+            <MetaLine items={[`행사 ${events.data?.length ?? '-'}`, `모임 ${meetups.data?.length ?? '-'}`]} />
           </span>
           <span className="spacer" />
           {preset && (
             <Link to={`/event?period=${preset}`} className="section-head__more">
-              {preset === 'today' ? '오늘' : '이번 주말'} 행사 전체 ›
+              {preset === 'today' ? '오늘' : '이번 주말'} 행사 전체
             </Link>
           )}
         </div>
@@ -154,10 +156,10 @@ export default function HomeCalendar() {
                 {pageIndex + 1} / {pageCount}
               </span>
               <button type="button" className="home-cal__nav" aria-label="이전" disabled={pageIndex === 0} onClick={() => goPage(pageIndex - 1)}>
-                ‹
+                <ChevronLeftIcon />
               </button>
               <button type="button" className="home-cal__nav" aria-label="다음" disabled={pageIndex === pageCount - 1} onClick={() => goPage(pageIndex + 1)}>
-                ›
+                <ChevronRightIcon />
               </button>
             </div>
           )}

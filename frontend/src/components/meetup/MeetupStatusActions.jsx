@@ -30,7 +30,7 @@ export default function MeetupStatusActions({ meetup }) {
           <span>{closed ? '다시 열면 신청을 받을 수 있어요.' : '마감하면 새 신청을 받지 않아요. 언제든 다시 열 수 있어요.'}</span>
         </span>
         <button type="button" className="btn btn--line" disabled={Boolean(busy)} onClick={() => change(closed ? 'open' : 'closed')}>
-          {busy === 'open' || busy === 'closed' ? '바꾸는 중...' : closed ? '다시 모집하기' : '모집 마감하기'}
+          {busy === 'open' || busy === 'closed' ? '바꾸는 중…' : closed ? '다시 모집하기' : '모집 마감하기'}
         </button>
       </div>
       <div className="status-actions__row">
@@ -39,7 +39,7 @@ export default function MeetupStatusActions({ meetup }) {
           <span>되돌릴 수 없어요. 취소한 모임은 목록에서 빠져요.</span>
         </span>
         <button type="button" className="btn btn--line status-actions__danger" disabled={Boolean(busy)} onClick={() => change('cancelled')}>
-          {busy === 'cancelled' ? '취소하는 중...' : '모임 취소하기'}
+          {busy === 'cancelled' ? '취소하는 중…' : '모임 취소하기'}
         </button>
       </div>
       {error && (

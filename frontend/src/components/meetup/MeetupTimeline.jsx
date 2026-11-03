@@ -11,7 +11,7 @@ export default function MeetupTimeline({ meetup }) {
   return (
     <section className="detail-section">
       <div className="section-head">
-        <h2>타임 라인</h2>
+        <h2>타임라인</h2>
         <span className="spacer" />
         {hasWatch && (
           <span className="timeline-legend">

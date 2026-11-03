@@ -44,7 +44,7 @@ export function ConfirmDialog({ title, children, confirmLabel, danger = false, b
           disabled={busy}
           onClick={onConfirm}
         >
-          {busy ? '처리 중...' : confirmLabel}
+          {busy ? '처리 중…' : confirmLabel}
         </button>
       </div>
     </Dialog>

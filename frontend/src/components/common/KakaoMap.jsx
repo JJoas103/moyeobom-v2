@@ -30,7 +30,7 @@ export default function KakaoMap({ lat, lng, title, height = 240, level = 4 }) {
     return (
       <div className="map-placeholder" style={{ height }}>
         <PinIcon />
-        <span>{error ? `카카오 지도 자리 — ${error}` : '위치 정보가 없는 행사예요'}</span>
+        <span>{error ? '지도를 불러오지 못했어요' : '위치 정보가 없는 행사예요'}</span>
       </div>
     )
   }

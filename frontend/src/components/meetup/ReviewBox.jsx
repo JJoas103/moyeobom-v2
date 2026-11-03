@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import MetaLine from '../common/MetaLine'
 import { formatDeadline, formatMeetupWhen, formatTimeLeft } from '../../utils/format'
 
 /**
@@ -75,14 +76,14 @@ export default function ReviewBox({ meetup }) {
       <div className="side-box__head">
         <span className="side-box__title">{meetup.title}</span>
         <span className="side-box__sub">
-          {formatMeetupWhen(talk.startAt)} · {talk.area}
+          <MetaLine items={[formatMeetupWhen(talk.startAt), talk.area]} />
         </span>
       </div>
       <div className="side-box__line" />
       {body}
       {cta}
       <Link to={`/chat/meetup/${meetup._id}`} className="review-box__chat">
-        모임 채팅 열기 ›
+        모임 채팅 열기
       </Link>
     </aside>
   )

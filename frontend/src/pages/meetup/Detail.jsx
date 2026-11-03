@@ -97,9 +97,9 @@ function MeetupDetailView({ meetup, onChange }) {
             <SectionHead title="모임 채팅" />
             <div className="chat-lock">
               <div className="chat-lock__preview" aria-hidden="true">
-                <span>어디쯤 계세요? 입구 쪽에 있을게요</span>
-                <span>오늘 제일 좋았던 장면 다들 생각해 오세요</span>
-                <span className="is-mine">저 조금 늦을 것 같아요</span>
+                <span />
+                <span />
+                <span className="is-mine" />
               </div>
               {canChat ? (
                 <Link to={`/chat/meetup/${meetup._id}`} className="chat-lock__badge chat-lock__badge--open">
