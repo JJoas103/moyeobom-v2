@@ -343,7 +343,7 @@ function PasswordForm() {
 
   return (
     <form className="mypage-form mypage-form--sub" onSubmit={onSubmit} noValidate>
-      <h3 className="mypage-form__subtitle">비밀번호 바꾸기</h3>
+      <h3 className="mypage-form__subtitle">비밀번호 변경</h3>
       <Field label="지금 비밀번호" error={errors.currentPassword}>
         <input className="input" type="password" autoComplete="current-password" value={form.currentPassword} onChange={set('currentPassword')} />
       </Field>
@@ -361,7 +361,7 @@ function PasswordForm() {
       <div className="mypage-form__actions">
         {done && <span className="mypage-saved" role="status">비밀번호를 바꿨어요</span>}
         <button type="submit" className="btn btn--primary" disabled={saving || !filled}>
-          {saving ? '바꾸는 중…' : '비밀번호 바꾸기'}
+          {saving ? '바꾸는 중…' : '비밀번호 변경'}
         </button>
       </div>
     </form>
