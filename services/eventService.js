@@ -41,6 +41,15 @@ function periodRange(key, now = new Date()) {
   }
 }
 
+const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
+const isDay = (v) => DAY_RE.test(v) && !Number.isNaN(new Date(`${v}T00:00:00+09:00`).getTime());
+
+/** from · to('YYYY-MM-DD') 쿼리가 맞는지 — 둘 다 없거나, 둘 다 있고 순서가 맞아야 함 */
+const isValidDayRange = (from, to) => (!from && !to) || (isDay(from) && isDay(to) && from <= to);
+
+/** 달력에서 고른 날짜 → 서울 시간 [시작, 끝]. 없으면 null */
+const dayRange = (from, to) => (from && to ? [new Date(`${from}T00:00:00+09:00`), new Date(`${to}T23:59:59.999+09:00`)] : null);
+
 // ---------- 모임 수 ----------
 
 // 행사별 모임 수 · 모집 중 모임 수 (모집 중 = open + 승인 인원 < 정원)
@@ -91,9 +100,10 @@ const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 /**
  * 행사 목록
- * @param {{ category?, genre?, district?, period?, q?, hasMeetup?: boolean, includeEnded?: boolean, sort?: 'meetups'|'endingSoon' }} params
+ * @param {{ category?, genre?, district?, period?, from?, to?, q?, hasMeetup?: boolean, includeEnded?: boolean, sort?: 'meetups'|'endingSoon' }} params
+ *   from · to 가 있으면 period 대신 그 날짜 범위
  */
-async function listEvents({ category, genre, district, period, q, hasMeetup, includeEnded, sort = 'meetups' } = {}) {
+async function listEvents({ category, genre, district, period, from: fromDay, to: toDay, q, hasMeetup, includeEnded, sort = 'meetups' } = {}) {
   const now = new Date();
   const and = [];
 
@@ -102,7 +112,7 @@ async function listEvents({ category, genre, district, period, q, hasMeetup, inc
   if (genre) and.push({ genre });
   if (district) and.push({ district });
 
-  const range = periodRange(period, now);
+  const range = dayRange(fromDay, toDay) || periodRange(period, now);
   if (range) {
     const [from, to] = range;
     and.push({ startDate: { $lte: to } }, { $or: [{ endDate: null }, { endDate: { $gte: from } }] });
@@ -126,6 +136,16 @@ async function listEvents({ category, genre, district, period, q, hasMeetup, inc
   ]);
 }
 
+/** 추천 순위 계산용 안 끝난 행사 — 비교에 쓰는 필드만 받아 전송량을 줄임 */
+async function listEventsForRanking() {
+  const now = new Date();
+  return Event.aggregate([
+    { $match: { $or: [{ endDate: null }, { endDate: { $gte: now } }] } },
+    { $project: { category: 1, district: 1, endDate: 1 } },
+    ...meetupCountStages,
+  ]);
+}
+
 /** 최근 끝난 행사 — 끝난 지 RECENT_ENDED_DAYS 일 안. 최근에 끝난 순 */
 async function listRecentEndedEvents() {
   const now = new Date();
@@ -144,8 +164,8 @@ async function getEvent(id) {
   const [event] = await Event.aggregate([{ $match: { _id: new mongoose.Types.ObjectId(id) } }, ...meetupCountStages]);
   if (!event) throw notFound;
 
-  // recommendReasons: 로그인 사용자 전용 (추천 기능 전까지 항상 null)
+  // recommendReasons 는 컨트롤러가 보는 사람 기준으로 채움 (services/recommendService.js)
   return { ...event, recommendReasons: null };
 }
 
-module.exports = { listEvents, listRecentEndedEvents, getEvent, periodRange, RECENT_ENDED_DAYS };
+module.exports = { listEvents, listEventsForRanking, listRecentEndedEvents, getEvent, periodRange, dayRange, isValidDayRange, RECENT_ENDED_DAYS };

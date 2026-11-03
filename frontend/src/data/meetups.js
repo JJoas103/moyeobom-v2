@@ -15,7 +15,7 @@ import { apiGet, apiPatch, apiPost, apiPostForm } from '../api'
 import mockMeetups, { mockUsers } from './mock/meetups'
 import mockEvents from './mock/events'
 import { fetchEvent } from './events'
-import { periodRange } from '../utils/period'
+import { dayRange, periodRange } from '../utils/period'
 
 // 목업 모임이 실제 API 행사를 참조할 때 — 만들 때 받아 둔 행사 사용
 const fetchedEvents = new Map()
@@ -49,6 +49,7 @@ const byStartAt = (a, b) => new Date(a.talk.startAt) - new Date(b.talk.startAt)
  * @param {{
  *   eventId?: string, category?: string, district?: string,
  *   period?: ''|'today'|'week'|'weekend'|'month',
+ *   from?: string, to?: string,     // 'YYYY-MM-DD' — 있으면 period 대신 이 날짜 범위 (달력)
  *   joinType?: ''|'watch'|'talk',   // watch = 관람부터 함께 가능 / talk = 이야기 자리만
  *   alcohol?: ''|'yes'|'no', budget?: string,
  *   q?: string, openOnly?: boolean, includePast?: boolean
@@ -57,8 +58,8 @@ const byStartAt = (a, b) => new Date(a.talk.startAt) - new Date(b.talk.startAt)
 export async function fetchMeetups(params = {}) {
   if (USE_MOCK) {
     await delay()
-    const { eventId, category, district, period, joinType, alcohol, budget, q, openOnly, includePast } = params
-    const range = periodRange(period)
+    const { eventId, category, district, period, from, to, joinType, alcohol, budget, q, openOnly, includePast } = params
+    const range = dayRange(from, to) || periodRange(period)
     const keyword = q?.trim()
     const now = new Date()
     return mockMeetups

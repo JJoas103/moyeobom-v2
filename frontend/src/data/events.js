@@ -2,13 +2,23 @@
 //
 // 응답 모양 (백엔드 GET /api/event/* 와 같음):
 //   event = Event 스키마 필드 + meetupCount(이 행사로 열린 모임 수) + openMeetupCount(지금 모집 중)
+//   GET /api/event/recommended → { event | null, reasons, basis: 'taste' | 'popular' }
+//   추천 이유(서버) = { type: 'taste' | 'district' | 'history', value } → 화면에는 toReason 으로 { label, text }
 import { USE_MOCK_EVENTS as USE_MOCK, delay } from './config'
 import { apiGet } from '../api'
 import mockEvents from './mock/events'
 import mockMeetups from './mock/meetups'
 import mockRecommendReasons from './mock/recommendReasons'
 import { toMeetupResponse } from './meetups'
-import { periodRange, overlaps } from '../utils/period'
+import { categoryOf } from './constants'
+import { dayRange, periodRange, overlaps } from '../utils/period'
+
+function toReason({ type, value }) {
+  if (type === 'taste') return { label: '취향', text: categoryOf(value).label }
+  if (type === 'district') return { label: '지역', text: value }
+  return { label: '이력', text: `${categoryOf(value).label} 모임` }
+}
+const toReasons = (reasons) => reasons?.map(toReason) ?? null
 
 function withCounts(event) {
   const meetups = mockMeetups.filter((m) => m.event === event._id).map(toMeetupResponse)
@@ -26,6 +36,7 @@ const isEnded = (e) => e.endDate && new Date(e.endDate) < new Date()
  * @param {{
  *   category?: string, genre?: string, district?: string,
  *   period?: ''|'today'|'week'|'weekend'|'month',
+ *   from?: string, to?: string,   // 'YYYY-MM-DD' — 있으면 period 대신 이 날짜 범위 (달력)
  *   q?: string, hasMeetup?: boolean, includeEnded?: boolean,
  *   sort?: 'meetups'|'endingSoon'
  * }} params
@@ -33,8 +44,8 @@ const isEnded = (e) => e.endDate && new Date(e.endDate) < new Date()
 export async function fetchEvents(params = {}) {
   if (USE_MOCK) {
     await delay()
-    const { category, genre, district, period, q, hasMeetup, includeEnded, sort = 'meetups' } = params
-    const range = periodRange(period)
+    const { category, genre, district, period, from, to, q, hasMeetup, includeEnded, sort = 'meetups' } = params
+    const range = dayRange(from, to) || periodRange(period)
     const keyword = q?.trim()
     const list = mockEvents
       .map(withCounts)
@@ -51,6 +62,24 @@ export async function fetchEvents(params = {}) {
   }
   const { events } = await apiGet('/api/event/list', { params })
   return events
+}
+
+/**
+ * 홈 추천 행사 하나 → { event, reasons: [{ label, text }], basis }
+ * basis 'taste' = 취향 · 지역 · 이력 중 맞는 조건이 있음 / 'popular' = 모집 중인 모임 많은 순 → 곧 끝나는 순
+ */
+export async function fetchRecommendedEvent() {
+  if (USE_MOCK) {
+    await delay()
+    const end = (e) => new Date(e.endDate || '9999').getTime()
+    const [event = null] = mockEvents
+      .map(withCounts)
+      .filter((e) => !isEnded(e))
+      .sort((a, b) => b.openMeetupCount - a.openMeetupCount || end(a) - end(b))
+    return { event, reasons: [], basis: 'popular' } // 목업엔 로그인 사용자 없음
+  }
+  const { event, reasons, basis } = await apiGet('/api/event/recommended')
+  return { event, reasons: toReasons(reasons), basis }
 }
 
 /** 최근 끝난 행사 — 모임 만들기 ①. 허용 기간(유통기한)은 미결정이라 임시 14일 */
@@ -78,8 +107,8 @@ export async function fetchEvent(id) {
       throw error
     }
     // recommendReasons: 로그인 사용자 전용 (없으면 null)
-    return { ...withCounts(event), recommendReasons: mockRecommendReasons[id] || null }
+    return { ...withCounts(event), recommendReasons: toReasons(mockRecommendReasons[id]) }
   }
   const { event } = await apiGet(`/api/event/${id}`)
-  return event
+  return { ...event, recommendReasons: toReasons(event.recommendReasons) }
 }

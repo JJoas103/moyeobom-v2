@@ -55,6 +55,9 @@ export const SEOUL_DISTRICTS = [
   '양천구', '영등포구', '용산구', '은평구', '종로구', '중구', '중랑구',
 ]
 
+// 관심 지역 최대 개수 — models/User.js DISTRICT_MAX 와 같음
+export const DISTRICT_MAX = 3
+
 /** '공연 · 뮤지컬 · 회차형' — 분류와 장르가 같으면(연극 · 연극) 한 번만 */
 export function categoryText(event, { withRunType = false } = {}) {
   const parts = [categoryOf(event.category).label, event.genre]

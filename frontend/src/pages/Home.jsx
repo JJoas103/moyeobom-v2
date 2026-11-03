@@ -1,45 +1,103 @@
-import { Link } from 'react-router-dom'
-import ScreenPlaceholder from '../components/common/ScreenPlaceholder'
+import { Link, useSearchParams } from 'react-router-dom'
 import DataState from '../components/common/DataState'
+import SectionHead from '../components/common/SectionHead'
+import EventCard from '../components/event/EventCard'
+import MeetupCard from '../components/meetup/MeetupCard'
+import HomeRecommend from '../components/home/HomeRecommend'
+import HomeCalendar from '../components/home/HomeCalendar'
+import HomeMap from '../components/home/HomeMap'
 import { useAsync } from '../utils/useAsync'
 import { fetchEvents } from '../data/events'
 import { fetchMeetups } from '../data/meetups'
-import { apiGet } from '../api'
-import { USE_MOCK_EVENTS, USE_MOCK_MEETUPS } from '../data/config'
 import { formatTodayTitle } from '../utils/format'
+import '../styles/list.css'
+import '../styles/detail.css'
+import '../styles/home.css'
 
-// 연결 확인용 임시 홈 — 나중에 시안 v2 · 홈(V2Home)으로 교체
+const VIEWS = [
+  { key: 'rec', label: '추천 홈' },
+  { key: 'map', label: '지도로 보기' },
+  { key: 'cal', label: '달력으로 보기' },
+]
+const SECTION_SIZE = 5
+
+// 시안 html/home.html — 오늘 날짜 + 보기 탭(추천 · 지도 · 달력) + 이번 주 모임 + 지금 열려 있는 행사
 export default function Home() {
-  const counts = useAsync(async () => {
-    const [events, meetups] = await Promise.all([fetchEvents(), fetchMeetups({ openOnly: true })])
-    return { events: events.length, meetups: meetups.length }
-  }, [])
-  const health = useAsync(() => apiGet('/api/health'), [])
+  // 탭은 주소(/?view=map)에 저장 → 상세 갔다가 뒤로 와도 유지
+  const [params, setParams] = useSearchParams()
+  const view = VIEWS.some((v) => v.key === params.get('view')) ? params.get('view') : 'rec'
+
+  const events = useAsync(() => fetchEvents(), [])
+  const weekMeetups = useAsync(() => fetchMeetups({ period: 'week' }), [])
+  const openMeetups = useAsync(() => fetchMeetups({ openOnly: true }), [])
+
+  const pick = (key) => setParams(key === 'rec' ? {} : { view: key }, { replace: true })
 
   return (
-    <ScreenPlaceholder title={formatTodayTitle()} artboard="시안 v2 · 홈">
-      <DataState loading={counts.loading} error={counts.error}>
-        <p>
-          열려 있는 행사 <strong>{counts.data?.events}</strong>
-          {USE_MOCK_EVENTS && ' (목업)'} · 모집 중인 모임 <strong>{counts.data?.meetups}</strong>
-          {USE_MOCK_MEETUPS && ' (목업)'}
-        </p>
-      </DataState>
+    <div className="home">
+      <div className="home__top">
+        <section className="page-head home-head">
+          <h1>{formatTodayTitle()}</h1>
+          <span className="spacer" />
+          <div className="home-head__counts">
+            <span>
+              열려 있는 행사 <strong>{events.data?.length ?? '-'}</strong>
+            </span>
+            <span>
+              모집 중인 모임 <strong>{openMeetups.data?.length ?? '-'}</strong>
+            </span>
+          </div>
+        </section>
 
-      <p style={{ marginTop: 16 }}>
-        백엔드 연결:{' '}
-        {health.loading
-          ? '확인 중...'
-          : health.error
-            ? `✕ ${health.error.message}`
-            : `✓ 서버 ${health.data.server} · DB ${health.data.db}`}
-      </p>
+        <div className="home-view">
+          <div role="tablist" aria-label="홈 보기 방식" className="home-tabs">
+            {VIEWS.map((v) => (
+              <button key={v.key} type="button" role="tab" aria-selected={view === v.key} className={`home-tabs__tab${view === v.key ? ' is-active' : ''}`} onClick={() => pick(v.key)}>
+                {v.label}
+              </button>
+            ))}
+          </div>
+          <div className="home-view__body" role="tabpanel" aria-label={VIEWS.find((v) => v.key === view).label}>
+            {view === 'rec' && <HomeRecommend />}
+            {view === 'map' && <HomeMap />}
+            {view === 'cal' && <HomeCalendar />}
+          </div>
+        </div>
+      </div>
 
-      <ul style={{ marginTop: 24, paddingLeft: 20 }}>
-        <li><Link to="/event">행사 목록</Link></li>
-        <li><Link to="/meetup">모임 목록</Link></li>
-        <li><Link to="/meetup/new">모임 만들기</Link></li>
-      </ul>
-    </ScreenPlaceholder>
+      <section className="home-section">
+        <SectionHead title="이번 주 모임" count={weekMeetups.data?.length} moreTo="/meetup" moreLabel="모임 전체" />
+        <DataState
+          loading={weekMeetups.loading && !weekMeetups.data}
+          error={weekMeetups.error}
+          empty={weekMeetups.data?.length === 0}
+          emptyText={
+            <>
+              <strong>이번 주 모임이 아직 없어요</strong>
+              <Link to="/meetup/new" className="btn btn--line home-empty__btn">
+                첫 모임 열기
+              </Link>
+            </>
+          }
+        >
+          <div className="card-grid">
+            {weekMeetups.data?.slice(0, SECTION_SIZE).map((m) => (
+              <MeetupCard key={m._id} meetup={m} />
+            ))}
+          </div>
+        </DataState>
+      </section>
+
+      <section className="home-section">
+        <SectionHead title="지금 열려 있는 행사" count={events.data?.length} moreTo="/event?period=all" moreLabel="행사 전체" />
+        <DataState loading={events.loading && !events.data} error={events.error} empty={events.data?.length === 0} emptyText="지금 열려 있는 행사가 없어요">
+          <div className="card-grid">
+            {events.data?.slice(0, SECTION_SIZE).map((e) => (
+              <EventCard key={e._id} event={e} />
+            ))}
+          </div>
+        </DataState>
+      </section>
+    </div>
   )
 }

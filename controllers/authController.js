@@ -60,7 +60,7 @@ const socialData = (req, res) => {
   res.json({ success: true, socialData: data ? { email: data.email, nickname: data.nickname, provider: data.provider } : null });
 };
 
-// POST /api/auth/social-join (multipart: nickname, uploadFile?)
+// POST /api/auth/social-join (multipart: nickname, tastes[], districts[], uploadFile?)
 const socialJoin = async (req, res, next) => {
   if (!req.session.socialData) {
     removeUploaded(req);
@@ -73,6 +73,8 @@ const socialJoin = async (req, res, next) => {
       email,
       provider,
       nickname: req.body.nickname,
+      tastes: req.body.tastes,
+      districts: req.body.districts,
       uploadFile: req.file,
     });
     delete req.session.socialData;

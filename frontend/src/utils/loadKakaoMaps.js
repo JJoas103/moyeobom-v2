@@ -13,7 +13,7 @@ export function loadKakaoMaps() {
       return
     }
     const script = document.createElement('script')
-    script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${appKey}&autoload=false`
+    script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${appKey}&libraries=clusterer&autoload=false`
     script.async = true
     script.onload = () => window.kakao.maps.load(() => resolve(window.kakao))
     script.onerror = () => {
