@@ -27,7 +27,8 @@ export default function Home() {
   const [params, setParams] = useSearchParams()
   const view = VIEWS.some((v) => v.key === params.get('view')) ? params.get('view') : 'rec'
 
-  const events = useAsync(() => fetchEvents(), [])
+  // 아래 섹션에 쓸 만큼만 받고 개수는 total 을 읽는다 (전량을 받으면 수천 건에서 멈춘다)
+  const events = useAsync(() => fetchEvents({ limit: SECTION_SIZE }), [])
   const weekMeetups = useAsync(() => fetchMeetups({ period: 'week' }), [])
   const openMeetups = useAsync(() => fetchMeetups({ openOnly: true }), [])
 
@@ -41,7 +42,7 @@ export default function Home() {
           <span className="spacer" />
           <div className="home-head__counts">
             <span>
-              열려 있는 행사 <strong>{events.data?.length ?? '-'}</strong>
+              열려 있는 행사 <strong>{events.data?.total ?? '-'}</strong>
             </span>
             <span>
               모집 중인 모임 <strong>{openMeetups.data?.length ?? '-'}</strong>
@@ -89,10 +90,10 @@ export default function Home() {
       </section>
 
       <section className="home-section">
-        <SectionHead title="지금 열려 있는 행사" count={events.data?.length} moreTo="/event?period=all" moreLabel="행사 전체" />
-        <DataState loading={events.loading && !events.data} error={events.error} empty={events.data?.length === 0} emptyText="지금 열려 있는 행사가 없어요">
+        <SectionHead title="지금 열려 있는 행사" count={events.data?.total} moreTo="/event?period=all" moreLabel="행사 전체" />
+        <DataState loading={events.loading && !events.data} error={events.error} empty={events.data?.total === 0} emptyText="지금 열려 있는 행사가 없어요">
           <div className="card-grid">
-            {events.data?.slice(0, SECTION_SIZE).map((e) => (
+            {events.data?.events.map((e) => (
               <EventCard key={e._id} event={e} />
             ))}
           </div>

@@ -4,6 +4,11 @@
 //   event = Event 스키마 필드 + meetupCount(이 행사로 열린 모임 수) + openMeetupCount(지금 모집 중)
 //   GET /api/event/recommended → { event | null, reasons, basis: 'taste' | 'popular' }
 //   추천 이유(서버) = { type: 'taste' | 'district' | 'history', value } → 화면에는 toReason 으로 { label, text }
+//
+//   목록은 한 페이지씩 온다 — fetchEvents → { events, total, genres }
+//     total  = 조건에 맞는 전체 수 (머리줄 개수 · '더 보기' 가 남았는지 판단)
+//     genres = 이 조건에서 나오는 분야 전부 (분야 선택지 — 한 페이지만 보고 만들면 선택지가 빠진다)
+//   목록 event 는 카드에 필요한 필드만 온다. description 같은 큰 필드는 상세(fetchEvent)에서만
 import { USE_MOCK_EVENTS as USE_MOCK, delay } from './config'
 import { apiGet } from '../api'
 import mockEvents from './mock/events'
@@ -31,37 +36,43 @@ function withCounts(event) {
 
 const isEnded = (e) => e.endDate && new Date(e.endDate) < new Date()
 
+export const PAGE_SIZE = 15 // 목록 한 페이지 (백엔드 eventService LIST_LIMIT 과 같게)
+
 /**
- * 행사 목록
+ * 행사 목록 — 한 페이지씩
  * @param {{
  *   category?: string, genre?: string, district?: string,
  *   period?: ''|'today'|'week'|'weekend'|'month',
  *   from?: string, to?: string,   // 'YYYY-MM-DD' — 있으면 period 대신 이 날짜 범위 (달력)
  *   q?: string, hasMeetup?: boolean, includeEnded?: boolean,
- *   sort?: 'meetups'|'endingSoon'
+ *   sort?: 'meetups'|'endingSoon', page?: number, limit?: number
  * }} params
+ * @returns {Promise<{ events, total, genres }>}
  */
 export async function fetchEvents(params = {}) {
   if (USE_MOCK) {
     await delay()
-    const { category, genre, district, period, from, to, q, hasMeetup, includeEnded, sort = 'meetups' } = params
+    const { category, genre, district, period, from, to, q, hasMeetup, includeEnded, sort = 'endingSoon', page = 1, limit = PAGE_SIZE } = params
     const range = dayRange(from, to) || periodRange(period)
     const keyword = q?.trim()
-    const list = mockEvents
+    const all = mockEvents
       .map(withCounts)
       .filter((e) => includeEnded || !isEnded(e))
       .filter((e) => !category || e.category === category)
-      .filter((e) => !genre || e.genre === genre)
       .filter((e) => !district || e.district === district)
       .filter((e) => overlaps(e, range))
       .filter((e) => !keyword || e.title.includes(keyword))
       .filter((e) => !hasMeetup || e.meetupCount > 0)
+    // 분야 선택지는 분야를 고르기 전 기준 (서버와 같게)
+    const genres = [...new Set(all.map((e) => e.genre).filter(Boolean))].sort()
+    const list = all.filter((e) => !genre || e.genre === genre)
     if (sort === 'meetups') list.sort((a, b) => b.meetupCount - a.meetupCount)
     if (sort === 'endingSoon') list.sort((a, b) => new Date(a.endDate || '9999') - new Date(b.endDate || '9999'))
-    return list
+    const start = (Math.max(page, 1) - 1) * limit
+    return { events: list.slice(start, start + limit), total: list.length, genres }
   }
-  const { events } = await apiGet('/api/event/list', { params })
-  return events
+  const { events, total, genres } = await apiGet('/api/event/list', { params })
+  return { events, total, genres }
 }
 
 /**

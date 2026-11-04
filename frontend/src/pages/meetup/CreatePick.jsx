@@ -28,7 +28,7 @@ export default function CreatePick() {
   const keyword = useDebounced(q)
   const searching = Boolean(keyword.trim() || category)
 
-  const results = useAsync(() => fetchEvents({ q: keyword, category, sort: 'meetups' }), [keyword, category])
+  const results = useAsync(() => fetchEvents({ q: keyword, category, sort: 'meetups', limit: RESULT_LIMIT }), [keyword, category])
   const recentEnded = useAsync(() => fetchRecentEndedEvents(), [])
   const picked = useAsync(() => (pickedId ? fetchEvent(pickedId) : Promise.resolve(null)), [pickedId])
 
@@ -56,11 +56,11 @@ export default function CreatePick() {
 
           <PickSection
             title={searching ? '검색 결과' : '지금 열려 있는 행사'}
-            count={results.data?.length}
+            count={results.data?.total}
             loading={results.loading && !results.data}
             empty={searching ? '찾는 행사가 없어요. 다른 이름으로 찾아보세요.' : '열려 있는 행사가 없어요.'}
           >
-            {results.data?.slice(0, RESULT_LIMIT).map((e) => (
+            {results.data?.events.map((e) => (
               <EventPickRow key={e._id} event={e} checked={pickedId === e._id} onChange={pick} />
             ))}
           </PickSection>

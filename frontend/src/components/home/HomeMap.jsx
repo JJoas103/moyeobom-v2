@@ -54,8 +54,9 @@ function createPin(event, onPick) {
 
 // 지도로 보기 — 서울 전체 · 이번 주 · 위치가 있는 행사. 왼쪽 목록은 지금 지도에 보이는 행사만
 export default function HomeMap() {
-  const { data, loading, error } = useAsync(() => fetchEvents({ period: 'week' }), [])
-  const events = useMemo(() => (data || []).filter(hasLocation), [data])
+  // 이번 주로 범위가 걸려 있다. 지도에 찍을 만큼만 서버 상한으로 받는다
+  const { data, loading, error } = useAsync(() => fetchEvents({ period: 'week', limit: 50 }), [])
+  const events = useMemo(() => (data?.events || []).filter(hasLocation), [data])
 
   const boxRef = useRef(null)
   const mapRef = useRef(null) // { kakao, map }

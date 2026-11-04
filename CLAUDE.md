@@ -92,6 +92,45 @@ npm run sync:places         # 공중화장실 · 지하철역 수동 동기화 (
 
 `npm run sync:events` 수동 동기화, 매일 04:00(서울) 자동. 교육/체험 · 기타 분류는 제외, 종료일이 지난 행사는 새로 가져오지 않음.
 
+> **새 환경에서는 동기화를 한 번 돌려야 행사가 보인다.** 코드만 받아서는 `events_v2` 가 비어 있고
+> 목록이 '조건에 맞는 행사가 없어요'로 뜬다. 자동 cron 은 04:00 에만 돌므로 그 시각에 서버가 꺼져
+> 있으면 영원히 안 채워진다. 2026-11-04 실행: 받음 19,705 · **추가 196** · 건너뜀(분류 7,522 · 종료 11,987).
+> 실행 이력은 `SyncLog`(`synclogs`)에 남는다 — 비어 있으면 안 돌린 것이다. 장소도 같이: `npm run sync:places`.
+
+### ⚠ v1 과 같은 DB 를 쓴다 — 컬렉션 이름이 겹치면 안 된다
+
+v1(`Moyeobom`, 바탕화면 별도 폴더)과 v2 의 `.env` 가 **같은 Atlas 클러스터의 같은 DB(`moyeobom`)**
+를 가리킨다. 그래서 컬렉션 이름이 겹치면 v1 기록이 v2 화면에 섞여 나온다.
+
+- **`models/Event.js` → 컬렉션 `events_v2`**. v1 Event 가 `events` 에 4999건 남아 있고 스키마가 다르다
+  (`sourceId` · `startAt` · `endAt` · `coords` · `genres`, `category` 는 한글 원문). 섞이면 v2 가 읽는
+  `startDate` · `endDate` · `source` · `district` 가 전부 빈 값이 되어 **목록이 0건**(기간 필터에 안 걸림),
+  **분류 필터가 항상 0건**, 홈은 4999건을 집계해 멈춘다. 2026-11-04 에 이걸로 하루를 잃었다.
+- 새 모델을 만들 때 아래 v1 컬렉션과 겹치는지 먼저 확인할 것.
+  `meetings · meetingreviews · comments · feeds · favorites · userfavorites · congestions · places ·
+  visitlogs · badges · userbadges · usernotifysettings · messages · activities · notifications · events`
+- `users` · `blocks` · `reports` 는 공유 중이다 (`users` 는 같은 계정을 쓰므로 의도된 것).
+
+### 행사 목록은 한 페이지씩 (2026-11-04)
+
+`GET /api/event/list` → `{ events, total, genres }`. `page` · `limit`(기본 15 · 상한 50) 받음.
+
+- **`$limit` 이 모임 수 집계보다 앞에 와야 한다.** 전량에 `$lookup` 을 걸면 3분, 페이지만 세면 100ms 대다.
+  그래서 `meetupCountStages`($lookup)를 버리고 `services/eventService.js` 의 **`meetupStats()`** 로
+  모임 쪽에서 한 번에 모아 **그 페이지 분량에만** 붙인다 (모임이 행사보다 훨씬 적다).
+  `listEventsForRanking`(추천) · `listRecentEndedEvents` · `getEvent` 도 같은 방식.
+- **기본 정렬이 `endingSoon`(곧 끝나는 순)** 이다. `sort=meetups` 는 '모임 있는 행사 먼저, 같으면 곧
+  끝나는 순'으로 동작한다 — 정확한 '모임 많은 순'은 `Event` 에 모임 수를 비정규화해야 가능하다(미결정).
+- `genres`(분야 선택지)는 **분야 조건 적용 전** 기준으로 뽑는다. 한 페이지만 보고 만들면 선택지가 빠지고,
+  분야를 고른 뒤 기준으로 만들면 고른 분야만 남는다. 덕분에 분야를 고를 때 전량을 한 번 더 받던
+  `pages/event/List.jsx` 의 두 번째 호출이 없어졌다.
+- 목록 응답은 카드에 필요한 필드만 온다(`LIST_FIELDS`). `description` 같은 큰 필드는 상세에서만.
+- **`fetchEvents` 를 부르는 곳은 전부 `limit` 을 넘긴다** — 홈(섹션 5건, 개수는 `total`) · 지도(50) ·
+  달력(50) · 비슷한 행사(4) · 모임 만들기(8) · 목록(페이지). 전량을 받는 호출을 새로 만들지 말 것.
+- 프론트 목록은 '더 보기'로 페이지를 **누적**한다. `useAsync` 는 data 를 갈아 끼우므로 누적은 호출부에서
+  하고, 필터가 바뀌면 `key` 비교로 즉시 1페이지로 돌아간다.
+- **모임 목록(`/api/meetup/list`)은 아직 전량 조회다.** 모임이 적어 지금은 괜찮지만 쌓이면 같은 작업이 필요하다.
+
 결정 사항
 - 외부 API는 **사용자 요청 때 부르지 않는다.** 스케줄러(node-cron)로 주기적으로 가져와 **DB(Event 컬렉션)에 저장**하고, 우리 API는 DB에서 조회한다.
   - 이유: 모임이 행사 `_id` 를 참조, 끝난 행사도 남아야 함, 우리 필터·검색·모임 수는 DB에서만 가능, 호출 한도.

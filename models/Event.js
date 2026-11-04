@@ -48,5 +48,9 @@ const eventSchema = new mongoose.Schema(
 eventSchema.index({ 'source.name': 1, 'source.id': 1 }, { unique: true });
 eventSchema.index({ category: 1, endDate: 1 });
 
-module.exports = mongoose.model('Event', eventSchema);
+// ⚠ v1(Moyeobom)과 같은 Atlas DB(moyeobom)를 쓴다. v1 의 Event 가 'events' 컬렉션에 4999건 남아 있고
+//   스키마가 다르다 (sourceId · startAt · endAt · coords · genres, category 는 한글 원문).
+//   섞이면 v2 가 읽는 startDate · endDate · source · district 가 전부 빈 값이 되어
+//   목록이 0건으로 나오고(기간 필터에 안 걸림) 분류 필터도 안 맞는다 → 컬렉션을 따로 쓴다
+module.exports = mongoose.model('Event', eventSchema, 'events_v2');
 module.exports.CATEGORIES = CATEGORIES;
