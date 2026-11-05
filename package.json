@@ -8,7 +8,8 @@
     "start": "node app.js",
     "dev": "nodemon app.js",
     "sync:events": "node scripts/syncEvents.js",
-    "sync:places": "node scripts/syncPlaces.js"
+    "sync:places": "node scripts/syncPlaces.js",
+    "migrate:report-index": "node scripts/dropReportUniqueIndex.js"
   },
   "engines": {
     "node": ">=22"

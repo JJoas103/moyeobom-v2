@@ -8,6 +8,7 @@ import MeetupHero from '../../components/meetup/MeetupHero'
 import MeetupTimeline from '../../components/meetup/MeetupTimeline'
 import MeetupMembers from '../../components/meetup/MeetupMembers'
 import MemberManageDialog from '../../components/meetup/MemberManageDialog'
+import HostReportButton from '../../components/meetup/HostReportButton'
 import EventMiniCard from '../../components/meetup/EventMiniCard'
 import NearbyInfo from '../../components/meetup/NearbyInfo'
 import ApplyBox from '../../components/meetup/ApplyBox'
@@ -67,10 +68,13 @@ function MeetupDetailView({ meetup, onChange }) {
           </div>
         )
       )}
-      <nav className="breadcrumb" aria-label="위치">
-        <Link to="/meetup">모임</Link> › <Link to={`/meetup?category=${event?.category}`}>{cat.label}</Link> ›{' '}
-        <Link to={`/event/${event?._id}`}>{event?.title}</Link>
-      </nav>
+      <div className="detail__topbar">
+        <nav className="breadcrumb" aria-label="위치">
+          <Link to="/meetup">모임</Link> › <Link to={`/meetup?category=${event?.category}`}>{cat.label}</Link> ›{' '}
+          <Link to={`/event/${event?._id}`}>{event?.title}</Link>
+        </nav>
+        {meetup.canReportHost && <HostReportButton meetup={meetup} />}
+      </div>
 
       <div className="detail__grid">
         <div className="detail__main detail__main--meetup">

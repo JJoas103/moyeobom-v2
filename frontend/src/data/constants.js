@@ -45,6 +45,9 @@ export const REPORT_REASONS = [
   { value: 'other', label: '기타' },
 ]
 export const REPORT_DETAIL_MAX = 200 // 임시 — models/Report.js DETAIL_MAX
+// 참여자가 호스트를 신고할 때만(모임 신고 · 채팅 참여자 신고) · 이야기 자리 시작 뒤에만
+export const REPORT_NOSHOW = { value: 'noshow', label: '호스트가 노쇼했어요' }
+export const REPORT_REASONS_WITH_NOSHOW = [REPORT_NOSHOW, ...REPORT_REASONS]
 
 // 포스터 이미지가 없을 때 쓰는 단색 톤 [배경, 글자]
 export const POSTER_TONES = [

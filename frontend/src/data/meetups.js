@@ -10,6 +10,7 @@
 //          - talk.place · members 는 호스트 · 승인된 참여자 전용
 //            members: [{ user: { _id, nickname, profileImage }, joinType, status, appliedAt, approvedAt }]
 //            (호스트는 대기 중 신청자까지, 승인된 참여자는 승인된 사람끼리 · 상세에서만)
+//          - canReportHost: 모임 신고(대상은 호스트)를 할 수 있는지 (승인된 참여자 · 모임 채팅방이 목록에 보이는 동안 · 상세에서만)
 import { USE_MOCK_MEETUPS as USE_MOCK, delay } from './config'
 import { apiGet, apiPatch, apiPost, apiPostForm } from '../api'
 import mockMeetups, { mockUsers } from './mock/meetups'
@@ -222,4 +223,13 @@ export async function reportMember(id, userId, content) {
     throw new Error('목업에서는 신고할 수 없어요')
   }
   await apiPost(`/api/meetup/${id}/members/${userId}/report`, content)
+}
+
+/** 모임 신고(대상은 호스트) — 확정 참여자가. content: { reason, detail } ('noshow' 는 이야기 자리 시작 뒤에만) */
+export async function reportHost(id, content) {
+  if (USE_MOCK) {
+    await delay()
+    throw new Error('목업에서는 신고할 수 없어요')
+  }
+  await apiPost(`/api/meetup/${id}/report-host`, content)
 }

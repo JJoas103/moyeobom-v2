@@ -213,6 +213,9 @@ async function getMeetup(id, viewerId) {
   if (meetup.isHost || meetup.myMembership?.status === 'approved') {
     meetup.review.submitted = Boolean(await Review.exists({ meetup: doc._id, reviewer: viewerId }));
   }
+  if (meetup.myMembership?.status === 'approved') {
+    meetup.canReportHost = await chatService.canReportInMeetupRoom(doc._id, viewerId);
+  }
   return meetup;
 }
 
@@ -475,6 +478,14 @@ async function reportMember(id, hostId, memberUserId, content) {
   await chatService.reportMeetupMember(doc._id, hostId, memberUserId, content);
 }
 
+/** 모임 신고 — 확정 참여자가 모임 상세에서. 신고 대상은 호스트, 상대에게 알리지 않음 */
+async function reportHost(id, userId, content) {
+  const doc = await findDoc(id);
+  const mine = (doc.members || []).find((m) => idEq(m.user, userId));
+  if (mine?.status !== 'approved') throw httpError(403, '확정된 참여자만 신고할 수 있어요');
+  await chatService.reportMeetupMember(doc._id, userId, doc.host, content);
+}
+
 /**
  * 참여 취소 — 신청 중 · 승인 모두 이야기 자리 시작 전까지. members 에서 빼므로 다시 신청할 수 있음
  * 승인된 참여자였으면 모임 채팅방에서도 빠짐 ('○○님이 나갔어요')
@@ -492,4 +503,4 @@ async function leaveMeetup(id, userId) {
   return getMeetup(doc._id, userId);
 }
 
-module.exports = { listMeetups, listMyMeetups, getMeetup, createMeetup, updateMeetup, setMeetupStatus, applyMeetup, approveMember, rejectMember, removeMember, reportMember, leaveMeetup };
+module.exports = { listMeetups, listMyMeetups, getMeetup, createMeetup, updateMeetup, setMeetupStatus, applyMeetup, approveMember, rejectMember, removeMember, reportMember, reportHost, leaveMeetup };

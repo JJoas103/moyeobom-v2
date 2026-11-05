@@ -6,14 +6,14 @@ export const REPORT_DIALOG_WIDTH = 420
 
 /**
  * 신고 이유 고르기 — 하나만, 기타는 입력칸 필수
- *   value: { reason, detail } · onChange(value)
+ *   value: { reason, detail } · onChange(value) · reasons: 항목 (없으면 기본 항목)
  */
-export function ReportFields({ value, onChange }) {
+export function ReportFields({ value, onChange, reasons = REPORT_REASONS }) {
   return (
     <div className="report-fields">
       <fieldset className="report-fields__options">
         <legend className="sr-only">신고 이유</legend>
-        {REPORT_REASONS.map((r) => (
+        {reasons.map((r) => (
           <label key={r.value} className={`report-option${value.reason === r.value ? ' is-selected' : ''}`}>
             <input
               type="radio"
@@ -46,7 +46,7 @@ export function ReportFields({ value, onChange }) {
 }
 
 /** 신고 팝업 — children: 제목 아래 안내 */
-export default function ReportDialog({ title, value, onChange, children, busy, error, onConfirm, onClose }) {
+export default function ReportDialog({ title, value, onChange, reasons, children, busy, error, onConfirm, onClose }) {
   return (
     <ConfirmDialog
       title={title}
@@ -60,7 +60,7 @@ export default function ReportDialog({ title, value, onChange, children, busy, e
       onClose={onClose}
     >
       {children}
-      <ReportFields value={value} onChange={onChange} />
+      <ReportFields value={value} onChange={onChange} reasons={reasons} />
     </ConfirmDialog>
   )
 }

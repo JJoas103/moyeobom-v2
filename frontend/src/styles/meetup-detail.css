@@ -198,6 +198,38 @@
   color: var(--text-sub);
 }
 
+/* 브레드크럼 줄 — 오른쪽 끝에 모임 신고 */
+.detail__topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.host-report {
+  height: 44px;
+  margin: -12px 0; /* 눌리는 영역은 44px, 줄 높이는 그대로 */
+  padding: 0 4px;
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-sub);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.host-report:hover {
+  color: var(--cat-stage);
+}
+
+.host-report__done {
+  flex-shrink: 0;
+  font-size: 13px;
+  color: var(--text-sub);
+}
+
 .host-quote {
   padding: 20px 24px;
   border: 1px solid var(--line);

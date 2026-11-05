@@ -5,7 +5,7 @@
 //                   partner: { _id, nickname, profileImage } | null (1:1),
 //                   memberCount, lastMessage: { text, at, system, mine } | null,
 //                   closed (읽기 전용 — 흐리게), closesAt, unread }
-//   room(상세) = roomSummary + { friendshipId(1:1), isHost, canReport, noticeMax, notices: [message],
+//   room(상세) = roomSummary + { friendshipId(1:1), isHost, canReport, canReportNoShow(호스트 신고에 노쇼 항목), noticeMax, notices: [message],
 //                   members: [{ user, isHost, joinType, isMe, blocked }],
 //                   reads: [{ user(_id), at }] }   // 내 메시지 옆 숫자 = 아직 안 읽은 사람 수
 //   message = { _id, text, sender(_id) | null(시스템 안내), createdAt }

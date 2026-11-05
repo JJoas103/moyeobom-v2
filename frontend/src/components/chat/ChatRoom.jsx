@@ -19,6 +19,7 @@ import {
   sendMessage,
   unpinNotice,
 } from '../../data/chat'
+import { REPORT_REASONS_WITH_NOSHOW } from '../../data/constants'
 import { blockUser, unfriend } from '../../data/friends'
 import { formatChatDate, formatChatTime, formatMeetupWhen } from '../../utils/format'
 import { EMPTY_REPORT, isReportReady } from '../../utils/report'
@@ -455,7 +456,12 @@ function RoomDialog({ dialog, room, busy, error, onChange, onClose, onConfirm })
       )
     case 'reportUser':
       return (
-        <ReportDialog title={`${nickname}님을 신고할까요?`} {...reportProps} {...common}>
+        <ReportDialog
+          title={`${nickname}님을 신고할까요?`}
+          reasons={dialog.member.isHost && room.canReportNoShow ? REPORT_REASONS_WITH_NOSHOW : undefined}
+          {...reportProps}
+          {...common}
+        >
           <p className="dialog__text">이 방의 대화를 확인해 처리해요. 신고한 사실은 상대에게 알리지 않아요.</p>
         </ReportDialog>
       )
