@@ -1,15 +1,13 @@
-import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import LikeButton from '../common/LikeButton'
 import Poster from '../common/Poster'
 import MetaLine from '../common/MetaLine'
-import { HeartIcon, UsersIcon } from '../common/Icons'
+import { UsersIcon } from '../common/Icons'
 import { eventStatus } from '../../utils/status'
 import { formatEventPeriod } from '../../utils/format'
 
 /** 행사 목록 · 홈 · 비슷한 행사에서 쓰는 포스터 카드 */
 export default function EventCard({ event }) {
-  // TODO(인증 단계): 찜은 서버에 저장. 지금은 화면 확인용 로컬 상태
-  const [liked, setLiked] = useState(false)
   const status = eventStatus(event)
   const place = event.district || (event.runType === 'screening' ? '상영 중' : '')
   return (
@@ -36,17 +34,7 @@ export default function EventCard({ event }) {
         </div>
       </Link>
 
-      <button
-        type="button"
-        className="card__like"
-        aria-label={liked ? '찜 해제' : '찜하기'}
-        aria-pressed={liked}
-        onClick={() => setLiked((v) => !v)}
-      >
-        <span className={`card__like-circle${liked ? ' is-on' : ''}`}>
-          <HeartIcon filled={liked} />
-        </span>
-      </button>
+      <LikeButton type="event" id={event._id} />
     </article>
   )
 }

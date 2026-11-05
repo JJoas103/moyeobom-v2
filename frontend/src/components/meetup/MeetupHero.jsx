@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import LikeButton from '../common/LikeButton'
 import Poster from '../common/Poster'
 import InfoRow from '../common/InfoRow'
 import MetaLine from '../common/MetaLine'
@@ -69,6 +70,7 @@ export default function MeetupHero({ meetup, status }) {
             <WonIcon />
             {budgetLabel(meetup.budget)}
           </span>
+          {!meetup.isHost && meetup.status !== 'cancelled' && <LikeButton type="meetup" id={meetup._id} variant="box" />}
         </div>
       </div>
     </section>

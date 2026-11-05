@@ -156,6 +156,13 @@ async function listRecentEndedEvents() {
   ]);
 }
 
+/** _id 목록의 행사 — 넘긴 순서대로, 끝난 행사 포함 (찜 목록) */
+async function listEventsByIds(ids) {
+  const events = await Event.aggregate([{ $match: { _id: { $in: ids } } }, ...meetupCountStages]);
+  const byId = new Map(events.map((e) => [String(e._id), e]));
+  return ids.map((id) => byId.get(String(id))).filter(Boolean);
+}
+
 /** 행사 하나. 없으면 404 */
 async function getEvent(id) {
   const notFound = Object.assign(new Error('행사를 찾을 수 없습니다'), { status: 404 });
@@ -168,4 +175,4 @@ async function getEvent(id) {
   return { ...event, recommendReasons: null };
 }
 
-module.exports = { listEvents, listEventsForRanking, listRecentEndedEvents, getEvent, periodRange, dayRange, isValidDayRange, RECENT_ENDED_DAYS };
+module.exports = { listEvents, listEventsForRanking, listRecentEndedEvents, listEventsByIds, getEvent, periodRange, dayRange, isValidDayRange, RECENT_ENDED_DAYS };

@@ -4,6 +4,7 @@ const Review = require('../models/Review');
 const Friendship = require('../models/Friendship');
 const userService = require('./userService');
 const friendService = require('./friendService');
+const likeService = require('./likeService');
 const { reviewWindow } = require('./socialRules');
 const { summarizeMeetups } = require('./meetupSummary');
 
@@ -52,7 +53,7 @@ async function upcomingMeetups(userId, now = new Date()) {
 
 /**
  * 회원 탈퇴 — 다가오는 연 모임 · 참여 모임이 있으면 막음. 확인: 이메일 가입자는 비밀번호, 소셜은 '탈퇴' 입력
- * 지우는 것: 회원 · 프로필 사진 · 친구(1:1 방 닫힘) · 요청 자리 · 차단 기록
+ * 지우는 것: 회원 · 프로필 사진 · 친구(1:1 방 닫힘) · 요청 자리 · 차단 기록 · 찜
  * 남는 것: 지난 모임 · 평가 · 채팅 메시지 (화면엔 '알 수 없음' · 호스트 이름 없음으로 보임)
  */
 async function withdraw(user, { password, confirmText }) {
@@ -69,6 +70,7 @@ async function withdraw(user, { password, confirmText }) {
   }
 
   await friendService.removeUser(user._id);
+  await likeService.removeUser(user._id);
   await userService.deleteUser(user);
 }
 

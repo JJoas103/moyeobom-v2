@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import LikeButton from '../common/LikeButton'
 import Poster from '../common/Poster'
 import MetaLine from '../common/MetaLine'
 import { meetupStatus } from '../../utils/status'
@@ -9,6 +10,7 @@ import { JOIN_KIND, budgetLabel } from '../../data/constants'
  * 모임 카드 — 대표 이미지(없으면 행사 포스터) + 상태 · 제목 · 행사 · 언제/어디 · 정원 게이지
  * variant="inEvent": 행사 상세 안에서 사용 — 행사명 줄 빼고 포스터 배지에 날짜
  * note: 참여 방식 자리에 대신 보일 한 줄 (내 모임 — '승인 기다리는 중' 등)
+ * 찜 하트: 내가 연 모임 · 취소된 모임엔 없음
  */
 export default function MeetupCard({ meetup, variant = 'default', note }) {
   const inEvent = variant === 'inEvent'
@@ -70,6 +72,8 @@ export default function MeetupCard({ meetup, variant = 'default', note }) {
           </div>
         </div>
       </Link>
+
+      {!meetup.isHost && meetup.status !== 'cancelled' && <LikeButton type="meetup" id={meetup._id} />}
     </article>
   )
 }

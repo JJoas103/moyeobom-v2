@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import DataState from '../common/DataState'
+import LikeButton from '../common/LikeButton'
 import Poster from '../common/Poster'
 import MetaLine from '../common/MetaLine'
 import { UsersIcon } from '../common/Icons'
@@ -34,7 +35,7 @@ function ReasonHint({ user }) {
   )
 }
 
-// 추천 홈 — 포스터 + 행사 정보 + 추천 이유. 시안의 찜 버튼은 찜 기능이 생기면 추가
+// 추천 홈 — 포스터 + 행사 정보 + 추천 이유 + 찜
 export default function HomeRecommend() {
   const { user } = useAuth()
   const { data, loading, error } = useAsync(() => fetchRecommendedEvent(), [user?._id])
@@ -91,6 +92,7 @@ export default function HomeRecommend() {
               <Link to={`/event/${event._id}`} className="btn btn--line btn--lg">
                 행사 정보
               </Link>
+              <LikeButton type="event" id={event._id} variant="box" />
             </div>
           </div>
         </section>

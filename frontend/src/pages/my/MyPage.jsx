@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import Avatar from '../../components/common/Avatar'
 import DataState from '../../components/common/DataState'
+import { useLikes } from '../../context/LikesContext'
 import { useAsync } from '../../utils/useAsync'
 import { fetchMyPage } from '../../data/member'
 import { PROVIDER_LABEL } from '../../data/constants'
@@ -12,7 +13,7 @@ import BlocksTab from './BlocksTab'
 import '../../styles/my.css'
 
 // 마이 — 프로필 카드 + 상단 탭 (받은 칭찬 · 찜 목록 · 계정 설정 · 차단 목록). 시안 html/moyeobom-my/my.html
-//   매너 온도는 산정 방식 미결정이라 표시하지 않음 · 찜은 기능 준비 전
+//   매너 온도는 산정 방식 미결정이라 표시하지 않음
 const TABS = [
   { key: 'praise', label: '받은 칭찬' },
   { key: 'likes', label: '찜 목록' },
@@ -25,6 +26,7 @@ export default function MyPage() {
   const tab = TABS.some((t) => t.key === params.get('tab')) ? params.get('tab') : 'praise'
   const [version, setVersion] = useState(0) // 계정 설정 저장 뒤 다시 불러오기
   const { data, loading, error } = useAsync(() => fetchMyPage(), [version])
+  const { count: likeCount } = useLikes()
 
   return (
     <div className="mypage">
@@ -44,6 +46,7 @@ export default function MyPage() {
           >
             {t.label}
             {t.key === 'praise' && data && <span className="my-tabs__count">{data.stats.praiseCount}</span>}
+            {t.key === 'likes' && <span className="my-tabs__count">{likeCount}</span>}
           </Link>
         ))}
       </div>
