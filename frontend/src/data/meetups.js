@@ -194,3 +194,23 @@ export async function approveMember(id, userId) {
   const { meetup } = await apiPost(`/api/meetup/${id}/members/${userId}/approve`)
   return meetup
 }
+
+/** 신청 거절 — 호스트만, 이야기 자리 시작 전까지. 다시 신청할 수 있음. 바뀐 모임(상세 응답 모양) 반환 */
+export async function rejectMember(id, userId) {
+  if (USE_MOCK) {
+    await delay()
+    throw new Error('목업에서는 거절할 수 없어요')
+  }
+  const { meetup } = await apiPost(`/api/meetup/${id}/members/${userId}/reject`)
+  return meetup
+}
+
+/** 내보내기 — 호스트만, 이야기 자리 시작 전까지. 모임 채팅에서도 빠지고, 다시 신청할 수 있음. 바뀐 모임(상세 응답 모양) 반환 */
+export async function removeMember(id, userId) {
+  if (USE_MOCK) {
+    await delay()
+    throw new Error('목업에서는 내보낼 수 없어요')
+  }
+  const { meetup } = await apiPost(`/api/meetup/${id}/members/${userId}/remove`)
+  return meetup
+}

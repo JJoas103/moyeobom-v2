@@ -19,6 +19,8 @@ router.post('/:id/status', isLoggedIn, meetupController.changeStatus);
 router.post('/:id/apply', isLoggedIn, meetupController.apply);
 router.post('/:id/leave', isLoggedIn, meetupController.leave); // 참여 취소
 router.post('/:id/members/:userId/approve', isLoggedIn, meetupController.approve);
+router.post('/:id/members/:userId/reject', isLoggedIn, meetupController.reject); // 신청 거절
+router.post('/:id/members/:userId/remove', isLoggedIn, meetupController.removeMember); // 내보내기
 
 // 모임 평가 — 확정 참여자만
 router.get('/:id/review', isLoggedIn, reviewController.detail);

@@ -7,6 +7,7 @@ import ErrorMessage from '../../components/ErrorMessage'
 import MeetupHero from '../../components/meetup/MeetupHero'
 import MeetupTimeline from '../../components/meetup/MeetupTimeline'
 import MeetupMembers from '../../components/meetup/MeetupMembers'
+import MemberManageDialog from '../../components/meetup/MemberManageDialog'
 import EventMiniCard from '../../components/meetup/EventMiniCard'
 import NearbyInfo from '../../components/meetup/NearbyInfo'
 import ApplyBox from '../../components/meetup/ApplyBox'
@@ -51,6 +52,7 @@ function MeetupDetailView({ meetup, onChange }) {
   const navState = useLocation().state || {}
   const notice = NAV_NOTICE[navState.created ? 'created' : navState.updated ? 'updated' : navState.statusChanged]
   const canChat = meetup.status !== 'cancelled' && (meetup.isHost || meetup.myMembership?.status === 'approved')
+  const [managing, setManaging] = useState(false) // 참여자 관리 팝업
 
   return (
     <div className="detail">
@@ -90,7 +92,7 @@ function MeetupDetailView({ meetup, onChange }) {
             {meetup.intro && <p className="host-quote">{meetup.intro}</p>}
           </section>
 
-          <MeetupMembers meetup={meetup} status={status} onChange={onChange} />
+          <MeetupMembers meetup={meetup} status={status} />
 
           {/* ---------- 모임 채팅 (확정 참여자는 열기, 그 밖은 잠금) ---------- */}
           <section className="detail-section">
@@ -123,8 +125,9 @@ function MeetupDetailView({ meetup, onChange }) {
           <NearbyInfo event={event} />
         </div>
 
-        <ApplyBox meetup={meetup} status={status} onChange={onChange} />
+        <ApplyBox meetup={meetup} status={status} onChange={onChange} onManage={() => setManaging(true)} />
       </div>
+      {managing && <MemberManageDialog meetup={meetup} onChange={onChange} onClose={() => setManaging(false)} />}
     </div>
   )
 }
