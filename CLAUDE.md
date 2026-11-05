@@ -22,6 +22,8 @@ cd frontend && npm run dev  # 프론트 — 브라우저는 5173
 cd frontend && npm run lint # 커밋 전 lint 통과 확인
 npm run sync:events         # 서울시 문화행사 수동 동기화 (자동: 매일 04:00)
 npm run sync:places         # 공중화장실 · 지하철역 수동 동기화 (자동: 매달 1일 04:30)
+npm run review:daily        # 평가 열림 · 마감 임박 알림 수동 실행 (자동: 매일 12:00)
+npm run migrate:report-index # 한 번만 — 신고 고유 인덱스 지우기 (신고 1:n)
 ```
 
 `.env`(루트)·`frontend/.env` 는 커밋하지 않는다. 키 이름은 `.env_sample`, `frontend/.env_example` 참고.
@@ -44,7 +46,7 @@ npm run sync:places         # 공중화장실 · 지하철역 수동 동기화 (
 | 행사 목록 | `/event` | 완료 (목업) |
 | 행사 상세 | `/event/:id` | 완료 (목업) |
 | 모임 목록 | `/meetup` | 완료 (목업) |
-| 모임 상세 | `/meetup/:id` | 완료 (목업) — B안 타임라인 + A안 상단 |
+| 모임 상세 | `/meetup/:id` | 완료 (목업) — B안 타임라인 + A안 상단. 호스트는 참여자 관리 팝업(신청 · 확정 탭) |
 | 모임 만들기 ① | `/meetup/new` | 완료 (목업) |
 | 모임 만들기 ② | `/meetup/new/:eventId` | 완료 (목업) |
 | 모임 평가 ①② · 완료 · 마감 | `/meetup/:id/review` | 완료 (실제 API) — 시안 `html/moyeobom-chat-friends/review-*` |
@@ -58,7 +60,7 @@ npm run sync:places         # 공중화장실 · 지하철역 수동 동기화 (
 - 행사 · 모임 모두 실제 API 연결됨 (`USE_MOCK_EVENTS = false`, `USE_MOCK_MEETUPS = false`). 표의 '(목업)'은 화면을 처음 만든 시점 기준.
 - 인증(passport·session, connect-mongo) 붙음 — `/member/login` · `/member/join` · `/member/social-join`. 찜은 다음 작업에서 추가 (지금 카드 하트는 저장 안 되는 로컬 상태, 추천 영역엔 하트 없음).
 - 취향 · 추천(2026-11): `User.tastes`(행사 카테고리 키 6개, 1개 이상 필수) · `User.districts`(서울 자치구, 선택, 최대 3곳). 기존 회원은 비어 있을 수 있음. `GET /api/event/recommended` 순위 = 취향 일치 → 관심 지역 일치 → 참여했던 모임과 같은 분류 → 모집 중인 모임 많은 순 → 곧 끝나는 순 (`services/recommendService.js`). 행사 · 모임 목록 API 는 달력용 `from` · `to`(`YYYY-MM-DD`)도 받음.
-- 모임: 만들기(로그인 · 만든 사람이 호스트) · 사진 업로드(`public/images/upload`) · 참여 신청(pending 저장) · 호스트 승인 · 참여 취소(`POST /api/meetup/:id/leave` — 신청 중 · 승인 모두 이야기 자리 시작 전까지, members 에서 빼서 다시 신청 가능, 승인된 사람은 채팅방에서도 빠지고 '○○님이 나갔어요') · 수정(`/meetup/:id/edit`, 행사 빼고 전부, 정원은 승인 인원 이상) · 모집 마감/다시 열기 · 취소(되돌리기 없음, 목록 · 행사 모임 수에서 제외). 종료 시각은 없음. 신청자는 `Meetup.members` 배열에 임베드, 정원(`capacity`)은 **호스트 제외**. `talk.place` · `members` 는 호스트와 승인된 참여자에게만 내려준다.
+- 모임: 만들기(로그인 · 만든 사람이 호스트) · 사진 업로드(`public/images/upload`) · 참여 신청(pending 저장) · 호스트 승인 · 참여 취소(`POST /api/meetup/:id/leave` — 신청 중 · 승인 모두 이야기 자리 시작 전까지, members 에서 빼서 다시 신청 가능, 승인된 사람은 채팅방에서도 빠지고 '○○님이 나갔어요') · 거절(`POST /api/meetup/:id/members/:userId/reject`) · 내보내기(`.../remove`) — 호스트가 이야기 자리 시작 전까지, members 에서 빼므로 다시 신청 가능, 상대에게 알리지 않음, 내보내면 채팅방에서도 빠지고 '○○님이 나갔어요' · 승인도 시작 전까지 · 수정(`/meetup/:id/edit`, 행사 빼고 전부, 정원은 승인 인원 이상) · 모집 마감/다시 열기 · 취소(되돌리기 없음, 목록 · 행사 모임 수에서 제외). 종료 시각은 없음. 신청자는 `Meetup.members` 배열에 임베드, 정원(`capacity`)은 **호스트 제외**. `talk.place` · `members` 는 호스트와 승인된 참여자에게만 내려준다.
 
 ## 평가 · 친구 · 채팅 (결정 로그 2026-10)
 
@@ -67,10 +69,40 @@ npm run sync:places         # 공중화장실 · 지하철역 수동 동기화 (
 - **평가**: 이야기 자리 날짜 다음날 12:00 열림 → 48시간 뒤 마감. 대상 = 확정 참여자(호스트 포함, 나 제외). 한 번만 제출. 칭찬은 `Review.praised` 저장만(매너 점수 미결정), '또 만나고 싶어요'는 비공개.
 - **친구**(2026-10 변경): 서로 '또 만나고 싶어요'를 고른 게 확정되는 순간 — 즉 **양쪽 평가가 다 들어온 때** — 바로 친구 + 1:1 방이 생긴다 (`friendService.makeFriends`). 요청 · 수락 · 거절 · 기한이 전부 없다. 한쪽만 골랐으면 아무 일도 없고 상대는 알 수 없다. 양쪽 제출이 조건이라 평가 기간 중에 성립해도 비공개는 깨지지 않는다(아직 안 낸 사람은 그 전에 아무것도 못 보고, 평가는 한 번만 제출 가능).
 - **채팅**: 모임 방은 모임 만들 때 생기고(호스트), 승인하면 들어감. 평가 마감에 읽기 전용(취소하면 즉시) → 30일 동안 목록에 흐리게 · 신고 가능 → 닫힌 뒤 90일에 삭제(처리 중 신고가 있으면 보류). 1:1 방은 친구 끊기 · 차단하면 바로 목록에서 사라지고 90일 뒤 삭제.
-- **cron**: `schedulers/socialCleanup.js` 매일 12:00(서울) — 90일 지난 방 삭제. 조회도 지금 시각과 비교하므로 cron 이 늦어도 화면은 맞음.
+- **cron**: 둘 다 매일 12:00(서울). `schedulers/socialCleanup.js` — 90일 지난 방 · 알림 삭제.
+  `schedulers/reviewDaily.js` — 평가 열림 · 마감 임박 알림.
+  조회도 지금 시각과 비교하므로 cron 이 늦어도 화면은 맞음(알림만 늦어진다).
 - **socket.io**: `config/socket.js` — 세션으로 로그인 확인, 각자 `user:<id>` 방에만 들어감. 서버가 받는 사람 user 방으로 `chat:message` · `chat:read` · `chat:notices` · `chat:rooms` · `friends:changed` 를 보냄. 프론트는 `context/SocketContext.jsx` `useSocketEvent`.
-- **차단**: 친구 끊김 + 이후 친구 성립 안 됨 + 내 모임 채팅에서 상대 메시지 숨김. **신고**: `Report` 저장만 — 처리(관리자) 화면 없음, DB에서 `status: 'done'` 으로 바꾸면 처리 끝.
+- **차단**: 친구 끊김 + 이후 친구 성립 안 됨 + 내 모임 채팅에서 상대 메시지 숨김. **신고**: `Report` 저장만 — 처리(관리자) 화면 없음, DB에서 `status: 'done'` 으로 바꾸면 처리 끝. 이유(`reason`) 하나 필수, 기타는 내용(`detail`) 필수. 화면은 `components/common/ReportDialog.jsx` 하나 — 채팅 메시지 · 참여자, 차단하며 함께 신고, 참여자 관리 팝업(호스트 → 확정 참여자 `POST /api/meetup/:id/members/:userId/report`). 신청자 · 내보낸 사람은 채팅방 밖이라 신고 대상 아님. 모임 신고: 확정 참여자가 모임 상세 '모임 신고하기'로(`POST /api/meetup/:id/report-host`, 모임 채팅방이 목록에 보이는 동안), 신고 대상은 호스트. 항목 '호스트가 노쇼했어요'(`noshow`)는 호스트 대상(모임 신고 · 채팅 참여자 신고)에만, 이야기 자리 시작 뒤에만 · 취소된 모임 제외 (`socialRules.noShowReportOpen`). 저장만 하고 노쇼 판정 · 제재는 나중에 관리자 기능으로. 신고는 할 때마다 한 건씩 쌓임(대상 1 : 신고 n).
 - 새 도메인(평가 · 친구 · 채팅)은 목업 없이 실제 API 전용 (`data/reviews.js` · `data/friends.js` · `data/chat.js` 맨 위 주석이 응답 모양).
+
+## 알림 (2026-11)
+
+`models/Notification.js`(컬렉션 `notifications_v2`) + `services/notificationService.js` 한 곳에서만 보낸다.
+소켓은 `notify:changed`(payload 비움) → 프론트 재조회. 화면은 헤더 종 아이콘 드롭다운, 90일 뒤 정리.
+
+| type | 받는 사람 | 거는 곳 |
+|---|---|---|
+| `meetup_apply` | 호스트 | `meetupService.applyMeetup` |
+| `meetup_approved` | 신청자 | `meetupService.approveMember` |
+| `meetup_left` | 호스트 | `meetupService.leaveMeetup` |
+| `meetup_cancelled` | 신청 중 · 승인 전원 | `meetupService.setMeetupStatus` |
+| `meetup_updated` | 승인된 참여자 | `meetupService.updateMeetup` |
+| `review_open` · `review_closing` | 확정 참여자 / **미제출자만** | cron |
+| `friend_matched` | 양쪽 | `friendService.makeFriends` |
+| `manner_down` | 본인 | (매너 점수 작업에서 연결 — 지금은 보내는 곳이 없다) |
+
+**보내지 않는 것**: 채팅 새 메시지(헤더에 안 읽은 수 점이 이미 있다) · 차단/차단 해제(상대가 알면
+안 된다) · 친구 끊기(탈퇴도 `endFriendship` 을 지나 구분할 수 없다) · 평가 제출(비공개) · 신청 거절 ·
+내보내기(상대에게 따로 알리지 않기로 함) · 신고(상대가 알면 안 된다).
+
+- API: `GET /api/notification?limit=` · `GET /api/notification/unread` · `POST /api/notification/read`
+  (`ids` 없으면 전부 읽음). 전부 로그인 필요 — 내 알림만 본다.
+- cron 알림은 `{ user, type, meetup }` 유니크 부분 인덱스로 중복을 막는다 (`11000` 무시).
+  모임 쪽 멱등 표식은 `reviewOpenNoticedAt` · `reviewClosingNoticedAt`.
+- 곁가지 실패가 본 작업을 깨지 않도록 전부 `services/sideEffect.js` 의 `sideEffect()` 로 감싼다.
+- ⚠ `emitToUsers` 는 `io` 가 없으면 조용히 무시한다. `npm run review:daily` 로 수동 실행하면 알림이
+  DB 에는 쌓이지만 실시간 push 는 안 간다 (cron 은 `app.js` 안에서 돌아 정상).
 
 ## 행사장 근처 정보 (서울 열린데이터광장)
 
@@ -110,10 +142,11 @@ npm run sync:places         # 공중화장실 · 지하철역 수동 동기화 (
 ## 미결정 (임의로 정하지 말고 물어볼 것)
 
 - 최근 끝난 행사로 모임을 열 수 있는 기간 — 지금 임시 14일 (`frontend/src/data/events.js` `RECENT_ENDED_DAYS`)
-- 승인 기한 · 신청 마감 시점, 신청 거절 기능 여부
+- 승인 기한 · 신청 마감 시점
 - 비용 필터 기준, 모임 목록 필터(참여 방식 · 술 · 예산) 확정 여부
 - 채팅 공지 최대 개수 — 지금 임시 3개 (`services/chatService.js` `NOTICE_MAX`)
 - 친구 메모 글자 수 — 지금 임시 30자 (시안 제안값, `models/Friendship.js` `MEMO_MAX` · `frontend/src/data/friends.js`)
-- 매너 점수 산정 방식 · 노출 위치, 노쇼 판정 주체
+- 신고 기타 내용 글자 수 — 지금 임시 200자 (`models/Report.js` `DETAIL_MAX` · `frontend/src/data/constants.js`)
+- 매너 점수 산정 방식 · 노출 위치 — 참여자 관리 팝업엔 자리만 있음(`매너 점수 —`). 노쇼 판정은 나중에 관리자 기능으로
 - 모임 채팅 '채팅방 나가기' 버튼 — 참여 취소와 같은 동작으로 하기로 함(2026-10). 버튼은 아직 모임 상세 신청 박스에만 있음
 - 신고 처리 주체 · 화면, 알림 대상 이벤트 · 전달 수단

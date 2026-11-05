@@ -9,6 +9,8 @@ const Friendship = require('../models/Friendship');
 const { BUDGETS } = require('../models/Meetup');
 const { periodRange, dayRange, RECENT_ENDED_DAYS } = require('./eventService');
 const chatService = require('./chatService');
+const notificationService = require('./notificationService');
+const { sideEffect } = require('./sideEffect');
 const { reviewWindow } = require('./socialRules');
 
 // 모임 — 응답 모양은 frontend/src/data/meetups.js 맨 위 주석 기준
@@ -36,16 +38,8 @@ const approvedCountOf = (doc) => (doc.members || []).filter((m) => m.status === 
 /** 이 행사로 지금 모임을 열 수 있는지 — 끝난 지 RECENT_ENDED_DAYS 일까지 (프론트 utils/event.js canOpenMeetup 과 같게) */
 const canOpenMeetup = (event, now) => !event.endDate || now - new Date(event.endDate) <= RECENT_ENDED_DAYS * DAY;
 
-// 채팅방 처리는 곁가지 — 실패해도 모임 작업(만들기 · 승인 등)은 성공으로 두고 기록만
-async function sideEffect(label, run) {
-  try {
-    await run();
-  } catch (err) {
-    console.error(`[모임 채팅] ${label} 실패:`, err.message);
-  }
-}
-
 // ---------- 응답 만들기 ----------
+// sideEffect 는 services/sideEffect.js 로 옮겼다 (알림 · 채팅 곁가지를 여러 서비스가 함께 쓴다)
 
 const publicUser = (user) => (user ? { _id: String(user._id), nickname: user.nickname, profileImage: user.profileImage || '' } : null);
 
@@ -213,6 +207,9 @@ async function getMeetup(id, viewerId) {
   if (meetup.isHost || meetup.myMembership?.status === 'approved') {
     meetup.review.submitted = Boolean(await Review.exists({ meetup: doc._id, reviewer: viewerId }));
   }
+  if (meetup.myMembership?.status === 'approved') {
+    meetup.canReportHost = await chatService.canReportInMeetupRoom(doc._id, viewerId);
+  }
   return meetup;
 }
 
@@ -350,6 +347,7 @@ async function updateMeetup(id, hostId, body) {
 
   removeOldImage(doc.imageUrl, imageUrl);
   await sideEffect('닫히는 시각 맞추기', () => chatService.syncMeetupRoom(updated.toObject()));
+  await sideEffect('수정 알림', () => notificationService.meetupUpdated(updated.toObject()));
   return getMeetup(doc._id, hostId);
 }
 
@@ -367,7 +365,10 @@ async function setMeetupStatus(id, hostId, status) {
   if (!STATUS_CHANGES[doc.status]?.includes(status)) throw httpError(400, '바꿀 수 없는 상태예요');
 
   await Meetup.updateOne({ _id: doc._id, status: doc.status }, { $set: { status } });
-  if (status === 'cancelled') await sideEffect('방 닫기', () => chatService.closeMeetupRoom(doc._id));
+  if (status === 'cancelled') {
+    await sideEffect('방 닫기', () => chatService.closeMeetupRoom(doc._id));
+    await sideEffect('취소 알림', () => notificationService.meetupCancelled(doc));
+  }
   return getMeetup(doc._id, hostId);
 }
 
@@ -404,6 +405,7 @@ async function applyMeetup(id, userId, joinType) {
   // 위에서 확인한 사이에 다른 요청이 먼저 바꾼 경우
   if (!updated) throw httpError(409, '신청하지 못했어요. 새로고침 후 다시 시도해 주세요');
 
+  await sideEffect('신청 알림', () => notificationService.meetupApplied(doc, userId));
   return { status: 'pending', joinType };
 }
 
@@ -412,6 +414,7 @@ async function approveMember(id, hostId, memberUserId) {
   const doc = await findDoc(id);
   if (!idEq(doc.host, hostId)) throw httpError(403, '호스트만 승인할 수 있어요');
   if (doc.status === 'cancelled') throw httpError(400, '취소된 모임이에요');
+  if (new Date(doc.talk.startAt) <= new Date()) throw httpError(400, '이미 시작한 모임이에요');
   if (!mongoose.isValidObjectId(memberUserId)) throw httpError(404, '신청자를 찾을 수 없습니다');
 
   const member = (doc.members || []).find((m) => idEq(m.user, memberUserId));
@@ -433,7 +436,54 @@ async function approveMember(id, hostId, memberUserId) {
   if (!updated) throw httpError(409, '승인하지 못했어요. 새로고침 후 다시 시도해 주세요');
 
   await sideEffect('참여자 들이기', () => chatService.addMeetupMember(updated.toObject(), memberUserId));
+  await sideEffect('승인 알림', () => notificationService.meetupApproved(doc, memberUserId));
   return getMeetup(doc._id, hostId);
+}
+
+/**
+ * 호스트가 members 에서 빼기 — 호스트만, 이야기 자리 시작 전까지. status 가 그대로일 때만 뺌
+ * 기록을 남기지 않으므로 다시 신청할 수 있고, 상대에게 따로 알리지 않음
+ */
+async function dismissMember(id, hostId, memberUserId, status) {
+  const doc = await findDoc(id);
+  if (!idEq(doc.host, hostId)) throw httpError(403, '호스트만 할 수 있어요');
+  if (doc.status === 'cancelled') throw httpError(400, '취소된 모임이에요');
+  if (new Date(doc.talk.startAt) <= new Date()) throw httpError(400, '이미 시작한 모임이에요');
+  if (!mongoose.isValidObjectId(memberUserId)) throw httpError(404, '신청자를 찾을 수 없습니다');
+
+  const memberObjectId = new mongoose.Types.ObjectId(String(memberUserId));
+  const updated = await Meetup.findOneAndUpdate(
+    { _id: doc._id, host: doc.host, members: { $elemMatch: { user: memberObjectId, status } } },
+    { $pull: { members: { user: memberObjectId } } },
+    { new: true }
+  );
+  if (!updated) throw httpError(409, '처리하지 못했어요. 새로고침 후 다시 시도해 주세요');
+
+  if (status === 'approved') await sideEffect('참여자 내보내기', () => chatService.removeMeetupMember(doc._id, memberUserId));
+  return getMeetup(doc._id, hostId);
+}
+
+/** 신청 거절 — 승인 전 신청만 */
+const rejectMember = (id, hostId, memberUserId) => dismissMember(id, hostId, memberUserId, 'pending');
+
+/** 내보내기 — 승인된 참여자만. 모임 채팅방에서도 빠짐 ('○○님이 나갔어요') */
+const removeMember = (id, hostId, memberUserId) => dismissMember(id, hostId, memberUserId, 'approved');
+
+/** 신고 — 호스트가 승인된 참여자를. 상대에게 알리지 않음 */
+async function reportMember(id, hostId, memberUserId, content) {
+  const doc = await findDoc(id);
+  if (!idEq(doc.host, hostId)) throw httpError(403, '호스트만 할 수 있어요');
+  const member = (doc.members || []).find((m) => idEq(m.user, memberUserId));
+  if (member?.status !== 'approved') throw httpError(404, '신고할 사람을 찾을 수 없습니다');
+  await chatService.reportMeetupMember(doc._id, hostId, memberUserId, content);
+}
+
+/** 모임 신고 — 확정 참여자가 모임 상세에서. 신고 대상은 호스트, 상대에게 알리지 않음 */
+async function reportHost(id, userId, content) {
+  const doc = await findDoc(id);
+  const mine = (doc.members || []).find((m) => idEq(m.user, userId));
+  if (mine?.status !== 'approved') throw httpError(403, '확정된 참여자만 신고할 수 있어요');
+  await chatService.reportMeetupMember(doc._id, userId, doc.host, content);
 }
 
 /**
@@ -449,8 +499,11 @@ async function leaveMeetup(id, userId) {
 
   const userObjectId = new mongoose.Types.ObjectId(String(userId));
   await Meetup.updateOne({ _id: doc._id }, { $pull: { members: { user: userObjectId } } });
-  if (member.status === 'approved') await sideEffect('참여자 내보내기', () => chatService.removeMeetupMember(doc._id, userId));
+  if (member.status === 'approved') {
+    await sideEffect('참여자 내보내기', () => chatService.removeMeetupMember(doc._id, userId));
+  }
+  await sideEffect('취소 알림', () => notificationService.meetupLeft(doc, userId));
   return getMeetup(doc._id, userId);
 }
 
-module.exports = { listMeetups, listMyMeetups, getMeetup, createMeetup, updateMeetup, setMeetupStatus, applyMeetup, approveMember, leaveMeetup };
+module.exports = { listMeetups, listMyMeetups, getMeetup, createMeetup, updateMeetup, setMeetupStatus, applyMeetup, approveMember, rejectMember, removeMember, reportMember, reportHost, leaveMeetup };

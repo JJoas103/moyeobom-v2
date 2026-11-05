@@ -7,9 +7,10 @@ const Event = require('../models/Event');
 const User = require('../models/User');
 const Block = require('../models/Block');
 const Report = require('../models/Report');
+const { REASONS: REPORT_REASONS, DETAIL_MAX: REPORT_DETAIL_MAX } = require('../models/Report');
 const Friendship = require('../models/Friendship');
 const { emitToUsers } = require('../config/socket');
-const { DAY, CLOSED_ROOM_VISIBLE_DAYS, CHAT_KEEP_DAYS, meetupRoomClosesAt } = require('./socialRules');
+const { DAY, CLOSED_ROOM_VISIBLE_DAYS, CHAT_KEEP_DAYS, meetupRoomClosesAt, noShowReportOpen } = require('./socialRules');
 const { meetupSummary, loadEvents } = require('./meetupSummary');
 
 // 채팅 — 응답 모양은 frontend/src/data/chat.js 맨 위 주석 기준
@@ -348,6 +349,7 @@ async function getRoom(roomId, userId) {
       friendshipId: friendship ? String(friendship._id) : null, // 1:1 방 '친구 끊기'
       isHost: room.type === 'meetup' && idEq(meetupDoc?.host, userId),
       canReport: isVisible(room, now), // 모임 방은 닫힌 뒤 30일까지 (목록에 보이는 동안)
+      canReportNoShow: room.type === 'meetup' && !idEq(meetupDoc?.host, userId) && noShowReportOpen(meetupDoc, now), // 호스트 신고에 '호스트 노쇼' 항목
       noticeMax: NOTICE_MAX,
       notices,
       members,
@@ -421,8 +423,19 @@ async function unpinNotice(roomId, userId, messageId) {
   return emitNotices(room);
 }
 
-/** 신고 — 메시지 또는 참여자. 모임 방은 닫힌 뒤 30일까지 */
-async function report(roomId, userId, { targetId, messageId }) {
+/** 신고 이유 확인 → { reason, detail }. 기타만 입력 내용 필수 */
+function reportContent(reason, detail) {
+  if (!REPORT_REASONS.includes(reason)) throw httpError(400, '신고 이유를 골라 주세요');
+  if (reason !== 'other') return { reason, detail: '' };
+  const text = typeof detail === 'string' ? detail.trim() : '';
+  if (!text) throw httpError(400, '어떤 일이 있었는지 적어 주세요');
+  if (text.length > REPORT_DETAIL_MAX) throw httpError(400, `${REPORT_DETAIL_MAX}자까지 적을 수 있어요`);
+  return { reason, detail: text };
+}
+
+/** 신고 — 메시지 또는 참여자. 모임 방은 닫힌 뒤 30일까지. 할 때마다 한 건씩 쌓임 */
+async function report(roomId, userId, { targetId, messageId, reason, detail }) {
+  const content = reportContent(reason, detail);
   const room = await findRoomFor(roomId, userId);
   let target = targetId;
   if (messageId) {
@@ -436,11 +449,27 @@ async function report(roomId, userId, { targetId, messageId }) {
   }
   if (idEq(target, userId)) throw httpError(400, '나를 신고할 수는 없어요');
 
-  try {
-    await Report.create({ reporter: userId, target, room: room._id, ...(messageId && { message: messageId }) });
-  } catch (err) {
-    if (err.code !== 11000) throw err; // 같은 신고를 또 누른 경우는 그대로 성공
+  if (content.reason === 'noshow') {
+    const meetup = room.type === 'meetup' && !messageId ? await Meetup.findById(room.meetup, { host: 1, status: 1, 'talk.startAt': 1 }).lean() : null;
+    if (!idEq(meetup?.host, target) || !noShowReportOpen(meetup)) {
+      throw httpError(400, '호스트 노쇼는 이야기 자리가 시작된 뒤 호스트에게만 신고할 수 있어요');
+    }
   }
+
+  await Report.create({ reporter: userId, target, room: room._id, ...(messageId && { message: messageId }), ...content });
+}
+
+/** 모임 방에서 사람 신고 — 모임 상세 · 참여자 관리 팝업 (자격 확인은 meetupService) */
+async function reportMeetupMember(meetupId, userId, targetId, { reason, detail }) {
+  const room = await ChatRoom.findOne({ type: 'meetup', meetup: meetupId }, { _id: 1 }).lean();
+  if (!room) throw httpError(404, '모임 채팅방을 찾을 수 없습니다');
+  await report(room._id, userId, { targetId, reason, detail });
+}
+
+/** 이 모임 방에서 신고할 수 있는지 — 방에 있고, 목록에 보이는 동안 */
+async function canReportInMeetupRoom(meetupId, userId) {
+  const room = await ChatRoom.findOne({ type: 'meetup', meetup: meetupId }, { type: 1, users: 1, closesAt: 1 }).lean();
+  return Boolean(room) && room.users.some((u) => idEq(u, userId)) && isVisible(room);
 }
 
 // ---------- 정리 (매일 12:00) ----------
@@ -475,5 +504,7 @@ module.exports = {
   pinNotice,
   unpinNotice,
   report,
+  reportMeetupMember,
+  canReportInMeetupRoom,
   purgeClosedRooms,
 };

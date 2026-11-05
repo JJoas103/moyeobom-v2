@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 const BUDGETS = ['under1', '1to2', '2to3', 'over3']; // 1만 원 이하 / 1~2만 / 2~3만 / 3만 이상
 
 // 신청자 — 모임 문서 안 배열 (정원 2~10명 · 중복 신청 · 정원 초과는 문서 하나의 조건부 수정으로 방지)
-// 거절 · 신청 취소는 미결정이라 status 에 없음 (CLAUDE.md)
+// 거절 · 내보내기 · 참여 취소는 배열에서 빼기만 해서 status 에 없음 — 다시 신청할 수 있음
 const memberSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -49,6 +49,12 @@ const meetupSchema = new mongoose.Schema(
 
     members: [memberSchema],
     status: { type: String, enum: ['open', 'closed', 'cancelled'], default: 'open' },
+
+    // 하루 한 번 도는 cron 이 같은 알림을 두 번 보내지 않게 하는 표식 (schedulers/reviewDaily.js).
+    // 평가 열림 · 마감 시각은 저장하지 않고 socialRules.reviewWindow 로 계산하는 값이라
+    // 쿼리로 못 걸러진다 → talk.startAt 범위로 좁히고 메모리에서 거른 뒤 이 표식을 남긴다
+    reviewOpenNoticedAt: { type: Date }, // '평가가 열렸어요' 알림을 보낸 시각
+    reviewClosingNoticedAt: { type: Date }, // '평가가 곧 마감돼요' 알림을 보낸 시각
   },
   { timestamps: true }
 );

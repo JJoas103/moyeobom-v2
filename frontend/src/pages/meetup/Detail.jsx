@@ -7,6 +7,8 @@ import ErrorMessage from '../../components/ErrorMessage'
 import MeetupHero from '../../components/meetup/MeetupHero'
 import MeetupTimeline from '../../components/meetup/MeetupTimeline'
 import MeetupMembers from '../../components/meetup/MeetupMembers'
+import MemberManageDialog from '../../components/meetup/MemberManageDialog'
+import HostReportButton from '../../components/meetup/HostReportButton'
 import EventMiniCard from '../../components/meetup/EventMiniCard'
 import NearbyInfo from '../../components/meetup/NearbyInfo'
 import ApplyBox from '../../components/meetup/ApplyBox'
@@ -51,6 +53,7 @@ function MeetupDetailView({ meetup, onChange }) {
   const navState = useLocation().state || {}
   const notice = NAV_NOTICE[navState.created ? 'created' : navState.updated ? 'updated' : navState.statusChanged]
   const canChat = meetup.status !== 'cancelled' && (meetup.isHost || meetup.myMembership?.status === 'approved')
+  const [managing, setManaging] = useState(false) // 참여자 관리 팝업
 
   return (
     <div className="detail">
@@ -65,10 +68,13 @@ function MeetupDetailView({ meetup, onChange }) {
           </div>
         )
       )}
-      <nav className="breadcrumb" aria-label="위치">
-        <Link to="/meetup">모임</Link> › <Link to={`/meetup?category=${event?.category}`}>{cat.label}</Link> ›{' '}
-        <Link to={`/event/${event?._id}`}>{event?.title}</Link>
-      </nav>
+      <div className="detail__topbar">
+        <nav className="breadcrumb" aria-label="위치">
+          <Link to="/meetup">모임</Link> › <Link to={`/meetup?category=${event?.category}`}>{cat.label}</Link> ›{' '}
+          <Link to={`/event/${event?._id}`}>{event?.title}</Link>
+        </nav>
+        {meetup.canReportHost && <HostReportButton meetup={meetup} />}
+      </div>
 
       <div className="detail__grid">
         <div className="detail__main detail__main--meetup">
@@ -90,7 +96,7 @@ function MeetupDetailView({ meetup, onChange }) {
             {meetup.intro && <p className="host-quote">{meetup.intro}</p>}
           </section>
 
-          <MeetupMembers meetup={meetup} status={status} onChange={onChange} />
+          <MeetupMembers meetup={meetup} status={status} />
 
           {/* ---------- 모임 채팅 (확정 참여자는 열기, 그 밖은 잠금) ---------- */}
           <section className="detail-section">
@@ -123,8 +129,9 @@ function MeetupDetailView({ meetup, onChange }) {
           <NearbyInfo event={event} />
         </div>
 
-        <ApplyBox meetup={meetup} status={status} onChange={onChange} />
+        <ApplyBox meetup={meetup} status={status} onChange={onChange} onManage={() => setManaging(true)} />
       </div>
+      {managing && <MemberManageDialog meetup={meetup} onChange={onChange} onClose={() => setManaging(false)} />}
     </div>
   )
 }
