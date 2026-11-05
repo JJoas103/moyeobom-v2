@@ -207,6 +207,9 @@ async function getMeetup(id, viewerId) {
   if (meetup.isHost || meetup.myMembership?.status === 'approved') {
     meetup.review.submitted = Boolean(await Review.exists({ meetup: doc._id, reviewer: viewerId }));
   }
+  if (meetup.myMembership?.status === 'approved') {
+    meetup.canReportHost = await chatService.canReportInMeetupRoom(doc._id, viewerId);
+  }
   return meetup;
 }
 
@@ -411,6 +414,7 @@ async function approveMember(id, hostId, memberUserId) {
   const doc = await findDoc(id);
   if (!idEq(doc.host, hostId)) throw httpError(403, '호스트만 승인할 수 있어요');
   if (doc.status === 'cancelled') throw httpError(400, '취소된 모임이에요');
+  if (new Date(doc.talk.startAt) <= new Date()) throw httpError(400, '이미 시작한 모임이에요');
   if (!mongoose.isValidObjectId(memberUserId)) throw httpError(404, '신청자를 찾을 수 없습니다');
 
   const member = (doc.members || []).find((m) => idEq(m.user, memberUserId));
@@ -437,6 +441,52 @@ async function approveMember(id, hostId, memberUserId) {
 }
 
 /**
+ * 호스트가 members 에서 빼기 — 호스트만, 이야기 자리 시작 전까지. status 가 그대로일 때만 뺌
+ * 기록을 남기지 않으므로 다시 신청할 수 있고, 상대에게 따로 알리지 않음
+ */
+async function dismissMember(id, hostId, memberUserId, status) {
+  const doc = await findDoc(id);
+  if (!idEq(doc.host, hostId)) throw httpError(403, '호스트만 할 수 있어요');
+  if (doc.status === 'cancelled') throw httpError(400, '취소된 모임이에요');
+  if (new Date(doc.talk.startAt) <= new Date()) throw httpError(400, '이미 시작한 모임이에요');
+  if (!mongoose.isValidObjectId(memberUserId)) throw httpError(404, '신청자를 찾을 수 없습니다');
+
+  const memberObjectId = new mongoose.Types.ObjectId(String(memberUserId));
+  const updated = await Meetup.findOneAndUpdate(
+    { _id: doc._id, host: doc.host, members: { $elemMatch: { user: memberObjectId, status } } },
+    { $pull: { members: { user: memberObjectId } } },
+    { new: true }
+  );
+  if (!updated) throw httpError(409, '처리하지 못했어요. 새로고침 후 다시 시도해 주세요');
+
+  if (status === 'approved') await sideEffect('참여자 내보내기', () => chatService.removeMeetupMember(doc._id, memberUserId));
+  return getMeetup(doc._id, hostId);
+}
+
+/** 신청 거절 — 승인 전 신청만 */
+const rejectMember = (id, hostId, memberUserId) => dismissMember(id, hostId, memberUserId, 'pending');
+
+/** 내보내기 — 승인된 참여자만. 모임 채팅방에서도 빠짐 ('○○님이 나갔어요') */
+const removeMember = (id, hostId, memberUserId) => dismissMember(id, hostId, memberUserId, 'approved');
+
+/** 신고 — 호스트가 승인된 참여자를. 상대에게 알리지 않음 */
+async function reportMember(id, hostId, memberUserId, content) {
+  const doc = await findDoc(id);
+  if (!idEq(doc.host, hostId)) throw httpError(403, '호스트만 할 수 있어요');
+  const member = (doc.members || []).find((m) => idEq(m.user, memberUserId));
+  if (member?.status !== 'approved') throw httpError(404, '신고할 사람을 찾을 수 없습니다');
+  await chatService.reportMeetupMember(doc._id, hostId, memberUserId, content);
+}
+
+/** 모임 신고 — 확정 참여자가 모임 상세에서. 신고 대상은 호스트, 상대에게 알리지 않음 */
+async function reportHost(id, userId, content) {
+  const doc = await findDoc(id);
+  const mine = (doc.members || []).find((m) => idEq(m.user, userId));
+  if (mine?.status !== 'approved') throw httpError(403, '확정된 참여자만 신고할 수 있어요');
+  await chatService.reportMeetupMember(doc._id, userId, doc.host, content);
+}
+
+/**
  * 참여 취소 — 신청 중 · 승인 모두 이야기 자리 시작 전까지. members 에서 빼므로 다시 신청할 수 있음
  * 승인된 참여자였으면 모임 채팅방에서도 빠짐 ('○○님이 나갔어요')
  */
@@ -456,4 +506,4 @@ async function leaveMeetup(id, userId) {
   return getMeetup(doc._id, userId);
 }
 
-module.exports = { listMeetups, listMyMeetups, getMeetup, createMeetup, updateMeetup, setMeetupStatus, applyMeetup, approveMember, leaveMeetup };
+module.exports = { listMeetups, listMyMeetups, getMeetup, createMeetup, updateMeetup, setMeetupStatus, applyMeetup, approveMember, rejectMember, removeMember, reportMember, reportHost, leaveMeetup };

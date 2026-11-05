@@ -18,7 +18,11 @@ router.patch('/:id', isLoggedIn, meetupController.update);
 router.post('/:id/status', isLoggedIn, meetupController.changeStatus);
 router.post('/:id/apply', isLoggedIn, meetupController.apply);
 router.post('/:id/leave', isLoggedIn, meetupController.leave); // 참여 취소
+router.post('/:id/report-host', isLoggedIn, meetupController.reportHost); // 모임 신고 (대상은 호스트)
 router.post('/:id/members/:userId/approve', isLoggedIn, meetupController.approve);
+router.post('/:id/members/:userId/reject', isLoggedIn, meetupController.reject); // 신청 거절
+router.post('/:id/members/:userId/remove', isLoggedIn, meetupController.removeMember); // 내보내기
+router.post('/:id/members/:userId/report', isLoggedIn, meetupController.report); // 신고
 
 // 모임 평가 — 확정 참여자만
 router.get('/:id/review', isLoggedIn, reviewController.detail);

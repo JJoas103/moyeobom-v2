@@ -27,6 +27,11 @@ function meetupRoomClosesAt(meetup) {
   return reviewWindow(meetup.talk.startAt).closesAt;
 }
 
+/** '호스트 노쇼' 신고를 받을 수 있는지 — 이야기 자리가 시작된 뒤, 취소된 모임 제외 */
+function noShowReportOpen(meetup, now = new Date()) {
+  return Boolean(meetup) && meetup.status !== 'cancelled' && new Date(meetup.talk.startAt) <= now;
+}
+
 module.exports = {
   HOUR,
   DAY,
@@ -35,4 +40,5 @@ module.exports = {
   CHAT_KEEP_DAYS,
   reviewWindow,
   meetupRoomClosesAt,
+  noShowReportOpen,
 };

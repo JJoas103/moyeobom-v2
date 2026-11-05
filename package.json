@@ -9,7 +9,8 @@
     "dev": "nodemon app.js",
     "sync:events": "node scripts/syncEvents.js",
     "sync:places": "node scripts/syncPlaces.js",
-    "review:daily": "node scripts/runReviewDaily.js"
+    "review:daily": "node scripts/runReviewDaily.js",
+    "migrate:report-index": "node scripts/dropReportUniqueIndex.js"
   },
   "engines": {
     "node": ">=22"

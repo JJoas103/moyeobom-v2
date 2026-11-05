@@ -121,6 +121,48 @@ const approve = async (req, res, next) => {
   }
 };
 
+// POST /api/meetup/:id/members/:userId/reject — 호스트만
+const reject = async (req, res, next) => {
+  try {
+    const meetup = await meetupService.rejectMember(req.params.id, req.user._id, req.params.userId);
+    res.json({ success: true, meetup });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// POST /api/meetup/:id/members/:userId/remove — 호스트만
+const removeMember = async (req, res, next) => {
+  try {
+    const meetup = await meetupService.removeMember(req.params.id, req.user._id, req.params.userId);
+    res.json({ success: true, meetup });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// POST /api/meetup/:id/members/:userId/report { reason, detail? } — 호스트만
+const report = async (req, res, next) => {
+  try {
+    const { reason, detail } = req.body || {};
+    await meetupService.reportMember(req.params.id, req.user._id, req.params.userId, { reason, detail });
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// POST /api/meetup/:id/report-host { reason, detail? } — 모임 신고(대상은 호스트), 확정 참여자만
+const reportHost = async (req, res, next) => {
+  try {
+    const { reason, detail } = req.body || {};
+    await meetupService.reportHost(req.params.id, req.user._id, { reason, detail });
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+};
+
 // POST /api/meetup/:id/leave — 참여 취소 (신청 중 · 승인 모두, 이야기 자리 시작 전까지)
 const leave = async (req, res, next) => {
   try {
@@ -131,4 +173,4 @@ const leave = async (req, res, next) => {
   }
 };
 
-module.exports = { list, mine, detail, uploadImage, create, update, changeStatus, apply, approve, leave };
+module.exports = { list, mine, detail, uploadImage, create, update, changeStatus, apply, approve, reject, removeMember, report, reportHost, leave };
