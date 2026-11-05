@@ -7,17 +7,36 @@
 //     opensAt, closesAt,                  // 이야기 자리 다음날 12:00 ~ +48시간
 //     state: 'before' | 'open' | 'closed',
 //     targets: [{ user: { _id, nickname, profileImage }, isHost }],   // 확정 참여자 (나 제외)
-//     submitted: { praisedCount, againCount } | null,
+//     submitted: { praisedCount, disappointedCount, againCount } | null,
 //   }
 import { apiGet, apiPost } from '../api'
+
+// 매너 평가 3단계 — 화면과 서버가 쓰는 값. '보통'은 보내지 않는다(대상에서 나머지가 보통)
+export const MANNER_GOOD = 'good'
+export const MANNER_NORMAL = 'normal'
+export const MANNER_LOW = 'low'
 
 export async function fetchReview(meetupId) {
   const { review } = await apiGet(`/api/meetup/${meetupId}/review`)
   return review
 }
 
-/** 평가 보내기 — praised: 칭찬할 사람 _id 들, again: 또 만나고 싶은 사람 _id 들 (비공개) */
-export async function submitReview(meetupId, { praised, again }) {
-  const { result } = await apiPost(`/api/meetup/${meetupId}/review`, { praised, again })
-  return result // { praisedCount, againCount }
+/**
+ * 평가 보내기
+ * @param praised      매너가 좋았어요 (1건당 +1 — 한 명만 골라도 상대 점수가 오른다)
+ * @param disappointed 매너가 아쉬웠어요 (2명 이상 + 평가자 과반일 때만 상대 점수가 깎인다)
+ * @param again        또 만나고 싶어요 (비공개 — 서로 골랐을 때만 친구)
+ */
+export async function submitReview(meetupId, { praised, disappointed, again }) {
+  const { result } = await apiPost(`/api/meetup/${meetupId}/review`, { praised, disappointed, again })
+  return result // { praisedCount, disappointedCount, againCount }
+}
+
+/** { [userId]: 'good'|'normal'|'low' } → 서버가 받는 두 배열. '보통'은 어디에도 안 들어간다 */
+export function splitRatings(ratings) {
+  const ids = Object.keys(ratings || {})
+  return {
+    praised: ids.filter((id) => ratings[id] === MANNER_GOOD),
+    disappointed: ids.filter((id) => ratings[id] === MANNER_LOW),
+  }
 }

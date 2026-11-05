@@ -18,14 +18,14 @@ export default function ReviewBox({ meetup }) {
     body = (
       <>
         <span className="review-box__title">오늘 모임 어땠어요?</span>
-        <span className="review-box__text">평가는 {formatDeadline(opensAt)}에 열려요. 그때 함께한 사람을 칭찬하고, 다시 보고 싶은 사람을 골라 주세요.</span>
+        <span className="review-box__text">평가는 {formatDeadline(opensAt)}에 열려요. 그때 함께한 분들의 매너를 평가하고, 다시 보고 싶은 사람을 골라 주세요.</span>
       </>
     )
   } else if (state === 'open' && !review.submitted) {
     body = (
       <>
         <span className="review-box__title">모임이 끝났어요</span>
-        <span className="review-box__text">함께한 사람을 칭찬하고, 다시 보고 싶은 사람이 있다면 골라 주세요.</span>
+        <span className="review-box__text">함께한 분들의 매너를 평가하고, 다시 보고 싶은 사람이 있다면 골라 주세요.</span>
         <div className="review-box__deadline">
           <span>평가 마감</span>
           <strong>

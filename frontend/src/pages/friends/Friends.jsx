@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import DataState from '../../components/common/DataState'
 import Avatar from '../../components/common/Avatar'
+import MannerBadge from '../../components/common/MannerBadge'
 import MoreMenu from '../../components/common/MoreMenu'
 import { ConfirmDialog } from '../../components/common/Dialog'
 import { ChatIcon, PencilIcon } from '../../components/common/Icons'
@@ -96,7 +97,9 @@ function FriendList({ friends, onChange }) {
         <div key={friend._id} className="friend-row">
           <Avatar user={friend.user} size={52} />
           <span className="friend-row__text">
-            <span className="friend-row__name">{friend.user.nickname}</span>
+            <span className="friend-row__name">
+              {friend.user.nickname} <MannerBadge manner={friend.user.manner} />
+            </span>
             {friend.memo && (
               <span className="friend-row__memo">
                 <PencilIcon />

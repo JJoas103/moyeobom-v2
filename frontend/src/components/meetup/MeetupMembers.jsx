@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import MannerBadge from '../common/MannerBadge'
 import { approveMember } from '../../data/meetups'
 import MetaLine from '../common/MetaLine'
 import { JOIN_LABEL } from '../../data/constants'
@@ -80,6 +81,7 @@ function HostMembers({ meetup, onChange }) {
                     <MetaLine items={[JOIN_LABEL[m.joinType], `${formatMeetupWhen(m.appliedAt)} 신청`]} />
                   </span>
                 </span>
+                <MannerBadge manner={m.user?.manner} />
                 <button
                   type="button"
                   className="btn btn--line btn--sm"
@@ -120,6 +122,7 @@ function MemberList({ members }) {
             <strong>{m.user?.nickname || '알 수 없음'}</strong>
             <span>{JOIN_LABEL[m.joinType]}</span>
           </span>
+          <MannerBadge manner={m.user?.manner} />
         </li>
       ))}
     </ul>

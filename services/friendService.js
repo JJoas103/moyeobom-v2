@@ -4,6 +4,10 @@ const { MEMO_MAX } = require('../models/Friendship');
 const Block = require('../models/Block');
 const User = require('../models/User');
 const chatService = require('./chatService');
+const mannerService = require('./mannerService');
+const notificationService = require('./notificationService');
+const { publicUser, PUBLIC_USER_FIELDS } = require('./publicUser');
+const { sideEffect } = require('./sideEffect');
 const { emitToUsers } = require('../config/socket');
 const { summarizeMeetups } = require('./meetupSummary');
 
@@ -15,7 +19,7 @@ const { summarizeMeetups } = require('./meetupSummary');
 const httpError = (status, message) => Object.assign(new Error(message), { status });
 const idEq = (a, b) => Boolean(a && b) && String(a) === String(b);
 const oid = (id) => new mongoose.Types.ObjectId(String(id));
-const publicUser = (user) => (user ? { _id: String(user._id), nickname: user.nickname, profileImage: user.profileImage || '' } : null);
+// publicUser 는 services/publicUser.js 로 옮겼다 (매너 점수를 함께 싣는다 — 친구 목록이 노출 범위)
 
 /** 두 사람을 userA < userB 순서로 */
 const pairOf = (a, b) => (String(a) < String(b) ? [oid(a), oid(b)] : [oid(b), oid(a)]);
@@ -60,6 +64,11 @@ async function makeFriends(meetupId, a, b) {
   await Friendship.updateOne({ _id: friendship._id }, { $set: { room: room._id } });
   emitToUsers([userA, userB], 'chat:rooms', {});
   notify([userA, userB]); // 상대가 화면을 열어 두고 있으면 새로고침 없이 나타난다
+
+  // 친구가 됐다 +1 — 양쪽에. 상호 선택이라 양쪽 다 아는 사실이고, 친구 목록과 1:1 방으로 확인된다.
+  // (한쪽만 '또 만나고 싶어요'를 고른 경우는 여기 오지 않으므로 점수도 안 움직인다 — 비공개 약속)
+  await sideEffect('친구 가점', () => mannerService.friendsMade(userA, userB, meetupId));
+  await sideEffect('친구 알림', () => notificationService.friendMatched(userA, userB));
 }
 
 // ---------- 조회 ----------
@@ -69,7 +78,7 @@ async function listFriends(me) {
   const docs = await Friendship.find(partyQuery(me)).sort({ createdAt: -1 }).lean();
   const otherIds = docs.map((d) => otherOf(d, me));
   const [users, meetups] = await Promise.all([
-    User.find({ _id: { $in: otherIds } }, { nickname: 1, profileImage: 1 }).lean(),
+    User.find({ _id: { $in: otherIds } }, PUBLIC_USER_FIELDS).lean(), // manner 포함 — publicUser 와 짝
     summarizeMeetups(docs.map((d) => d.meetup).filter(Boolean)),
   ]);
   const userMap = new Map(users.map((u) => [String(u._id), u]));

@@ -4,37 +4,52 @@ const Review = require('../models/Review');
 const Friendship = require('../models/Friendship');
 const userService = require('./userService');
 const friendService = require('./friendService');
+const mannerService = require('./mannerService');
 const { reviewWindow } = require('./socialRules');
 const { summarizeMeetups } = require('./meetupSummary');
 
 // 마이 — 응답 모양은 frontend/src/data/member.js 맨 위 주석 기준
 //   참여한 모임: 내가 연 모임 + 승인된 모임 (취소 제외, 신청 중 제외)
-//   받은 칭찬: 평가가 마감된 모임만 · 누가 칭찬했는지는 내려주지 않음 (매너 점수는 미결정이라 횟수만)
+//   받은 칭찬: 평가가 마감된 모임만 · 누가 평가했는지는 내려주지 않음 (평가자 비공개 — 횟수만)
+//     분모는 **실제로 평가를 낸 사람 수**(ratedCount)다. '평가할 수 있었던 사람 수'로 세면
+//     3명 중 1명만 평가했는데 그 1명이 칭찬한 경우가 1/2명 으로 보여 적게 받은 것처럼 읽힌다.
+//     '아쉬웠어요'는 내려주지 않는다 — 문턱을 넘겨 점수가 움직였으면 매너 이력에 이미 한 줄 남는다
+//   매너 점수: 점수 + 변동 이력 + 이력 합. 화면이 '50 + 합 = 점수' 를 검산해 보여준다
+//     (services/mannerService.js 의 불변식. 사용자가 "왜?"를 묻지 않게 하는 장치다)
 
 const oid = (id) => new mongoose.Types.ObjectId(String(id));
 const WITHDRAW_TEXT = '탈퇴'; // 소셜 가입자 탈퇴 확인 문구
 
-const participantCount = (meetup) => 1 + (meetup.members || []).filter((m) => m.status === 'approved').length;
-
-/** 받은 칭찬 → { total, meetups: [{ meetup(작은 요약), praisedCount, othersCount }] } 최근 모임 순 */
+/** 받은 칭찬 → { total, meetups: [{ meetup(작은 요약), praisedCount, ratedCount }] } 최근 모임 순 */
 async function receivedPraise(userId, now = new Date()) {
+  const me = oid(userId);
   const counts = await Review.aggregate([
-    { $match: { praised: oid(userId) } },
+    { $match: { praised: me } },
     { $group: { _id: '$meetup', praisedCount: { $sum: 1 } } },
   ]);
   if (counts.length === 0) return { total: 0, meetups: [] };
 
-  const docs = await Meetup.find({ _id: { $in: counts.map((c) => c._id) }, status: { $ne: 'cancelled' } }, { talk: 1, members: 1 }).lean();
+  const meetupIds = counts.map((c) => c._id);
+  const docs = await Meetup.find({ _id: { $in: meetupIds }, status: { $ne: 'cancelled' } }, { talk: 1 }).lean();
   const closed = docs.filter((m) => reviewWindow(m.talk.startAt).closesAt <= now);
-  const summaries = await summarizeMeetups(closed.map((m) => m._id));
+
+  // 분모 — 그 모임에서 나를 평가할 수 있었던 평가자 수 (내가 낸 평가는 세지 않는다)
+  const [summaries, raterRows] = await Promise.all([
+    summarizeMeetups(closed.map((m) => m._id)),
+    Review.aggregate([
+      { $match: { meetup: { $in: closed.map((m) => m._id) }, reviewer: { $ne: me } } },
+      { $group: { _id: '$meetup', ratedCount: { $sum: 1 } } },
+    ]),
+  ]);
   const countMap = new Map(counts.map((c) => [String(c._id), c.praisedCount]));
+  const raterMap = new Map(raterRows.map((r) => [String(r._id), r.ratedCount]));
 
   const meetups = closed
     .sort((a, b) => new Date(b.talk.startAt) - new Date(a.talk.startAt))
     .map((m) => ({
       meetup: summaries.get(String(m._id)),
       praisedCount: countMap.get(String(m._id)),
-      othersCount: participantCount(m) - 1, // 나를 평가할 수 있었던 사람 수
+      ratedCount: raterMap.get(String(m._id)) || 0,
     }));
   return { total: meetups.reduce((sum, m) => sum + m.praisedCount, 0), meetups };
 }
@@ -75,7 +90,7 @@ async function withdraw(user, { password, confirmText }) {
 /** 마이 첫 화면 — 프로필 · 숫자 · 받은 칭찬 · 다가오는 모임 수(탈퇴 안내) */
 async function getMyPage(user) {
   const me = oid(user._id);
-  const [meetupCount, friendCount, praise, upcoming] = await Promise.all([
+  const [meetupCount, friendCount, praise, upcoming, mannerLog, mannerSum] = await Promise.all([
     Meetup.countDocuments({
       status: { $ne: 'cancelled' },
       $or: [{ host: me }, { members: { $elemMatch: { user: me, status: 'approved' } } }],
@@ -83,6 +98,8 @@ async function getMyPage(user) {
     Friendship.countDocuments({ $or: [{ userA: me }, { userB: me }] }),
     receivedPraise(user._id),
     upcomingMeetups(user._id),
+    mannerService.listLog(user._id),
+    mannerService.logSum(user._id),
   ]);
 
   return {
@@ -90,6 +107,13 @@ async function getMyPage(user) {
     stats: { meetupCount, friendCount, praiseCount: praise.total },
     praise,
     upcoming,
+    manner: {
+      score: mannerService.scoreOf(user),
+      base: mannerService.BASE, // 화면 검산 줄: base + logSum = score
+      logSum: mannerSum,
+      log: mannerLog,
+      rules: mannerService.SCORES, // '이렇게 움직여요' 표 — 정책을 화면에 그대로 띄운다
+    },
   };
 }
 

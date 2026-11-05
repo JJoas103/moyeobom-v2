@@ -49,6 +49,13 @@ const meetupSchema = new mongoose.Schema(
 
     members: [memberSchema],
     status: { type: String, enum: ['open', 'closed', 'cancelled'], default: 'open' },
+
+    // 하루 한 번 도는 cron 이 같은 일을 두 번 하지 않게 하는 표식 (schedulers/reviewDaily.js).
+    // 평가 열림 · 마감 시각은 저장하지 않고 socialRules.reviewWindow 로 계산하는 값이라
+    // 쿼리로 못 걸러진다 → talk.startAt 범위로 좁히고 메모리에서 거른 뒤 이 표식을 남긴다
+    reviewAppliedAt: { type: Date }, // 평가 마감분(활동 가점 · 매너 평가 · 미제출 감점)을 반영한 시각
+    reviewOpenNoticedAt: { type: Date }, // '평가가 열렸어요' 알림을 보낸 시각
+    reviewClosingNoticedAt: { type: Date }, // '평가가 곧 마감돼요' 알림을 보낸 시각
   },
   { timestamps: true }
 );
@@ -57,6 +64,7 @@ meetupSchema.index({ event: 1, 'talk.startAt': 1 });
 meetupSchema.index({ status: 1, 'talk.startAt': 1 });
 meetupSchema.index({ 'members.user': 1 }); // 내가 신청한 모임
 meetupSchema.index({ host: 1 }); // 내가 연 모임 · 호스트가 연 모임 수
+meetupSchema.index({ reviewAppliedAt: 1, 'talk.startAt': 1 }); // cron — 평가 마감분 미반영
 
 // 승인된 참여자 수 (호스트 제외)
 meetupSchema.virtual('approvedCount').get(function () {

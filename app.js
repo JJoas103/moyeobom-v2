@@ -11,6 +11,7 @@ const { apiErrorHandler, apiNotFound } = require('./middlewares/apiErrorMiddlewa
 const { startEventSyncScheduler } = require('./schedulers/eventSync');
 const { startPlaceSyncScheduler } = require('./schedulers/placeSync');
 const { startSocialCleanupScheduler } = require('./schedulers/socialCleanup');
+const { startReviewDailyScheduler } = require('./schedulers/reviewDaily');
 const { setupSocket } = require('./config/socket');
 
 const app = express();
@@ -22,7 +23,8 @@ const SESSION_DAYS = 14; // 로그인 유지 기간
 connectDB();
 startEventSyncScheduler(); // 매일 새벽 행사 동기화 (실행 시각엔 DB 연결 완료 상태)
 startPlaceSyncScheduler(); // 매달 1일 화장실 · 지하철역 동기화
-startSocialCleanupScheduler(); // 매일 12:00 친구 요청 만료 · 오래된 채팅 삭제
+startSocialCleanupScheduler(); // 매일 12:00 오래된 채팅 · 알림 삭제
+startReviewDailyScheduler(); // 매일 12:00 개설 가점 · 평가 열림/마감 임박 알림 · 평가 마감 반영
 
 // 세션 — MongoDB 저장 (nodemon 재시작해도 로그인 유지). Socket.IO 도 같은 세션으로 사용자 확인
 const sessionMiddleware = session({
@@ -59,6 +61,7 @@ app.use('/api/nearby', require('./routes/api/nearbyApiRouter'));
 app.use('/api/meetup', require('./routes/api/meetupApiRouter'));
 app.use('/api/friends', require('./routes/api/friendApiRouter'));
 app.use('/api/chat', require('./routes/api/chatApiRouter'));
+app.use('/api/notification', require('./routes/api/notificationApiRouter'));
 
 // 에러 핸들링 — 라우터 등록 뒤에 위치
 app.use('/api', apiNotFound);

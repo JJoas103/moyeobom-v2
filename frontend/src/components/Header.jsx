@@ -2,8 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useSocketEvent } from '../context/SocketContext'
-import { ChatIcon } from './common/Icons'
+import { BellIcon, ChatIcon } from './common/Icons'
 import { fetchUnreadCount } from '../data/chat'
+import { fetchNotifications, fetchUnreadCount as fetchNotifyCount, markRead } from '../data/notifications'
+import { formatMeetupWhen } from '../utils/format'
 import { profileImageUrl } from '../utils/user'
 
 const NAV = [
@@ -14,15 +16,6 @@ const NAV = [
   { to: '/friends', label: '친구' },
   { to: '/my', label: '마이', end: true },
 ]
-
-function BellIcon() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-      <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-    </svg>
-  )
-}
 
 export default function Header() {
   const { user } = useAuth()
@@ -48,10 +41,7 @@ export default function Header() {
         {user ? (
           <>
             <ChatButton />
-            {/* TODO(알림 단계): 새 알림이 있을 때만 점 표시 */}
-            <button type="button" className="icon-btn" aria-label="알림">
-              <BellIcon />
-            </button>
+            <BellButton />
             <UserMenu user={user} />
           </>
         ) : (
@@ -91,6 +81,96 @@ function ChatButton() {
       <ChatIcon size={22} />
       {unread > 0 && <span className="icon-btn__dot icon-btn__dot--chat" />}
     </Link>
+  )
+}
+
+// 알림 종 — 안 읽은 게 있으면 점. 새 알림(소켓) · 화면 이동마다 다시 셈
+// 누르면 목록을 열고 그 자리에서 전부 읽음 처리한다 (항목을 눌러 이동해도 점이 남지 않게)
+function BellButton() {
+  const { pathname } = useLocation()
+  const [unread, setUnread] = useState(0)
+  const [version, setVersion] = useState(0)
+  const [open, setOpen] = useState(false)
+  const [list, setList] = useState(null) // null = 불러오는 중
+  const boxRef = useRef(null)
+  const bump = () => setVersion((v) => v + 1)
+
+  useSocketEvent('notify:changed', bump)
+
+  useEffect(() => {
+    let cancelled = false
+    fetchNotifyCount()
+      .then((n) => !cancelled && setUnread(n))
+      .catch(() => {}) // 점 하나 — 실패해도 조용히
+    return () => {
+      cancelled = true
+    }
+  }, [pathname, version])
+
+  // 메뉴 밖 클릭 · Esc 로 닫기 (아래 UserMenu 와 같은 방식)
+  useEffect(() => {
+    if (!open) return undefined
+    const onClick = (e) => !boxRef.current?.contains(e.target) && setOpen(false)
+    const onKey = (e) => e.key === 'Escape' && setOpen(false)
+    document.addEventListener('mousedown', onClick)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onClick)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open])
+
+  const toggle = async () => {
+    if (open) return setOpen(false)
+    setOpen(true)
+    setList(null)
+    try {
+      setList(await fetchNotifications())
+      if (unread > 0) {
+        await markRead()
+        setUnread(0)
+      }
+    } catch {
+      setList([]) // 열었는데 못 불러오면 빈 상태로 안내
+    }
+  }
+
+  return (
+    <div className="notify" ref={boxRef}>
+      <button
+        type="button"
+        className="icon-btn"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label={unread > 0 ? `알림, 안 읽은 알림 ${unread}개` : '알림'}
+        onClick={toggle}
+      >
+        <BellIcon size={22} />
+        {unread > 0 && <span className="icon-btn__dot icon-btn__dot--notify" />}
+      </button>
+
+      {open && (
+        <div className="notify__panel" role="menu">
+          <div className="notify__head">알림</div>
+          {list === null ? (
+            <p className="notify__empty">불러오는 중...</p>
+          ) : list.length === 0 ? (
+            <p className="notify__empty">아직 알림이 없어요.</p>
+          ) : (
+            <ul className="notify__list">
+              {list.map((n) => (
+                <li key={n._id}>
+                  <Link to={n.link || '/'} role="menuitem" className={`notify__item${n.readAt ? '' : ' is-new'}`} onClick={() => setOpen(false)}>
+                    <span className="notify__text">{n.message}</span>
+                    <span className="notify__when">{formatMeetupWhen(n.createdAt)}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
   )
 }
 

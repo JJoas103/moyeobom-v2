@@ -443,3 +443,260 @@
 .mypage-withdraw .input {
   height: 48px;
 }
+
+/* ---------- 매너 점수 (받은 칭찬 탭) ---------- */
+
+/* 점수 — 숫자 + 라벨 한 줄. 설명 문단을 두지 않는 이유는 PraiseTab 의 MannerSum 주석 참고 */
+.manner-sum {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 24px;
+  border-radius: var(--radius-lg);
+  background: var(--bg-muted);
+}
+
+.manner-sum__big {
+  flex-shrink: 0; /* 숫자는 어떤 폭에서도 접히지 않는다 */
+  font-size: 40px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--text-sub);
+  font-variant-numeric: tabular-nums;
+}
+
+.manner-sum__label {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.manner-sum--high {
+  background: var(--primary-soft);
+}
+.manner-sum--high .manner-sum__big {
+  color: var(--primary);
+}
+.manner-sum--mid {
+  background: var(--status-open-soft);
+}
+.manner-sum--mid .manner-sum__big {
+  color: var(--status-open);
+}
+.manner-sum--low {
+  background: var(--status-soon-soft);
+}
+.manner-sum--low .manner-sum__big {
+  color: var(--status-soon);
+}
+
+/* 규칙 전문 — 접었다 펼친다 */
+.manner-rules {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+}
+
+.manner-rules__toggle {
+  width: 100%;
+  padding: 14px 18px;
+  border: none;
+  background: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.manner-rules__toggle span {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-sub);
+}
+
+.manner-rules__body {
+  padding: 0 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* 활동 가점 조건 — 줄마다 반복하지 않고 여기 한 번만 */
+.manner-rules__note {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--bg-muted);
+  font-size: 14px;
+  color: var(--text-body);
+}
+
+.manner-rules__note b {
+  color: var(--text);
+}
+
+/* '이런 건 움직이지 않아요' — 기본은 접힘. 화면을 가볍게 하되 답할 수단은 남긴다 */
+.manner-rules__sub {
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+
+.manner-rules__subtoggle {
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-body);
+  cursor: pointer;
+}
+
+.manner-rules__subtoggle:hover {
+  color: var(--text);
+}
+
+.manner-rules__subtoggle span {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-sub);
+}
+
+.manner-rules__sub .manner-rules__zero {
+  margin-top: 10px;
+}
+
+.manner-rules__group h3 {
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-body);
+}
+
+.manner-rules__list,
+.manner-rules__zero {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.manner-rules__list li {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.manner-rules__list b {
+  min-width: 32px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.manner-rules__what {
+  flex: 1;
+  min-width: 0;
+}
+
+.manner-rules__when {
+  flex-shrink: 0;
+  font-size: 13px;
+  color: var(--text-sub);
+}
+
+.manner-rules__zero li {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding-left: 10px;
+  border-left: 2px solid var(--line);
+}
+
+.manner-rules__zero b {
+  font-weight: 600;
+}
+
+.manner-rules__zero span {
+  font-size: 13px;
+  color: var(--text-sub);
+}
+
+/* 변동 이력 */
+.manner-log {
+  display: flex;
+  flex-direction: column;
+}
+
+.manner-log li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 4px;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+}
+
+.manner-log__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.manner-log__note {
+  font-size: 12px;
+  color: var(--status-soon);
+}
+
+.manner-log__date {
+  flex-shrink: 0;
+  font-size: 13px;
+  color: var(--text-sub);
+}
+
+.manner-log b.is-up,
+.manner-rules__list b.is-up {
+  color: var(--primary);
+}
+
+.manner-log b.is-down,
+.manner-rules__list b.is-down {
+  color: var(--status-soon);
+}
+
+.manner-log b {
+  min-width: 36px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+/* 검산 줄 — 이력을 다 더하면 점수가 나온다 */
+.manner-log__check {
+  margin-top: 12px;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-muted);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.manner-log__check span {
+  font-size: 13px;
+  color: var(--text-sub);
+  font-variant-numeric: normal;
+}
+
+.manner-log__none {
+  padding: 16px 4px;
+  font-size: 14px;
+  color: var(--text-sub);
+}
