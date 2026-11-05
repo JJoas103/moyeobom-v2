@@ -25,6 +25,7 @@ npm run sync:places         # 공중화장실 · 지하철역 수동 동기화 (
 npm run review:daily        # 개설 가점 · 평가 열림/마감 알림 · 평가 마감 반영 (자동: 매일 12:00)
 npm run manner:check        # 매너 점수 불변식 검사 — 점수 = 50 + 이력 합
 npm run db:sync-indexes     # v1 이 남긴 인덱스 떼내기 (아래 '같은 DB' 절 참고)
+npm run migrate:report-index # 한 번만 — 신고 고유 인덱스 지우기 (신고 1:n)
 ```
 
 `.env`(루트)·`frontend/.env` 는 커밋하지 않는다. 키 이름은 `.env_sample`, `frontend/.env_example` 참고.
@@ -47,7 +48,7 @@ npm run db:sync-indexes     # v1 이 남긴 인덱스 떼내기 (아래 '같은 
 | 행사 목록 | `/event` | 완료 (목업) |
 | 행사 상세 | `/event/:id` | 완료 (목업) |
 | 모임 목록 | `/meetup` | 완료 (목업) |
-| 모임 상세 | `/meetup/:id` | 완료 (목업) — B안 타임라인 + A안 상단 |
+| 모임 상세 | `/meetup/:id` | 완료 (목업) — B안 타임라인 + A안 상단. 호스트는 참여자 관리 팝업(신청 · 확정 탭) |
 | 모임 만들기 ① | `/meetup/new` | 완료 (목업) |
 | 모임 만들기 ② | `/meetup/new/:eventId` | 완료 (목업) |
 | 모임 평가 ①② · 완료 · 마감 | `/meetup/:id/review` | 완료 (실제 API) — 시안 `html/moyeobom-chat-friends/review-*` |
@@ -61,7 +62,7 @@ npm run db:sync-indexes     # v1 이 남긴 인덱스 떼내기 (아래 '같은 
 - 행사 · 모임 모두 실제 API 연결됨 (`USE_MOCK_EVENTS = false`, `USE_MOCK_MEETUPS = false`). 표의 '(목업)'은 화면을 처음 만든 시점 기준.
 - 인증(passport·session, connect-mongo) 붙음 — `/member/login` · `/member/join` · `/member/social-join`. 찜은 다음 작업에서 추가 (지금 카드 하트는 저장 안 되는 로컬 상태, 추천 영역엔 하트 없음).
 - 취향 · 추천(2026-11): `User.tastes`(행사 카테고리 키 6개, 1개 이상 필수) · `User.districts`(서울 자치구, 선택, 최대 3곳). 기존 회원은 비어 있을 수 있음. `GET /api/event/recommended` 순위 = 취향 일치 → 관심 지역 일치 → 참여했던 모임과 같은 분류 → 모집 중인 모임 많은 순 → 곧 끝나는 순 (`services/recommendService.js`). 행사 · 모임 목록 API 는 달력용 `from` · `to`(`YYYY-MM-DD`)도 받음.
-- 모임: 만들기(로그인 · 만든 사람이 호스트) · 사진 업로드(`public/images/upload`) · 참여 신청(pending 저장) · 호스트 승인 · 참여 취소(`POST /api/meetup/:id/leave` — 신청 중 · 승인 모두 이야기 자리 시작 전까지, members 에서 빼서 다시 신청 가능, 승인된 사람은 채팅방에서도 빠지고 '○○님이 나갔어요') · 수정(`/meetup/:id/edit`, 행사 빼고 전부, 정원은 승인 인원 이상) · 모집 마감/다시 열기 · 취소(되돌리기 없음, 목록 · 행사 모임 수에서 제외). 종료 시각은 없음. 신청자는 `Meetup.members` 배열에 임베드, 정원(`capacity`)은 **호스트 제외**. `talk.place` · `members` 는 호스트와 승인된 참여자에게만 내려준다.
+- 모임: 만들기(로그인 · 만든 사람이 호스트) · 사진 업로드(`public/images/upload`) · 참여 신청(pending 저장) · 호스트 승인 · 참여 취소(`POST /api/meetup/:id/leave` — 신청 중 · 승인 모두 이야기 자리 시작 전까지, members 에서 빼서 다시 신청 가능, 승인된 사람은 채팅방에서도 빠지고 '○○님이 나갔어요') · 거절(`POST /api/meetup/:id/members/:userId/reject`) · 내보내기(`.../remove`) — 호스트가 이야기 자리 시작 전까지, members 에서 빼므로 다시 신청 가능, 상대에게 알리지 않음, 내보내면 채팅방에서도 빠지고 '○○님이 나갔어요' · 승인도 시작 전까지 · 수정(`/meetup/:id/edit`, 행사 빼고 전부, 정원은 승인 인원 이상) · 모집 마감/다시 열기 · 취소(되돌리기 없음, 목록 · 행사 모임 수에서 제외). 종료 시각은 없음. 신청자는 `Meetup.members` 배열에 임베드, 정원(`capacity`)은 **호스트 제외**. `talk.place` · `members` 는 호스트와 승인된 참여자에게만 내려준다.
 
 ## 평가 · 친구 · 채팅 (결정 로그 2026-10)
 
@@ -74,7 +75,7 @@ npm run db:sync-indexes     # v1 이 남긴 인덱스 떼내기 (아래 '같은 
   `schedulers/reviewDaily.js` — 개설 가점 · 평가 열림/마감 임박 알림 · 평가 마감 반영.
   조회도 지금 시각과 비교하므로 cron 이 늦어도 화면은 맞음(점수 · 알림만 늦어진다).
 - **socket.io**: `config/socket.js` — 세션으로 로그인 확인, 각자 `user:<id>` 방에만 들어감. 서버가 받는 사람 user 방으로 `chat:message` · `chat:read` · `chat:notices` · `chat:rooms` · `friends:changed` · `notify:changed` 를 보냄. 프론트는 `context/SocketContext.jsx` `useSocketEvent`.
-- **차단**: 친구 끊김 + 이후 친구 성립 안 됨 + 내 모임 채팅에서 상대 메시지 숨김. **신고**: `Report` 저장만 — 처리(관리자) 화면 없음, DB에서 `status: 'done'` 으로 바꾸면 처리 끝.
+- **차단**: 친구 끊김 + 이후 친구 성립 안 됨 + 내 모임 채팅에서 상대 메시지 숨김. **신고**: `Report` 저장만 — 처리(관리자) 화면 없음, DB에서 `status: 'done'` 으로 바꾸면 처리 끝. 이유(`reason`) 하나 필수, 기타는 내용(`detail`) 필수. 화면은 `components/common/ReportDialog.jsx` 하나 — 채팅 메시지 · 참여자, 차단하며 함께 신고, 참여자 관리 팝업(호스트 → 확정 참여자 `POST /api/meetup/:id/members/:userId/report`). 신청자 · 내보낸 사람은 채팅방 밖이라 신고 대상 아님. 모임 신고: 확정 참여자가 모임 상세 '모임 신고하기'로(`POST /api/meetup/:id/report-host`, 모임 채팅방이 목록에 보이는 동안), 신고 대상은 호스트. 항목 '호스트가 노쇼했어요'(`noshow`)는 호스트 대상(모임 신고 · 채팅 참여자 신고)에만, 이야기 자리 시작 뒤에만 · 취소된 모임 제외 (`socialRules.noShowReportOpen`). 저장만 하고 노쇼 판정 · 제재는 나중에 관리자 기능으로. 신고는 할 때마다 한 건씩 쌓임(대상 1 : 신고 n).
 - 새 도메인(평가 · 친구 · 채팅)은 목업 없이 실제 API 전용 (`data/reviews.js` · `data/friends.js` · `data/chat.js` 맨 위 주석이 응답 모양).
 
 ## 매너 점수 · 알림 (결정 로그 2026-11)
@@ -156,6 +157,7 @@ npm run db:sync-indexes     # v1 이 남긴 인덱스 떼내기 (아래 '같은 
 | 미리 취소 (이야기 자리 24시간 전까지) | 미리 알려 주는 건 손해가 없어야 한다 |
 | 신청 중(승인 전) 취소 | 아무 자리도 비우지 않았다 |
 | 참여자 없는 모임 취소 | 아무도 영향받지 않았다 |
+| **호스트가 내보냈을 때** (`meetupService.removeMember`) | **본인이 한 일이 아니다.** 늦은 취소(-1)와 달리 본인 선택이 아니므로 원칙 2 에 따라 깎지 않는다. 팀원 코드가 `mannerService.left` 를 부르지 않는 건 우연이 아니라 의도다 — 지우지 말 것 |
 | **한 사람만 매너를 아쉽게 평가** | 한 사람 판단으로는 움직이지 않는다. 과반이 아니면 **이력에도 남지 않고 본인에게 보여주지도 않는다** — 점수가 안 움직였는데 보여주면 역추적과 상처만 남는다 |
 | **'또 만나고 싶어요' 받음** | 한쪽만 고른 건 상대에게 드러나지 않는 게 약속이다. 점수가 움직이면 역추적 여지가 생기고 본인에게도 설명할 수 없다. 상호 선택은 '친구가 됐다 +1' 로만 반영한다 |
 | **노쇼** | 확인할 방법이 없어 **따로 깎지 않는다.** 대신 평가를 보낼 수 없어서 그 모임의 활동 가점(+2 · +5)이 인정되지 않는다 |
@@ -208,11 +210,16 @@ npm run db:sync-indexes     # v1 이 남긴 인덱스 떼내기 (아래 '같은 
 | `friend_matched` | 양쪽 | `friendService.makeFriends` |
 | `manner_down` | 본인 | `mannerService.move` (깎일 때만) |
 
-**보내지 않는 것**: 채팅 새 메시지(헤더에 안 읽은 수 점이 이미 있다) · **점수가 오를 때**(이력에서 확인) ·
-차단/차단 해제(상대가 알면 안 된다) · 친구 끊기(탈퇴도 `endFriendship` 을 지나 구분할 수 없다) · 평가 제출(비공개).
+**보내지 않는 것**: 채팅 새 메시지(헤더에 안 읽은 수 점이 이미 있다) · **점수가 오를 때**(이력에서
+확인) · 차단/차단 해제(상대가 알면 안 된다) · 친구 끊기(탈퇴도 `endFriendship` 을 지나 구분할 수
+없다) · 평가 제출(비공개) · 신청 거절 · 내보내기(상대에게 따로 알리지 않기로 함) ·
+신고(상대가 알면 안 된다).
 
+- API: `GET /api/notification?limit=` · `GET /api/notification/unread` · `POST /api/notification/read`
+  (`ids` 없으면 전부 읽음). 전부 로그인 필요 — 내 알림만 본다.
 - cron 알림은 `{ user, type, meetup }` 유니크 부분 인덱스로 중복을 막는다 (`11000` 무시).
   모임 쪽 멱등 표식은 `reviewAppliedAt` · `reviewOpenNoticedAt` · `reviewClosingNoticedAt`.
+- 곁가지 실패가 본 작업을 깨지 않도록 전부 `services/sideEffect.js` 의 `sideEffect()` 로 감싼다.
 - ⚠ `emitToUsers` 는 `io` 가 없으면 조용히 무시한다. `npm run review:daily` 로 수동 실행하면 알림이
   DB 에는 쌓이지만 실시간 push 는 안 간다 (cron 은 `app.js` 안에서 돌아 정상).
 
@@ -307,10 +314,11 @@ v1(`Moyeobom`, 바탕화면 별도 폴더)과 v2 의 `.env` 가 **같은 Atlas �
 ## 미결정 (임의로 정하지 말고 물어볼 것)
 
 - 최근 끝난 행사로 모임을 열 수 있는 기간 — 지금 임시 14일 (`frontend/src/data/events.js` `RECENT_ENDED_DAYS`)
-- 승인 기한 · 신청 마감 시점, 신청 거절 기능 여부
+- 승인 기한 · 신청 마감 시점
 - 비용 필터 기준, 모임 목록 필터(참여 방식 · 술 · 예산) 확정 여부
 - 채팅 공지 최대 개수 — 지금 임시 3개 (`services/chatService.js` `NOTICE_MAX`)
 - 친구 메모 글자 수 — 지금 임시 30자 (시안 제안값, `models/Friendship.js` `MEMO_MAX` · `frontend/src/data/friends.js`)
-- 노쇼 판정 주체 — **신고 → 관리자 판단으로 가기로 함** (2026-11-05). 지금은 확인할 방법이 없어 따로 감점하지 않고, 활동 가점을 평가 제출과 묶어 노쇼가 이득이 되지 않게 해 뒀다 (위 '매너 점수' 절). **아직 안 만든 것**: 신고 종류(`Report` 에 `kind` · `meetup` 추가, 지금 `room` 이 필수라 모임 단위 신고를 못 받는다) · 관리자 판단 화면 · 기각 시 되돌리기(이력 삭제가 아니라 `manner_revert` 반대 부호 이력 추가 — 불변식 때문). **신고 권한은 같은 모임 확정 참여자 전원**에게 줘야 한다 — 호스트에게만 주면 호스트 노쇼가 사각지대가 된다. 점수는 인정 시 -3(미제출 -1 과 합쳐 net -4). QR · 방문 인증이 생기면 다시 볼 것
+- 신고 기타 내용 글자 수 — 지금 임시 200자 (`models/Report.js` `DETAIL_MAX` · `frontend/src/data/constants.js`)
+- 노쇼 판정 주체 — **신고 → 관리자 판단으로 가기로 함** (2026-11-05). **접수까지는 만들어졌다** — `Report.reason` 에 `'noshow'`(호스트 노쇼)가 있고, 모임 상세 '모임 신고하기'와 채팅 참여자 신고에서 호스트를 대상으로만 고를 수 있다 (`socialRules.noShowReportOpen` — 이야기 자리 시작 뒤 · 취소된 모임 제외). **아직 없는 것**: 관리자 판단 화면 · 인정 시 감점(-3, 미제출 -1 과 합쳐 net -4) · 기각 시 되돌리기. 되돌리기는 이력 삭제가 아니라 `manner_revert` 반대 부호 이력 추가여야 한다 — 불변식(점수 = 50 + Σ) 때문이다. 그때까지 노쇼는 점수를 움직이지 않고, 활동 가점을 평가 제출에 묶어 이득이 되지 않게만 해 뒀다. QR · 방문 인증이 생기면 다시 볼 것
 - 모임 채팅 '채팅방 나가기' 버튼 — 참여 취소와 같은 동작으로 하기로 함(2026-10). 버튼은 아직 모임 상세 신청 박스에만 있음
 - 신고 처리 주체 · 화면 (접수만 되고 관리자 판단이 없어 매너 점수에도 반영하지 않는다)

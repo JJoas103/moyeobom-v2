@@ -11,19 +11,19 @@ import { formatMeetupWhen, formatTime } from '../../utils/format'
 
 /**
  * 모임 상세 오른쪽 신청 박스 — 보는 사람에 따라
- *   비로그인 · 신청 전: 참여 방식 고르기 + 신청 / 대기 · 확정: 내 신청 상태 / 호스트: 수정 · 마감 링크
- * onChange: 신청 뒤 모임 다시 불러오기 (myMembership 반영)
+ *   비로그인 · 신청 전: 참여 방식 고르기 + 신청 / 대기 · 확정: 내 신청 상태 + 다른 모임 보기 · 취소 / 호스트: 참여자 관리 · 수정 · 마감
+ * onChange: 신청 뒤 모임 다시 불러오기 (myMembership 반영) · onManage: 참여자 관리 팝업 열기
  * 이야기 자리가 시작된 뒤 확정 참여자(호스트 포함)에게는 평가 박스(ReviewBox)
  */
-export default function ApplyBox({ meetup, status, onChange }) {
+export default function ApplyBox({ meetup, status, onChange, onManage }) {
   const confirmed = meetup.isHost || meetup.myMembership?.status === 'approved'
   if (confirmed && meetup.status !== 'cancelled' && new Date(meetup.talk.startAt) <= new Date()) {
     return <ReviewBox meetup={meetup} />
   }
-  return <ApplyForm meetup={meetup} status={status} onChange={onChange} confirmed={confirmed} />
+  return <ApplyForm meetup={meetup} status={status} onChange={onChange} onManage={onManage} />
 }
 
-function ApplyForm({ meetup, status, onChange, confirmed }) {
+function ApplyForm({ meetup, status, onChange, onManage }) {
   const { talk, watch } = meetup
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -137,6 +137,7 @@ function ApplyForm({ meetup, status, onChange, confirmed }) {
   }
 
   const canApply = !meetup.isHost && !mine
+  const canManage = meetup.isHost && meetup.status !== 'cancelled' // 시작한 뒤엔 ReviewBox 로 바뀜
   const buttonLabel = closed
     ? meetup.status === 'cancelled'
       ? '취소된 모임이에요'
@@ -161,43 +162,54 @@ function ApplyForm({ meetup, status, onChange, confirmed }) {
 
       {body}
 
-      <div className="side-box__actions">
-        <button type="button" className="square-btn" aria-label={shared ? '주소를 복사했어요' : '공유하기 (주소 복사)'} onClick={share}>
-          {shared ? <span className="square-btn__done">복사됨</span> : <ShareIcon />}
-        </button>
-        {canApply ? (
-          <button
-            type="button"
-            className="btn btn--primary btn--lg side-box__cta"
-            disabled={closed || started || state.sending}
-            onClick={submit}
-          >
-            {buttonLabel}
-          </button>
-        ) : meetup.isHost && meetup.status !== 'cancelled' && !started ? (
-          <Link to={`/meetup/${meetup._id}/edit`} className="btn btn--line btn--lg side-box__cta">
-            모임 수정 · 마감
-          </Link>
-        ) : (
-          <Link to="/meetup" className="btn btn--line btn--lg side-box__cta">
+      {mine ? (
+        <>
+          <Link to="/meetup" className="btn btn--line btn--lg">
             다른 모임 보기
           </Link>
-        )}
-      </div>
+          {!started && meetup.status !== 'cancelled' && <LeaveButton meetup={meetup} approved={mine.status === 'approved'} />}
+        </>
+      ) : (
+        <div className="side-box__actions">
+          <button type="button" className="square-btn" aria-label={shared ? '주소를 복사했어요' : '공유하기 (주소 복사)'} onClick={share}>
+            {shared ? <span className="square-btn__done">복사됨</span> : <ShareIcon />}
+          </button>
+          {canApply ? (
+            <button
+              type="button"
+              className="btn btn--primary btn--lg side-box__cta"
+              disabled={closed || started || state.sending}
+              onClick={submit}
+            >
+              {buttonLabel}
+            </button>
+          ) : canManage ? (
+            <button
+              type="button"
+              className={`btn btn--lg side-box__cta ${pendingCount > 0 ? 'btn--primary' : 'btn--line'}`}
+              onClick={onManage}
+            >
+              참여자 관리{pendingCount > 0 ? ` ${pendingCount}` : ''}
+            </button>
+          ) : (
+            <Link to="/meetup" className="btn btn--line btn--lg side-box__cta">
+              다른 모임 보기
+            </Link>
+          )}
+        </div>
+      )}
+      {canManage && (
+        <Link to={`/meetup/${meetup._id}/edit`} className="btn btn--line btn--lg">
+          모임 정보 수정 · 마감
+        </Link>
+      )}
 
       {state.error && (
         <p className="form-error" role="alert">
           {state.error}
         </p>
       )}
-      {mine && !started && meetup.status !== 'cancelled' && <LeaveButton meetup={meetup} approved={mine.status === 'approved'} />}
-      {confirmed && meetup.status !== 'cancelled' ? (
-        <Link to={`/chat/meetup/${meetup._id}`} className="review-box__chat">
-          모임 채팅 열기
-        </Link>
-      ) : (
-        <p className="side-box__note">호스트가 승인하면 참여가 확정돼요. 승인되면 정확한 장소와 모임 채팅이 열려요.</p>
-      )}
+      {!meetup.isHost && !mine && <p className="side-box__note">호스트가 승인하면 참여가 확정돼요. 승인되면 정확한 장소와 모임 채팅이 열려요.</p>}
     </aside>
   )
 }
@@ -229,7 +241,7 @@ function LeaveButton({ meetup, approved }) {
 
   return (
     <>
-      <button type="button" className="side-box__leave" onClick={() => setOpen(true)}>
+      <button type="button" className="btn btn--line btn--lg" onClick={() => setOpen(true)}>
         {label}하기
       </button>
       {open && (

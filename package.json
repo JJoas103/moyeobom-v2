@@ -12,7 +12,8 @@
     "review:daily": "node scripts/runReviewDaily.js",
     "seed:review-dummy": "node scripts/seedReviewDummy.js",
     "manner:check": "node scripts/checkMannerLedger.js",
-    "db:sync-indexes": "node scripts/syncIndexes.js"
+    "db:sync-indexes": "node scripts/syncIndexes.js",
+    "migrate:report-index": "node scripts/dropReportUniqueIndex.js"
   },
   "engines": {
     "node": ">=22"

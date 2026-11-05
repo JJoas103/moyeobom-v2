@@ -32,6 +32,11 @@ function meetupRoomClosesAt(meetup) {
 /** 이야기 자리를 앞두고 취소했는지 — 늦은 취소면 true (services/mannerService.js) */
 const isLateLeave = (talkStartAt, now = new Date()) => new Date(talkStartAt) - now <= LATE_LEAVE_HOURS * HOUR;
 
+/** '호스트 노쇼' 신고를 받을 수 있는지 — 이야기 자리가 시작된 뒤, 취소된 모임 제외 */
+function noShowReportOpen(meetup, now = new Date()) {
+  return Boolean(meetup) && meetup.status !== 'cancelled' && new Date(meetup.talk.startAt) <= now;
+}
+
 module.exports = {
   HOUR,
   DAY,
@@ -42,4 +47,5 @@ module.exports = {
   reviewWindow,
   meetupRoomClosesAt,
   isLateLeave,
+  noShowReportOpen,
 };

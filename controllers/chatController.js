@@ -31,9 +31,10 @@ module.exports = {
   pin: handle(async (req) => ({ notices: await chatService.pinNotice(req.params.id, me(req), req.body?.messageId) })),
   // DELETE /api/chat/rooms/:id/notices/:messageId → { notices } (호스트만)
   unpin: handle(async (req) => ({ notices: await chatService.unpinNotice(req.params.id, me(req), req.params.messageId) })),
-  // POST /api/chat/rooms/:id/report { messageId? , userId? }
+  // POST /api/chat/rooms/:id/report { messageId? , userId?, reason, detail? }
   report: handle(async (req) => {
-    await chatService.report(req.params.id, me(req), { messageId: req.body?.messageId, targetId: req.body?.userId });
+    const { messageId, userId, reason, detail } = req.body || {};
+    await chatService.report(req.params.id, me(req), { messageId, targetId: userId, reason, detail });
     return {};
   }),
 };

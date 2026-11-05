@@ -1,18 +1,16 @@
-import { useState } from 'react'
 import MannerBadge from '../common/MannerBadge'
-import { approveMember } from '../../data/meetups'
-import MetaLine from '../common/MetaLine'
 import { JOIN_LABEL } from '../../data/constants'
 import { posterTone } from '../../utils/poster'
-import { formatMeetupWhen } from '../../utils/format'
 import { profileImageUrl } from '../../utils/user'
 
 /**
  * 모임 상세 '함께하는 사람' — 정원 점 + 보는 사람에 따라
- *   호스트: 신청자 목록 · 승인 / 승인된 참여자: 서로의 닉네임 / 그 밖: 안내 문구
- * onChange: 승인 뒤 모임 다시 불러오기
+ *   호스트 · 승인된 참여자: 확정 명단 / 그 밖: 안내 문구
+ * 신청 승인 · 거절 · 내보내기는 참여자 관리 팝업(MemberManageDialog)에서
  */
-export default function MeetupMembers({ meetup, status, onChange }) {
+export default function MeetupMembers({ meetup, status }) {
+  const approved = (meetup.members || []).filter((m) => m.status === 'approved')
+
   return (
     <section className="detail-section">
       <div className="section-head">
@@ -31,10 +29,10 @@ export default function MeetupMembers({ meetup, status, onChange }) {
           ),
         )}
       </div>
-      {meetup.isHost ? (
-        <HostMembers meetup={meetup} onChange={onChange} />
-      ) : meetup.members ? (
-        <MemberList members={meetup.members} />
+      {approved.length > 0 ? (
+        <MemberList members={approved} />
+      ) : meetup.isHost ? (
+        <p className="detail-note">아직 확정한 사람이 없어요.</p>
       ) : (
         <p className="detail-note">닉네임은 승인된 참여자끼리만 보여요.</p>
       )}
@@ -42,76 +40,8 @@ export default function MeetupMembers({ meetup, status, onChange }) {
   )
 }
 
-// 호스트에게만 — 신청자 목록 · 승인
-function HostMembers({ meetup, onChange }) {
-  const [busy, setBusy] = useState(null) // 승인 중인 사용자 _id
-  const [error, setError] = useState(null)
-  const members = meetup.members || []
-  const pending = members.filter((m) => m.status === 'pending')
-  const approved = members.filter((m) => m.status === 'approved')
-  const full = meetup.approvedCount >= meetup.capacity
-
-  const approve = async (userId) => {
-    setBusy(userId)
-    setError(null)
-    try {
-      await approveMember(meetup._id, userId)
-      onChange()
-    } catch (e) {
-      setError(e.message)
-    } finally {
-      setBusy(null)
-    }
-  }
-
-  if (members.length === 0) return <p className="detail-note">아직 신청한 사람이 없어요. 신청이 오면 여기서 승인해요.</p>
-
-  return (
-    <div className="applicants">
-      {pending.length > 0 && (
-        <>
-          <span className="applicants__label">승인 기다리는 신청 {pending.length}</span>
-          <ul className="applicants__list">
-            {pending.map((m) => (
-              <li key={m.user?._id} className="applicant">
-                <MemberAvatar user={m.user} />
-                <span className="applicant__text">
-                  <strong>{m.user?.nickname || '알 수 없음'}</strong>
-                  <span>
-                    <MetaLine items={[JOIN_LABEL[m.joinType], `${formatMeetupWhen(m.appliedAt)} 신청`]} />
-                  </span>
-                </span>
-                <MannerBadge manner={m.user?.manner} />
-                <button
-                  type="button"
-                  className="btn btn--line btn--sm"
-                  disabled={full || busy === m.user?._id}
-                  onClick={() => approve(m.user._id)}
-                >
-                  {busy === m.user?._id ? '승인 중…' : '승인'}
-                </button>
-              </li>
-            ))}
-          </ul>
-          {full && <p className="detail-note">정원이 다 차서 더 승인할 수 없어요.</p>}
-        </>
-      )}
-      {approved.length > 0 && (
-        <>
-          <span className="applicants__label">확정 {approved.length}</span>
-          <MemberList members={approved} />
-        </>
-      )}
-      {error && (
-        <p className="form-error" role="alert">
-          {error}
-        </p>
-      )}
-    </div>
-  )
-}
-
-// 확정된 사람 목록 — 닉네임 · 참여 방식
+// 확정된 사람 목록 — 닉네임 · 매너 점수 · 참여 방식
+// 매너 점수는 승인된 참여자끼리만 보는 자리라 띄운다 (평가 화면에는 안 띄운다 — CLAUDE.md)
 function MemberList({ members }) {
   return (
     <ul className="applicants__list">
@@ -119,10 +49,11 @@ function MemberList({ members }) {
         <li key={m.user?._id} className="applicant">
           <MemberAvatar user={m.user} />
           <span className="applicant__text">
-            <strong>{m.user?.nickname || '알 수 없음'}</strong>
+            <strong>
+              {m.user?.nickname || '알 수 없음'} <MannerBadge manner={m.user?.manner} />
+            </strong>
             <span>{JOIN_LABEL[m.joinType]}</span>
           </span>
-          <MannerBadge manner={m.user?.manner} />
         </li>
       ))}
     </ul>

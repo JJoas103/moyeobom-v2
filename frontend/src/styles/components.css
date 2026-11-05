@@ -360,6 +360,76 @@
   cursor: not-allowed;
 }
 
+/* 신고 이유 */
+.report-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.report-fields__options {
+  margin: 0;
+  padding: 0;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.report-option {
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.report-option:hover {
+  background: var(--bg-muted);
+}
+
+.report-option.is-selected {
+  background: var(--primary-soft);
+  font-weight: 600;
+}
+
+.report-option input {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin: 0;
+  accent-color: var(--primary);
+}
+
+.report-fields__detail {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.report-fields__detail textarea {
+  padding: 10px 12px;
+  border: 1px solid var(--line-field);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-weight: 400;
+  resize: vertical;
+}
+
+.report-fields__count {
+  align-self: flex-end;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-sub);
+}
+
 /* 팝업 안 사람 목록 (일괄 요청 확인) */
 .dialog__people {
   margin: 0;
