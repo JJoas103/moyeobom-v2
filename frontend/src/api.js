@@ -3,7 +3,9 @@
 // 2) 네트워크 실패(백엔드 꺼짐) · HTTP 에러 구분 → 한국어 메시지로 throw
 // 3) 에러 객체에 status, fieldErrors 포함 → 호출하는 쪽에서 분기
 
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
+// 빌드본은 Express 가 같은 주소로 서빙하므로 현재 주소로 호출 (.env.production 에서 비워 둠)
+export const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? window.location.origin : 'http://localhost:3000')
 
 const NETWORK_ERROR = '서버에 연결하지 못했어요. 잠시 뒤 다시 시도해 주세요.'
 

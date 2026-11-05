@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const fs = require('fs');
 const path = require('path');
 const http = require('http');
 const cors = require('cors');
@@ -18,6 +19,9 @@ const server = http.createServer(app);
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 const SESSION_DAYS = 14; // 로그인 유지 기간
+const FRONTEND_DIST = path.join(__dirname, 'frontend', 'dist'); // 프론트 빌드 — 있으면 한 주소로 함께 서빙
+
+app.set('trust proxy', 1); // 터널 · 프록시 뒤에서도 https 로 인식 (소셜 로그인 콜백 주소)
 
 connectDB();
 startEventSyncScheduler(); // 매일 새벽 행사 동기화 (실행 시각엔 DB 연결 완료 상태)
@@ -43,6 +47,7 @@ setupSocket(server, { origin: FRONTEND_URL, sessionMiddleware, passport });
 // 미들웨어
 app.use(cors({ origin: FRONTEND_URL, credentials: true })); // 세션 쿠키를 쓰게 되면 credentials 필수
 app.use(express.static(path.join(__dirname, 'public'))); // 업로드 이미지 서빙
+app.use(express.static(FRONTEND_DIST));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
@@ -63,6 +68,11 @@ app.use('/api/chat', require('./routes/api/chatApiRouter'));
 // 에러 핸들링 — 라우터 등록 뒤에 위치
 app.use('/api', apiNotFound);
 app.use('/api', apiErrorHandler);
+
+// 화면 경로에서 새로고침해도 SPA 로 — API 라우터 뒤에 위치
+if (fs.existsSync(FRONTEND_DIST)) {
+  app.get('*', (req, res) => res.sendFile(path.join(FRONTEND_DIST, 'index.html')));
+}
 
 const PORT = process.env.PORT || 3000;
 server

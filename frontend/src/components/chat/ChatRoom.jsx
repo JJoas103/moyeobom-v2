@@ -249,7 +249,7 @@ function RoomView({ data, setData, me, onReload, onLeft }) {
   }
 
   const isMeetup = room.type === 'meetup'
-  const placeholder = room.closed ? (isMeetup ? '평가가 마감돼 읽기만 할 수 있어요' : '닫힌 채팅방이에요') : '메시지 보내기'
+  const placeholder = room.closed ? (isMeetup ? '평가가 마감되어 읽기만 할 수 있어요' : '닫힌 채팅방이에요') : '메시지 보내기'
 
   return (
     <>
