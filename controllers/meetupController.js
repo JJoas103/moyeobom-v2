@@ -141,6 +141,17 @@ const removeMember = async (req, res, next) => {
   }
 };
 
+// POST /api/meetup/:id/members/:userId/report { reason, detail? } — 호스트만
+const report = async (req, res, next) => {
+  try {
+    const { reason, detail } = req.body || {};
+    await meetupService.reportMember(req.params.id, req.user._id, req.params.userId, { reason, detail });
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+};
+
 // POST /api/meetup/:id/leave — 참여 취소 (신청 중 · 승인 모두, 이야기 자리 시작 전까지)
 const leave = async (req, res, next) => {
   try {
@@ -151,4 +162,4 @@ const leave = async (req, res, next) => {
   }
 };
 
-module.exports = { list, mine, detail, uploadImage, create, update, changeStatus, apply, approve, reject, removeMember, leave };
+module.exports = { list, mine, detail, uploadImage, create, update, changeStatus, apply, approve, reject, removeMember, report, leave };

@@ -34,9 +34,9 @@ export default function Dialog({ label, onClose, width = 360, className = '', ch
 }
 
 /** 확인 · 취소 두 버튼 팝업 — 끊기 · 차단 · 일괄 요청에 사용 */
-export function ConfirmDialog({ title, children, confirmLabel, danger = false, busy = false, error, onConfirm, onClose }) {
+export function ConfirmDialog({ title, children, confirmLabel, danger = false, busy = false, disabled = false, width, error, onConfirm, onClose }) {
   return (
-    <Dialog label={title} onClose={onClose}>
+    <Dialog label={title} onClose={onClose} width={width}>
       <span className="dialog__title">{title}</span>
       {children}
       {error && (
@@ -51,7 +51,7 @@ export function ConfirmDialog({ title, children, confirmLabel, danger = false, b
         <button
           type="button"
           className={`btn dialog__btn ${danger ? 'btn--danger' : 'btn--primary'}`}
-          disabled={busy}
+          disabled={busy || disabled}
           onClick={onConfirm}
         >
           {busy ? '처리 중…' : confirmLabel}

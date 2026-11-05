@@ -5,6 +5,7 @@ import MoreMenu from '../common/MoreMenu'
 import MetaLine from '../common/MetaLine'
 import { ConfirmDialog } from '../common/Dialog'
 import { ChevronDownIcon, MegaphoneIcon, SendIcon } from '../common/Icons'
+import ReportDialog, { REPORT_DIALOG_WIDTH, ReportFields } from '../common/ReportDialog'
 import ChatSide from './ChatSide'
 import { useAuth } from '../../context/AuthContext'
 import { useSocketEvent } from '../../context/SocketContext'
@@ -20,6 +21,7 @@ import {
 } from '../../data/chat'
 import { blockUser, unfriend } from '../../data/friends'
 import { formatChatDate, formatChatTime, formatMeetupWhen } from '../../utils/format'
+import { EMPTY_REPORT, isReportReady } from '../../utils/report'
 
 const NEAR_BOTTOM = 120 // 이만큼 안쪽이면 새 메시지 때 아래로 따라감
 
@@ -203,11 +205,11 @@ function RoomView({ data, setData, me, onReload, onLeft }) {
     setBusy(true)
     setDialogError(null)
     try {
-      const { kind, message, member, alsoReport } = dialog
-      if (kind === 'reportMessage') await reportInRoom(room._id, { messageId: message._id })
-      if (kind === 'reportUser') await reportInRoom(room._id, { userId: member.user._id })
+      const { kind, message, member, alsoReport, report } = dialog
+      if (kind === 'reportMessage') await reportInRoom(room._id, { messageId: message._id, ...report })
+      if (kind === 'reportUser') await reportInRoom(room._id, { userId: member.user._id, ...report })
       if (kind === 'block' || kind === 'blockDirect') {
-        if (alsoReport) await reportInRoom(room._id, { userId: member.user._id }) // 방이 닫히기 전에 신고 먼저
+        if (alsoReport) await reportInRoom(room._id, { userId: member.user._id, ...report }) // 방이 닫히기 전에 신고 먼저
         await blockUser(member.user._id)
       }
       if (kind === 'unfriend') await unfriend(room.friendshipId)
@@ -233,7 +235,7 @@ function RoomView({ data, setData, me, onReload, onLeft }) {
       items.push({ label: pinned ? '공지 고정 풀기' : '공지로 고정', onSelect: () => togglePin(message, pinned) })
     }
     if (room.canReport && message.sender !== me) {
-      items.push({ label: '신고하기', danger: true, onSelect: () => setDialog({ kind: 'reportMessage', message }) })
+      items.push({ label: '신고하기', danger: true, onSelect: () => setDialog({ kind: 'reportMessage', message, report: EMPTY_REPORT }) })
     }
     return items
   }
@@ -358,10 +360,10 @@ function RoomView({ data, setData, me, onReload, onLeft }) {
 
       <ChatSide
         room={room}
-        onReportUser={(member) => setDialog({ kind: 'reportUser', member })}
-        onBlock={(member) => setDialog({ kind: 'block', member, alsoReport: false })}
+        onReportUser={(member) => setDialog({ kind: 'reportUser', member, report: EMPTY_REPORT })}
+        onBlock={(member) => setDialog({ kind: 'block', member, alsoReport: false, report: EMPTY_REPORT })}
         onUnfriend={() => setDialog({ kind: 'unfriend' })}
-        onBlockDirect={() => setDialog({ kind: 'blockDirect', member: others[0], alsoReport: true })}
+        onBlockDirect={() => setDialog({ kind: 'blockDirect', member: others[0], alsoReport: true, report: EMPTY_REPORT })}
       />
 
       {dialog && (
@@ -436,31 +438,37 @@ function NoticeBar({ room, onUnpin }) {
 function RoomDialog({ dialog, room, busy, error, onChange, onClose, onConfirm }) {
   const nickname = dialog.member?.user.nickname || room.partner?.nickname
   const common = { busy, error, onClose, onConfirm }
+  const reportProps = { value: dialog.report, onChange: (report) => onChange({ ...dialog, report }) }
+  // 차단하며 함께 신고할 때 — 이유를 골라야 차단 버튼이 눌림
+  const blockProps = {
+    width: dialog.alsoReport ? REPORT_DIALOG_WIDTH : undefined,
+    disabled: Boolean(dialog.alsoReport) && !isReportReady(dialog.report),
+  }
 
   switch (dialog.kind) {
     case 'reportMessage':
       return (
-        <ConfirmDialog title="이 메시지를 신고할까요?" confirmLabel="신고하기" danger {...common}>
+        <ReportDialog title="이 메시지를 신고할까요?" {...reportProps} {...common}>
           <p className="dialog__quote">{dialog.message.text}</p>
           <p className="dialog__text">신고한 대화는 확인이 끝날 때까지 지우지 않고 보관해요.</p>
-        </ConfirmDialog>
+        </ReportDialog>
       )
     case 'reportUser':
       return (
-        <ConfirmDialog title={`${nickname}님을 신고할까요?`} confirmLabel="신고하기" danger {...common}>
+        <ReportDialog title={`${nickname}님을 신고할까요?`} {...reportProps} {...common}>
           <p className="dialog__text">이 방의 대화를 확인해 처리해요. 신고한 사실은 상대에게 알리지 않아요.</p>
-        </ConfirmDialog>
+        </ReportDialog>
       )
     case 'block':
       return (
-        <ConfirmDialog title={`${nickname}님을 차단할까요?`} confirmLabel="차단하기" danger {...common}>
+        <ConfirmDialog title={`${nickname}님을 차단할까요?`} confirmLabel="차단하기" danger {...blockProps} {...common}>
           <p className="dialog__text">이 사람의 메시지가 보이지 않고, 친구였다면 친구가 끊겨요.</p>
           {room.canReport && <AlsoReport dialog={dialog} onChange={onChange} />}
         </ConfirmDialog>
       )
     case 'blockDirect':
       return (
-        <ConfirmDialog title={`${nickname}님을 차단할까요?`} confirmLabel="차단하기" danger {...common}>
+        <ConfirmDialog title={`${nickname}님을 차단할까요?`} confirmLabel="차단하기" danger {...blockProps} {...common}>
           <p className="dialog__text">친구가 끊기고 이 채팅방이 목록에서 바로 사라져요.</p>
           <AlsoReport dialog={dialog} onChange={onChange} />
         </ConfirmDialog>
@@ -478,9 +486,12 @@ function RoomDialog({ dialog, room, busy, error, onChange, onClose, onConfirm })
 
 function AlsoReport({ dialog, onChange }) {
   return (
-    <label className="dialog__check">
-      <input type="checkbox" checked={dialog.alsoReport} onChange={(e) => onChange({ ...dialog, alsoReport: e.target.checked })} />
-      대화도 함께 신고할게요
-    </label>
+    <>
+      <label className="dialog__check">
+        <input type="checkbox" checked={dialog.alsoReport} onChange={(e) => onChange({ ...dialog, alsoReport: e.target.checked })} />
+        대화도 함께 신고할게요
+      </label>
+      {dialog.alsoReport && <ReportFields value={dialog.report} onChange={(report) => onChange({ ...dialog, report })} />}
+    </>
   )
 }

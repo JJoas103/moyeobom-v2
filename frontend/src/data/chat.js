@@ -56,5 +56,5 @@ export async function unpinNotice(roomId, messageId) {
   return notices
 }
 
-/** 신고 — 메시지({ messageId }) 또는 참여자({ userId }) */
+/** 신고 — 메시지({ messageId }) 또는 참여자({ userId }) + 이유({ reason, detail }) */
 export const reportInRoom = (roomId, target) => apiPost(`/api/chat/rooms/${roomId}/report`, target)

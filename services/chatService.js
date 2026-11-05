@@ -7,6 +7,7 @@ const Event = require('../models/Event');
 const User = require('../models/User');
 const Block = require('../models/Block');
 const Report = require('../models/Report');
+const { REASONS: REPORT_REASONS, DETAIL_MAX: REPORT_DETAIL_MAX } = require('../models/Report');
 const Friendship = require('../models/Friendship');
 const { emitToUsers } = require('../config/socket');
 const { DAY, CLOSED_ROOM_VISIBLE_DAYS, CHAT_KEEP_DAYS, meetupRoomClosesAt } = require('./socialRules');
@@ -421,8 +422,19 @@ async function unpinNotice(roomId, userId, messageId) {
   return emitNotices(room);
 }
 
-/** 신고 — 메시지 또는 참여자. 모임 방은 닫힌 뒤 30일까지 */
-async function report(roomId, userId, { targetId, messageId }) {
+/** 신고 이유 확인 → { reason, detail }. 기타만 입력 내용 필수 */
+function reportContent(reason, detail) {
+  if (!REPORT_REASONS.includes(reason)) throw httpError(400, '신고 이유를 골라 주세요');
+  if (reason !== 'other') return { reason, detail: '' };
+  const text = typeof detail === 'string' ? detail.trim() : '';
+  if (!text) throw httpError(400, '어떤 일이 있었는지 적어 주세요');
+  if (text.length > REPORT_DETAIL_MAX) throw httpError(400, `${REPORT_DETAIL_MAX}자까지 적을 수 있어요`);
+  return { reason, detail: text };
+}
+
+/** 신고 — 메시지 또는 참여자. 모임 방은 닫힌 뒤 30일까지. 같은 신고를 다시 하면 새 내용으로 바꾸고 처리 대기로 */
+async function report(roomId, userId, { targetId, messageId, reason, detail }) {
+  const content = reportContent(reason, detail);
   const room = await findRoomFor(roomId, userId);
   let target = targetId;
   if (messageId) {
@@ -436,11 +448,21 @@ async function report(roomId, userId, { targetId, messageId }) {
   }
   if (idEq(target, userId)) throw httpError(400, '나를 신고할 수는 없어요');
 
+  const filter = { reporter: userId, target, room: room._id, message: messageId || null };
+  const update = { $set: { ...content, status: 'pending' } };
   try {
-    await Report.create({ reporter: userId, target, room: room._id, ...(messageId && { message: messageId }) });
+    await Report.updateOne(filter, update, { upsert: true, runValidators: true });
   } catch (err) {
-    if (err.code !== 11000) throw err; // 같은 신고를 또 누른 경우는 그대로 성공
+    if (err.code !== 11000) throw err;
+    await Report.updateOne(filter, update, { runValidators: true }); // 같은 신고가 동시에 들어온 경우
   }
+}
+
+/** 모임 방에서 참여자 신고 — 참여자 관리 팝업 (호스트 확인은 meetupService) */
+async function reportMeetupMember(meetupId, userId, targetId, { reason, detail }) {
+  const room = await ChatRoom.findOne({ type: 'meetup', meetup: meetupId }, { _id: 1 }).lean();
+  if (!room) throw httpError(404, '모임 채팅방을 찾을 수 없습니다');
+  await report(room._id, userId, { targetId, reason, detail });
 }
 
 // ---------- 정리 (매일 12:00) ----------
@@ -475,5 +497,6 @@ module.exports = {
   pinNotice,
   unpinNotice,
   report,
+  reportMeetupMember,
   purgeClosedRooms,
 };

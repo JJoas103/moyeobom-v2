@@ -214,3 +214,12 @@ export async function removeMember(id, userId) {
   const { meetup } = await apiPost(`/api/meetup/${id}/members/${userId}/remove`)
   return meetup
 }
+
+/** 신고 — 호스트가 승인된 참여자를. content: { reason, detail } */
+export async function reportMember(id, userId, content) {
+  if (USE_MOCK) {
+    await delay()
+    throw new Error('목업에서는 신고할 수 없어요')
+  }
+  await apiPost(`/api/meetup/${id}/members/${userId}/report`, content)
+}

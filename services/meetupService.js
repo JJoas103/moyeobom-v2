@@ -466,6 +466,15 @@ const rejectMember = (id, hostId, memberUserId) => dismissMember(id, hostId, mem
 /** 내보내기 — 승인된 참여자만. 모임 채팅방에서도 빠짐 ('○○님이 나갔어요') */
 const removeMember = (id, hostId, memberUserId) => dismissMember(id, hostId, memberUserId, 'approved');
 
+/** 신고 — 호스트가 승인된 참여자를. 상대에게 알리지 않음 */
+async function reportMember(id, hostId, memberUserId, content) {
+  const doc = await findDoc(id);
+  if (!idEq(doc.host, hostId)) throw httpError(403, '호스트만 할 수 있어요');
+  const member = (doc.members || []).find((m) => idEq(m.user, memberUserId));
+  if (member?.status !== 'approved') throw httpError(404, '신고할 사람을 찾을 수 없습니다');
+  await chatService.reportMeetupMember(doc._id, hostId, memberUserId, content);
+}
+
 /**
  * 참여 취소 — 신청 중 · 승인 모두 이야기 자리 시작 전까지. members 에서 빼므로 다시 신청할 수 있음
  * 승인된 참여자였으면 모임 채팅방에서도 빠짐 ('○○님이 나갔어요')
@@ -483,4 +492,4 @@ async function leaveMeetup(id, userId) {
   return getMeetup(doc._id, userId);
 }
 
-module.exports = { listMeetups, listMyMeetups, getMeetup, createMeetup, updateMeetup, setMeetupStatus, applyMeetup, approveMember, rejectMember, removeMember, leaveMeetup };
+module.exports = { listMeetups, listMyMeetups, getMeetup, createMeetup, updateMeetup, setMeetupStatus, applyMeetup, approveMember, rejectMember, removeMember, reportMember, leaveMeetup };

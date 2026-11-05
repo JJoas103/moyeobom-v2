@@ -5,9 +5,11 @@ import Dialog, { ConfirmDialog } from '../common/Dialog'
 import { CloseIcon } from '../common/Icons'
 import MetaLine from '../common/MetaLine'
 import MoreMenu from '../common/MoreMenu'
-import { approveMember, rejectMember, removeMember } from '../../data/meetups'
+import ReportDialog from '../common/ReportDialog'
+import { approveMember, rejectMember, removeMember, reportMember } from '../../data/meetups'
 import { JOIN_LABEL } from '../../data/constants'
 import { formatMeetupWhen } from '../../utils/format'
+import { EMPTY_REPORT } from '../../utils/report'
 
 const CAPACITY_MAX = 10 // models/Meetup.js capacity max
 
@@ -31,7 +33,7 @@ const CONFIRM = {
 
 /**
  * 모임 상세 '참여자 관리' 팝업 — 호스트 전용, 이야기 자리 시작 전까지
- *   신청 탭: 승인 · 거절 / 확정 탭: ⋯ 메뉴 내보내기
+ *   신청 탭: 승인 · 거절 / 확정 탭: ⋯ 메뉴 내보내기 · 신고
  * onChange: 처리 뒤 모임 상세 다시 불러오기
  */
 export default function MemberManageDialog({ meetup: initial, onChange, onClose }) {
@@ -47,6 +49,7 @@ export default function MemberManageDialog({ meetup: initial, onChange, onClose 
   const [error, setError] = useState(null)
   const [notice, setNotice] = useState(null)
   const [confirm, setConfirm] = useState(null) // { kind: 'reject' | 'remove', user }
+  const [report, setReport] = useState(null) // { user, value: { reason, detail } }
 
   const nameOf = (user) => user?.nickname || '알 수 없음'
 
@@ -80,6 +83,26 @@ export default function MemberManageDialog({ meetup: initial, onChange, onClose 
   const askConfirm = (kind, user) => {
     setError(null)
     setConfirm({ kind, user })
+  }
+
+  const closeReport = () => {
+    setReport(null)
+    setError(null)
+  }
+
+  const submitReport = async () => {
+    setBusy(report.user._id)
+    setError(null)
+    setNotice(null)
+    try {
+      await reportMember(meetup._id, report.user._id, report.value)
+      setNotice(`${nameOf(report.user)}님을 신고했어요. 상대에게는 알리지 않아요.`)
+      setReport(null)
+    } catch (e) {
+      setError(e.message)
+    } finally {
+      setBusy(null)
+    }
   }
 
   const confirmText = confirm && CONFIRM[confirm.kind]
@@ -143,7 +166,7 @@ export default function MemberManageDialog({ meetup: initial, onChange, onClose 
               {notice}
             </p>
           )}
-          {error && !confirm && (
+          {error && !confirm && !report && (
             <p className="form-error" role="alert">
               {error}
             </p>
@@ -219,7 +242,10 @@ export default function MemberManageDialog({ meetup: initial, onChange, onClose 
                     <MoreMenu
                       label={`${nameOf(m.user)}님 메뉴`}
                       size={44}
-                      items={[{ label: '내보내기', danger: true, onSelect: () => askConfirm('remove', m.user) }]}
+                      items={[
+                        { label: '내보내기', onSelect: () => askConfirm('remove', m.user) },
+                        { label: '신고하기', danger: true, onSelect: () => setReport({ user: m.user, value: EMPTY_REPORT }) },
+                      ]}
                     />
                   </li>
                 ))}
@@ -241,6 +267,20 @@ export default function MemberManageDialog({ meetup: initial, onChange, onClose 
         >
           <p className="dialog__text">{confirmText.text}</p>
         </ConfirmDialog>
+      )}
+
+      {report && (
+        <ReportDialog
+          title={`${nameOf(report.user)}님을 신고할까요?`}
+          value={report.value}
+          onChange={(value) => setReport({ ...report, value })}
+          busy={Boolean(busy)}
+          error={error}
+          onConfirm={submitReport}
+          onClose={closeReport}
+        >
+          <p className="dialog__text">신고한 사실은 상대에게 알리지 않아요.</p>
+        </ReportDialog>
       )}
     </>
   )
