@@ -22,6 +22,7 @@ cd frontend && npm run dev  # 프론트 — 브라우저는 5173
 cd frontend && npm run lint # 커밋 전 lint 통과 확인
 npm run sync:events         # 서울시 문화행사 수동 동기화 (자동: 매일 04:00)
 npm run sync:places         # 공중화장실 · 지하철역 수동 동기화 (자동: 매달 1일 04:30)
+npm run review:daily        # 평가 열림 · 마감 임박 알림 수동 실행 (자동: 매일 12:00)
 ```
 
 `.env`(루트)·`frontend/.env` 는 커밋하지 않는다. 키 이름은 `.env_sample`, `frontend/.env_example` 참고.
@@ -67,10 +68,39 @@ npm run sync:places         # 공중화장실 · 지하철역 수동 동기화 (
 - **평가**: 이야기 자리 날짜 다음날 12:00 열림 → 48시간 뒤 마감. 대상 = 확정 참여자(호스트 포함, 나 제외). 한 번만 제출. 칭찬은 `Review.praised` 저장만(매너 점수 미결정), '또 만나고 싶어요'는 비공개.
 - **친구**(2026-10 변경): 서로 '또 만나고 싶어요'를 고른 게 확정되는 순간 — 즉 **양쪽 평가가 다 들어온 때** — 바로 친구 + 1:1 방이 생긴다 (`friendService.makeFriends`). 요청 · 수락 · 거절 · 기한이 전부 없다. 한쪽만 골랐으면 아무 일도 없고 상대는 알 수 없다. 양쪽 제출이 조건이라 평가 기간 중에 성립해도 비공개는 깨지지 않는다(아직 안 낸 사람은 그 전에 아무것도 못 보고, 평가는 한 번만 제출 가능).
 - **채팅**: 모임 방은 모임 만들 때 생기고(호스트), 승인하면 들어감. 평가 마감에 읽기 전용(취소하면 즉시) → 30일 동안 목록에 흐리게 · 신고 가능 → 닫힌 뒤 90일에 삭제(처리 중 신고가 있으면 보류). 1:1 방은 친구 끊기 · 차단하면 바로 목록에서 사라지고 90일 뒤 삭제.
-- **cron**: `schedulers/socialCleanup.js` 매일 12:00(서울) — 90일 지난 방 삭제. 조회도 지금 시각과 비교하므로 cron 이 늦어도 화면은 맞음.
+- **cron**: 둘 다 매일 12:00(서울). `schedulers/socialCleanup.js` — 90일 지난 방 · 알림 삭제.
+  `schedulers/reviewDaily.js` — 평가 열림 · 마감 임박 알림.
+  조회도 지금 시각과 비교하므로 cron 이 늦어도 화면은 맞음(알림만 늦어진다).
 - **socket.io**: `config/socket.js` — 세션으로 로그인 확인, 각자 `user:<id>` 방에만 들어감. 서버가 받는 사람 user 방으로 `chat:message` · `chat:read` · `chat:notices` · `chat:rooms` · `friends:changed` 를 보냄. 프론트는 `context/SocketContext.jsx` `useSocketEvent`.
 - **차단**: 친구 끊김 + 이후 친구 성립 안 됨 + 내 모임 채팅에서 상대 메시지 숨김. **신고**: `Report` 저장만 — 처리(관리자) 화면 없음, DB에서 `status: 'done'` 으로 바꾸면 처리 끝.
 - 새 도메인(평가 · 친구 · 채팅)은 목업 없이 실제 API 전용 (`data/reviews.js` · `data/friends.js` · `data/chat.js` 맨 위 주석이 응답 모양).
+
+## 알림 (2026-11)
+
+`models/Notification.js`(컬렉션 `notifications_v2`) + `services/notificationService.js` 한 곳에서만 보낸다.
+소켓은 `notify:changed`(payload 비움) → 프론트 재조회. 화면은 헤더 종 아이콘 드롭다운, 90일 뒤 정리.
+
+| type | 받는 사람 | 거는 곳 |
+|---|---|---|
+| `meetup_apply` | 호스트 | `meetupService.applyMeetup` |
+| `meetup_approved` | 신청자 | `meetupService.approveMember` |
+| `meetup_left` | 호스트 | `meetupService.leaveMeetup` |
+| `meetup_cancelled` | 신청 중 · 승인 전원 | `meetupService.setMeetupStatus` |
+| `meetup_updated` | 승인된 참여자 | `meetupService.updateMeetup` |
+| `review_open` · `review_closing` | 확정 참여자 / **미제출자만** | cron |
+| `friend_matched` | 양쪽 | `friendService.makeFriends` |
+| `manner_down` | 본인 | (매너 점수 작업에서 연결 — 지금은 보내는 곳이 없다) |
+
+**보내지 않는 것**: 채팅 새 메시지(헤더에 안 읽은 수 점이 이미 있다) · 차단/차단 해제(상대가 알면
+안 된다) · 친구 끊기(탈퇴도 `endFriendship` 을 지나 구분할 수 없다) · 평가 제출(비공개).
+
+- API: `GET /api/notification?limit=` · `GET /api/notification/unread` · `POST /api/notification/read`
+  (`ids` 없으면 전부 읽음). 전부 로그인 필요 — 내 알림만 본다.
+- cron 알림은 `{ user, type, meetup }` 유니크 부분 인덱스로 중복을 막는다 (`11000` 무시).
+  모임 쪽 멱등 표식은 `reviewOpenNoticedAt` · `reviewClosingNoticedAt`.
+- 곁가지 실패가 본 작업을 깨지 않도록 전부 `services/sideEffect.js` 의 `sideEffect()` 로 감싼다.
+- ⚠ `emitToUsers` 는 `io` 가 없으면 조용히 무시한다. `npm run review:daily` 로 수동 실행하면 알림이
+  DB 에는 쌓이지만 실시간 push 는 안 간다 (cron 은 `app.js` 안에서 돌아 정상).
 
 ## 행사장 근처 정보 (서울 열린데이터광장)
 

@@ -4,6 +4,8 @@ const { MEMO_MAX } = require('../models/Friendship');
 const Block = require('../models/Block');
 const User = require('../models/User');
 const chatService = require('./chatService');
+const notificationService = require('./notificationService');
+const { sideEffect } = require('./sideEffect');
 const { emitToUsers } = require('../config/socket');
 const { summarizeMeetups } = require('./meetupSummary');
 
@@ -60,6 +62,8 @@ async function makeFriends(meetupId, a, b) {
   await Friendship.updateOne({ _id: friendship._id }, { $set: { room: room._id } });
   emitToUsers([userA, userB], 'chat:rooms', {});
   notify([userA, userB]); // 상대가 화면을 열어 두고 있으면 새로고침 없이 나타난다
+
+  await sideEffect('친구 알림', () => notificationService.friendMatched(userA, userB));
 }
 
 // ---------- 조회 ----------

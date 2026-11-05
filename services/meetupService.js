@@ -9,6 +9,8 @@ const Friendship = require('../models/Friendship');
 const { BUDGETS } = require('../models/Meetup');
 const { periodRange, dayRange, RECENT_ENDED_DAYS } = require('./eventService');
 const chatService = require('./chatService');
+const notificationService = require('./notificationService');
+const { sideEffect } = require('./sideEffect');
 const { reviewWindow } = require('./socialRules');
 
 // 모임 — 응답 모양은 frontend/src/data/meetups.js 맨 위 주석 기준
@@ -36,16 +38,8 @@ const approvedCountOf = (doc) => (doc.members || []).filter((m) => m.status === 
 /** 이 행사로 지금 모임을 열 수 있는지 — 끝난 지 RECENT_ENDED_DAYS 일까지 (프론트 utils/event.js canOpenMeetup 과 같게) */
 const canOpenMeetup = (event, now) => !event.endDate || now - new Date(event.endDate) <= RECENT_ENDED_DAYS * DAY;
 
-// 채팅방 처리는 곁가지 — 실패해도 모임 작업(만들기 · 승인 등)은 성공으로 두고 기록만
-async function sideEffect(label, run) {
-  try {
-    await run();
-  } catch (err) {
-    console.error(`[모임 채팅] ${label} 실패:`, err.message);
-  }
-}
-
 // ---------- 응답 만들기 ----------
+// sideEffect 는 services/sideEffect.js 로 옮겼다 (알림 · 채팅 곁가지를 여러 서비스가 함께 쓴다)
 
 const publicUser = (user) => (user ? { _id: String(user._id), nickname: user.nickname, profileImage: user.profileImage || '' } : null);
 
@@ -350,6 +344,7 @@ async function updateMeetup(id, hostId, body) {
 
   removeOldImage(doc.imageUrl, imageUrl);
   await sideEffect('닫히는 시각 맞추기', () => chatService.syncMeetupRoom(updated.toObject()));
+  await sideEffect('수정 알림', () => notificationService.meetupUpdated(updated.toObject()));
   return getMeetup(doc._id, hostId);
 }
 
@@ -367,7 +362,10 @@ async function setMeetupStatus(id, hostId, status) {
   if (!STATUS_CHANGES[doc.status]?.includes(status)) throw httpError(400, '바꿀 수 없는 상태예요');
 
   await Meetup.updateOne({ _id: doc._id, status: doc.status }, { $set: { status } });
-  if (status === 'cancelled') await sideEffect('방 닫기', () => chatService.closeMeetupRoom(doc._id));
+  if (status === 'cancelled') {
+    await sideEffect('방 닫기', () => chatService.closeMeetupRoom(doc._id));
+    await sideEffect('취소 알림', () => notificationService.meetupCancelled(doc));
+  }
   return getMeetup(doc._id, hostId);
 }
 
@@ -404,6 +402,7 @@ async function applyMeetup(id, userId, joinType) {
   // 위에서 확인한 사이에 다른 요청이 먼저 바꾼 경우
   if (!updated) throw httpError(409, '신청하지 못했어요. 새로고침 후 다시 시도해 주세요');
 
+  await sideEffect('신청 알림', () => notificationService.meetupApplied(doc, userId));
   return { status: 'pending', joinType };
 }
 
@@ -433,6 +432,7 @@ async function approveMember(id, hostId, memberUserId) {
   if (!updated) throw httpError(409, '승인하지 못했어요. 새로고침 후 다시 시도해 주세요');
 
   await sideEffect('참여자 들이기', () => chatService.addMeetupMember(updated.toObject(), memberUserId));
+  await sideEffect('승인 알림', () => notificationService.meetupApproved(doc, memberUserId));
   return getMeetup(doc._id, hostId);
 }
 
@@ -449,7 +449,10 @@ async function leaveMeetup(id, userId) {
 
   const userObjectId = new mongoose.Types.ObjectId(String(userId));
   await Meetup.updateOne({ _id: doc._id }, { $pull: { members: { user: userObjectId } } });
-  if (member.status === 'approved') await sideEffect('참여자 내보내기', () => chatService.removeMeetupMember(doc._id, userId));
+  if (member.status === 'approved') {
+    await sideEffect('참여자 내보내기', () => chatService.removeMeetupMember(doc._id, userId));
+  }
+  await sideEffect('취소 알림', () => notificationService.meetupLeft(doc, userId));
   return getMeetup(doc._id, userId);
 }
 

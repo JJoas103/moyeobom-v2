@@ -49,6 +49,12 @@ const meetupSchema = new mongoose.Schema(
 
     members: [memberSchema],
     status: { type: String, enum: ['open', 'closed', 'cancelled'], default: 'open' },
+
+    // 하루 한 번 도는 cron 이 같은 알림을 두 번 보내지 않게 하는 표식 (schedulers/reviewDaily.js).
+    // 평가 열림 · 마감 시각은 저장하지 않고 socialRules.reviewWindow 로 계산하는 값이라
+    // 쿼리로 못 걸러진다 → talk.startAt 범위로 좁히고 메모리에서 거른 뒤 이 표식을 남긴다
+    reviewOpenNoticedAt: { type: Date }, // '평가가 열렸어요' 알림을 보낸 시각
+    reviewClosingNoticedAt: { type: Date }, // '평가가 곧 마감돼요' 알림을 보낸 시각
   },
   { timestamps: true }
 );
