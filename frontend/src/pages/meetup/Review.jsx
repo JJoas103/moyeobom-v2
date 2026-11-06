@@ -7,14 +7,18 @@ import MiniPoster from '../../components/common/MiniPoster'
 import { CheckIcon, ClockIcon, HeartIcon, LockIcon, ThumbUpIcon } from '../../components/common/Icons'
 import { useAsync } from '../../utils/useAsync'
 import { useNow } from '../../utils/useNow'
-import { fetchReview, submitReview } from '../../data/reviews'
+import { fetchReview, submitReview, splitRatings, MANNER_GOOD, MANNER_NORMAL, MANNER_LOW } from '../../data/reviews'
 import { formatDeadline, formatMonthDay, formatTimeLeft, formatWeekday } from '../../utils/format'
 import MetaLine from '../../components/common/MetaLine'
 import '../../styles/review.css'
 
 // 시안 · 모임 평가 (review-step1 · step2 · done · closed)
-//   ① 칭찬하기(여러 명) → ② 또 만나고 싶어요(비공개, 여러 명) → 평가 보내기 → 완료
-//   마감 뒤: 고를 수 없는 화면
+//   ① 매너 평가(사람마다 좋았어요 / 보통이에요 / 아쉬웠어요) → ② 또 만나고 싶어요(비공개, 여러 명)
+//   → 평가 보내기 → 완료. 마감 뒤: 고를 수 없는 화면
+//
+// **기본값은 '보통이에요'이고 아무것도 안 건드려도 제출된다.** 활동 가점이 평가 제출에 묶여 있어서
+// (services/mannerService.js) 평가가 무거워지면 제출률이 떨어지고 그게 미제출 감점으로 돌아온다.
+// '아쉬웠어요'로 고른 사람은 ② 에서 빠진다 — 아쉬웠다고 한 사람과 친구가 될 수는 없다.
 export default function MeetupReview() {
   const { id } = useParams()
   const { data: review, loading, error } = useAsync(() => fetchReview(id), [id])
@@ -33,7 +37,7 @@ export default function MeetupReview() {
 function ReviewView({ meetupId, review }) {
   const now = useNow()
   const [step, setStep] = useState(1)
-  const [praised, setPraised] = useState([])
+  const [ratings, setRatings] = useState({}) // { [userId]: 'good'|'normal'|'low' } — 없으면 '보통'
   const [again, setAgain] = useState([])
   const [result, setResult] = useState(review.submitted) // { praisedCount } — 보낸 뒤
   const [sending, setSending] = useState(false)
@@ -47,11 +51,19 @@ function ReviewView({ meetupId, review }) {
   const toggle = (setList) => (userId) =>
     setList((list) => (list.includes(userId) ? list.filter((x) => x !== userId) : [...list, userId]))
 
+  const rateOf = (userId) => ratings[userId] || MANNER_NORMAL
+  const rate = (userId, value) => setRatings((prev) => ({ ...prev, [userId]: value }))
+
+  const { praised, disappointed } = splitRatings(ratings)
+  // 아쉬웠다고 한 사람은 ② 후보에서 뺀다. 이미 골라 뒀다면 같이 걷어낸다
+  const againTargets = review.targets.filter((t) => !disappointed.includes(t.user._id))
+  const againPicked = again.filter((id) => !disappointed.includes(id))
+
   const send = async () => {
     setSending(true)
     setError(null)
     try {
-      setResult(await submitReview(meetupId, { praised, again }))
+      setResult(await submitReview(meetupId, { praised, disappointed, again: againPicked }))
     } catch (e) {
       setError(e.message)
       setSending(false)
@@ -91,10 +103,11 @@ function ReviewView({ meetupId, review }) {
           {step === 1 ? (
             <section className="review-step">
               <div className="review-step__head">
-                <h2>오늘 모임에서 좋았던 사람을 칭찬해 주세요</h2>
-                <p>여러 명 고를 수 있어요. 고르지 않고 넘어가도 돼요.</p>
+                <h2>함께한 분들의 매너는 어땠나요?</h2>
+                <p>고르지 않으면 '보통이에요'로 보내져요. 그대로 넘어가도 돼요.</p>
               </div>
-              <PeopleGrid targets={review.targets} selected={praised} onToggle={toggle(setPraised)} kind="praise" />
+              <MannerGrid targets={review.targets} rateOf={rateOf} onRate={rate} />
+              {disappointed.length > 0 && <ReportHint meetupId={meetupId} />}
             </section>
           ) : (
             <section className="review-step">
@@ -106,7 +119,7 @@ function ReviewView({ meetupId, review }) {
                 </p>
                 <p>고르지 않고 보내도 돼요.</p>
               </div>
-              <PeopleGrid targets={review.targets} selected={again} onToggle={toggle(setAgain)} kind="again" />
+              <PeopleGrid targets={againTargets} selected={againPicked} onToggle={toggle(setAgain)} />
             </section>
           )}
 
@@ -117,7 +130,7 @@ function ReviewView({ meetupId, review }) {
                   <span className="review-bar__icon">
                     <ThumbUpIcon size={18} />
                   </span>
-                  칭찬 <strong>{praised.length}명</strong>
+                  좋았어요 <strong>{praised.length}명</strong>
                 </span>
                 <button type="button" className="btn btn--primary btn--lg review-bar__next" onClick={() => setStep(2)}>
                   다음
@@ -127,7 +140,7 @@ function ReviewView({ meetupId, review }) {
               <>
                 <span className="review-bar__count">
                   <LockIcon />
-                  또 만나고 싶어요 <strong>{again.length}명</strong>
+                  또 만나고 싶어요 <strong>{againPicked.length}명</strong>
                 </span>
                 {error && (
                   <span className="form-error" role="alert">
@@ -181,7 +194,7 @@ function Stepper({ step }) {
     <div className="stepper">
       <div className="stepper__steps">
         <span className={`stepper__step${step === 1 ? ' is-current' : ''}`}>
-          <span className="stepper__num is-on">1</span>칭찬하기
+          <span className="stepper__num is-on">1</span>매너 평가
         </span>
         <span className="stepper__line" />
         <span className={`stepper__step${step === 2 ? ' is-current' : ''}`}>
@@ -193,17 +206,76 @@ function Stepper({ step }) {
   )
 }
 
-// 사람 카드 4칸 — kind: praise(그린 · 엄지) / again(진한 글자색 · 하트)
-function PeopleGrid({ targets, selected, onToggle, kind }) {
+// 매너 평가 — 사람마다 3지 선택. 기본값은 '보통이에요'(아무것도 안 눌러도 제출된다)
+//
+// 라디오를 쓴다 — 한 사람에게 하나만 고를 수 있어야 하고, 키보드로도 좌우 이동이 되기 때문이다.
+// 서버도 praised ∩ disappointed 를 막는다 (services/reviewService.js).
+const MANNER_CHOICES = [
+  { value: MANNER_GOOD, label: '좋았어요', tone: 'good' },
+  { value: MANNER_NORMAL, label: '보통이에요', tone: 'normal' },
+  { value: MANNER_LOW, label: '아쉬웠어요', tone: 'low' },
+]
+
+function MannerGrid({ targets, rateOf, onRate }) {
   if (targets.length === 0) return <p className="review-empty">함께한 사람이 없어요. 그대로 다음으로 넘어가도 돼요.</p>
+  return (
+    <div className="people-grid">
+      {targets.map(({ user, isHost }) => {
+        const picked = rateOf(user._id)
+        return (
+          <fieldset key={user._id} className={`person-card person-card--rate is-${picked}`}>
+            <legend className="sr-only">{user.nickname}님의 매너</legend>
+            <Avatar user={user} size={72} />
+            <span className="person-card__name">
+              {user.nickname}
+              {isHost && <span className="host-tag">호스트</span>}
+            </span>
+            <span className="manner-choice">
+              {MANNER_CHOICES.map(({ value, label, tone }) => (
+                <label key={value} className={`manner-choice__item manner-choice__item--${tone}`}>
+                  <input
+                    type="radio"
+                    className="sr-only"
+                    name={`manner-${user._id}`}
+                    value={value}
+                    checked={picked === value}
+                    onChange={() => onRate(user._id, value)}
+                  />
+                  <span>{label}</span>
+                </label>
+              ))}
+            </span>
+          </fieldset>
+        )
+      })}
+    </div>
+  )
+}
+
+// '아쉬웠어요'를 골랐을 때만 — 점수로 다루지 않는 일은 신고가 받는다.
+// 모임 채팅방에서 신고한다 (services/chatService.js reportUser)
+function ReportHint({ meetupId }) {
+  return (
+    <p className="review-report-hint">
+      불편한 일이 있었나요? 매너 평가로는 다루기 어려운 일은{' '}
+      <Link to={`/chat/meetup/${meetupId}`}>모임 채팅에서 신고</Link>해 주세요.
+    </p>
+  )
+}
+
+// 사람 카드 4칸 — ② 또 만나고 싶어요 전용 (진한 글자색 · 하트). ① 은 MannerGrid 가 그린다
+function PeopleGrid({ targets, selected, onToggle }) {
+  if (targets.length === 0) return <p className="review-empty">함께한 사람이 없어요. 그대로 보내도 돼요.</p>
   return (
     <div className="people-grid">
       {targets.map(({ user, isHost }) => {
         const on = selected.includes(user._id)
         return (
-          <label key={user._id} className={`person-card person-card--${kind}${on ? ' is-on' : ''}`}>
+          <label key={user._id} className={`person-card person-card--again${on ? ' is-on' : ''}`}>
             <input type="checkbox" className="sr-only" checked={on} onChange={() => onToggle(user._id)} />
-            <span className="person-card__mark">{kind === 'praise' ? <ThumbUpIcon /> : <HeartIcon filled={on} />}</span>
+            <span className="person-card__mark">
+              <HeartIcon filled={on} />
+            </span>
             <Avatar user={user} size={72} />
             <span className="person-card__name">
               {user.nickname}
@@ -233,7 +305,7 @@ function ReviewDone({ meetup, praisedCount }) {
           <span className="review-done__icon">
             <ThumbUpIcon size={18} />
           </span>
-          <span className="review-done__label">칭찬</span>
+          <span className="review-done__label">매너가 좋았어요</span>
           <strong className="review-done__num">{praisedCount}명</strong>
         </div>
         <div className="review-done__line" />

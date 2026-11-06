@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
 import DataState from '../../components/common/DataState'
 import SectionHead from '../../components/common/SectionHead'
+import MannerBadge from '../../components/common/MannerBadge'
 import { ChatIcon, LockIcon } from '../../components/common/Icons'
 import ErrorMessage from '../../components/ErrorMessage'
 import MeetupHero from '../../components/meetup/MeetupHero'
@@ -101,7 +102,7 @@ function MeetupDetailView({ meetup, manage, onChange }) {
               <span className="avatar avatar--lg" style={{ background: posterTone(meetup.host?._id).bg }} aria-hidden="true" />
               <span className="host-row__text">
                 <span className="host-row__name">
-                  {meetup.host?.nickname || '호스트'} <span>호스트</span>
+                  {meetup.host?.nickname || '호스트'} <span>호스트</span> <MannerBadge manner={meetup.host?.manner} />
                 </span>
                 {meetup.host?.hostedCount > 0 && <span className="host-row__sub">모임을 {meetup.host.hostedCount}번 열었어요</span>}
               </span>

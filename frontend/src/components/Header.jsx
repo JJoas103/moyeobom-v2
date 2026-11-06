@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { useSocketEvent } from '../context/SocketContext'
 import { BellIcon, ChatIcon } from './common/Icons'
 import { fetchUnreadCount } from '../data/chat'
-import { fetchNotifications, fetchUnreadCount as fetchNotifyCount, markRead } from '../data/notifications'
+import { clearNotifications, fetchNotifications, fetchUnreadCount as fetchNotifyCount, markRead } from '../data/notifications'
 import { formatMeetupWhen } from '../utils/format'
 import { profileImageUrl } from '../utils/user'
 
@@ -92,6 +92,7 @@ function BellButton() {
   const [version, setVersion] = useState(0)
   const [open, setOpen] = useState(false)
   const [list, setList] = useState(null) // null = 불러오는 중
+  const [asking, setAsking] = useState(false) // 모두 지우기 확인 단계
   const boxRef = useRef(null)
   const bump = () => setVersion((v) => v + 1)
 
@@ -120,7 +121,21 @@ function BellButton() {
     }
   }, [open])
 
+  // 되돌릴 수 없으니 한 번 묻는다. 모달이 아니라 패널 안에서 — 패널은 바깥 클릭으로 닫히므로
+  // 밖에 뜨는 모달을 쓰면 패널이 먼저 닫혀 버린다
+  const clear = async () => {
+    try {
+      await clearNotifications()
+      setList([])
+      setUnread(0)
+    } catch {
+      /* 실패하면 목록을 그대로 둔다 — 다시 누르면 된다 */
+    }
+    setAsking(false)
+  }
+
   const toggle = async () => {
+    setAsking(false)
     if (open) return setOpen(false)
     setOpen(true)
     setList(null)
@@ -151,7 +166,25 @@ function BellButton() {
 
       {open && (
         <div className="notify__panel" role="menu">
-          <div className="notify__head">알림</div>
+          <div className="notify__head">
+            <span>알림</span>
+            {list?.length > 0 &&
+              (asking ? (
+                <span className="notify__ask">
+                  모두 지울까요?
+                  <button type="button" className="notify__ask-yes" onClick={clear}>
+                    지우기
+                  </button>
+                  <button type="button" className="notify__ask-no" onClick={() => setAsking(false)}>
+                    취소
+                  </button>
+                </span>
+              ) : (
+                <button type="button" className="notify__clear" onClick={() => setAsking(true)}>
+                  모두 지우기
+                </button>
+              ))}
+          </div>
           {list === null ? (
             <p className="notify__empty">불러오는 중...</p>
           ) : list.length === 0 ? (

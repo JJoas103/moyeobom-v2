@@ -69,7 +69,10 @@ async function main() {
   }
 }
 
-main().catch((err) => {
+// `require` 만 해도 돌아 버리면 사고가 난다 — 문법 확인하려고 require 했다가 공유 DB 가
+// 정리된 적이 있다 (2026-11-07). 직접 실행할 때만 돈다.
+if (require.main === module)
+  main().catch((err) => {
   // axios 에러 메시지에 URL(인증키 포함)이 섞이지 않게 상태만 출력
   console.error('호출 실패:', err.response?.status || err.code || err.message);
   process.exit(1);

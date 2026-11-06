@@ -1,6 +1,7 @@
 import { Link, NavLink, useSearchParams } from 'react-router-dom'
 import DataState from '../../components/common/DataState'
 import MeetupCard from '../../components/meetup/MeetupCard'
+import MannerBadge from '../../components/common/MannerBadge'
 import { useAuth } from '../../context/AuthContext'
 import { useAsync } from '../../utils/useAsync'
 import { fetchMyMeetups } from '../../data/meetups'
@@ -9,7 +10,7 @@ import '../../styles/list.css'
 import '../../styles/my.css'
 
 // 내 모임 — 내가 연 모임 / 참여한 모임 탭, 각 탭은 다가오는 모임 · 지난 모임 카드
-//   매너 온도는 산정 방식 미결정이라 표시하지 않음
+//   매너 점수는 머리줄에 숫자만 (규칙과 변동 이력은 /my?tab=praise)
 const TABS = [
   { key: 'hosted', label: '내가 연 모임' },
   { key: 'joined', label: '참여한 모임' },
@@ -34,7 +35,8 @@ export default function MyMeetups() {
         <span className="spacer" />
         {data && (
           <span className="my-page__stats">
-            모임 {total} · <Link to="/friends">친구 {data.friendCount}</Link>
+            모임 {total} · <Link to="/friends">친구 {data.friendCount}</Link> ·{' '}
+            <Link to="/my?tab=praise">매너</Link> <MannerBadge manner={user.manner} />
           </span>
         )}
       </div>

@@ -11,5 +11,6 @@ router.use(isLoggedIn);
 router.get('/unread', notificationController.unread);
 router.get('/', notificationController.list);
 router.post('/read', notificationController.read);
+router.delete('/', notificationController.clear); // 모두 지우기
 
 module.exports = router;

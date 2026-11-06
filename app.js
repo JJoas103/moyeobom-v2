@@ -28,7 +28,7 @@ connectDB();
 startEventSyncScheduler(); // 매일 새벽 행사 동기화 (실행 시각엔 DB 연결 완료 상태)
 startPlaceSyncScheduler(); // 매달 1일 화장실 · 지하철역 동기화
 startSocialCleanupScheduler(); // 매일 12:00 오래된 채팅 · 알림 삭제
-startReviewDailyScheduler(); // 매일 12:00 평가 열림 · 마감 임박 알림
+startReviewDailyScheduler(); // 매일 12:00 개설 가점 · 평가 열림/마감 임박 알림 · 평가 마감 반영
 
 // 세션 — MongoDB 저장 (nodemon 재시작해도 로그인 유지). Socket.IO 도 같은 세션으로 사용자 확인
 const sessionMiddleware = session({

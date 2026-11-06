@@ -48,5 +48,12 @@ const eventSchema = new mongoose.Schema(
 eventSchema.index({ 'source.name': 1, 'source.id': 1 }, { unique: true });
 eventSchema.index({ category: 1, endDate: 1 });
 
-module.exports = mongoose.model('Event', eventSchema);
+// ⚠ 컬렉션 이름은 쓰는 Atlas 클러스터에 따라 달라진다 — 바꾸기 전에 어디에 데이터가 있는지 먼저 보라.
+//   팀 메인 클러스터(cluster0.grz7uez): 'events' 에 v2 데이터가 들어 있고 모임들의 event 참조도
+//   거기를 가리킨다. 'events_v2' 는 비어 있다. → 'events' 를 쓴다 (지금 설정).
+//   개인 클러스터(p5d7nvc): 'events' 에 v1 Event 가 4999건 남아 있고 스키마가 다르다
+//   (sourceId · startAt · endAt · coords · genres, category 는 한글 원문). 섞이면 v2 가 읽는
+//   startDate · endDate · source · district 가 전부 빈 값이 되어 목록이 0건으로 나오고
+//   (기간 필터에 안 걸림) 분류 필터도 안 맞는다. → 그 클러스터로 돌아가면 'events_v2' 로 되돌려야 한다.
+module.exports = mongoose.model('Event', eventSchema, 'events');
 module.exports.CATEGORIES = CATEGORIES;

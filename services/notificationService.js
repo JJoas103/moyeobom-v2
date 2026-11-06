@@ -102,12 +102,12 @@ const reviewOpen = (meetup) =>
 
 /**
  * 평가가 곧 마감돼요 — 아직 안 낸 사람에게만
- * 기한을 넘기면 다시 보낼 수 없으므로 미리 한 번 알린다. "몰라서 못 냈다"를 남기지 않는다
+ * 미제출 감점(-1)이 있으므로 이 알림이 그 규칙의 전제조건이다. "몰라서 못 냈다"를 남기지 않는다
  */
 const reviewClosing = (meetup, pendingUserIds) =>
   notify(pendingUserIds, {
     type: 'review_closing',
-    message: `'${meetup.title}' 평가가 내일 마감돼요. 기한이 지나면 보낼 수 없어요`,
+    message: `'${meetup.title}' 평가가 내일 마감돼요. 안 보내면 매너 점수가 1점 깎여요`,
     link: `/meetup/${meetup._id}/review`,
     meetup: meetup._id,
   });
@@ -122,11 +122,17 @@ const friendMatched = async (userA, userB) => {
 
 // ---------- 매너 점수 ----------
 
-/** 점수가 깎였을 때만 — 오를 때는 보내지 않는다. 링크는 이력이 있는 마이페이지 */
+/**
+ * 점수가 깎였을 때만 — 오를 때는 보내지 않는다. 링크는 이력이 있는 마이페이지
+ *
+ * ⚠ 부호를 쓰지 않는다 (2026-11-07) — `매너 점수 ${points}점` 이면 points 가 음수라
+ *   '매너 점수 -1점' 으로 나갔다. 하이픈은 마이너스 기호가 아니라서 숫자 앞에 오면
+ *   오탈자로 보인다 (frontend/src/utils/manner.js 의 같은 결정). 말로 적는다.
+ */
 const mannerDown = ({ userId, message, points, meetup }) =>
   notify([userId], {
     type: 'manner_down',
-    message: `${message} · 매너 점수 ${points}점`,
+    message: `${message} · 매너 점수 ${Math.abs(points)}점 깎였어요`,
     link: '/my?tab=praise',
     meetup,
   });
@@ -152,6 +158,15 @@ async function markRead(userId, ids) {
   return { read: modifiedCount };
 }
 
+/**
+ * 내 알림 전부 지우기 — 사용자가 직접 치운다 (목록이 최근 30건까지만 보이므로 밀려난 걸 비울 수단)
+ *
+ * cron 알림을 지워도 다시 오지 않는다 — 중복 방어는 알림 문서의 유니크 인덱스가 아니라
+ * **모임 쪽 표식**(reviewOpenNoticedAt · reviewClosingNoticedAt · reviewAppliedAt)이 1차다.
+ * 인덱스는 보조 장치일 뿐이다 (schedulers/reviewDaily.js).
+ */
+const clearAll = async (userId) => ({ cleared: (await Notification.deleteMany({ user: oid(userId) })).deletedCount });
+
 /** 90일 지난 알림 삭제 (cron) */
 async function purgeOld(now = new Date()) {
   const { deletedCount } = await Notification.deleteMany({ createdAt: { $lt: new Date(now - NOTIFY_KEEP_DAYS * DAY) } });
@@ -173,5 +188,6 @@ module.exports = {
   listNotifications,
   unreadCount,
   markRead,
+  clearAll,
   purgeOld,
 };

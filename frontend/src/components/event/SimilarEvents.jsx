@@ -5,8 +5,9 @@ import { fetchEvents } from '../../data/events'
 
 // 행사 상세 '비슷한 행사' — 같은 분류 3개 (없으면 섹션째 숨김)
 export default function SimilarEvents({ event }) {
-  const { data } = useAsync(() => fetchEvents({ category: event.category }), [event._id])
-  const list = (data || []).filter((e) => e._id !== event._id).slice(0, 3)
+  // 보고 있는 행사가 섞여 올 수 있어 한 건 넉넉히 받는다
+  const { data } = useAsync(() => fetchEvents({ category: event.category, limit: 4 }), [event._id])
+  const list = (data?.events || []).filter((e) => e._id !== event._id).slice(0, 3)
   if (data && list.length === 0) return null
 
   return (

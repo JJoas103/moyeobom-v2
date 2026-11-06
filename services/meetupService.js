@@ -9,7 +9,9 @@ const Friendship = require('../models/Friendship');
 const { BUDGETS } = require('../models/Meetup');
 const { periodRange, dayRange, RECENT_ENDED_DAYS } = require('./eventService');
 const chatService = require('./chatService');
+const mannerService = require('./mannerService');
 const notificationService = require('./notificationService');
+const { publicUser, PUBLIC_USER_FIELDS } = require('./publicUser');
 const { sideEffect } = require('./sideEffect');
 const { reviewWindow } = require('./socialRules');
 
@@ -39,9 +41,8 @@ const approvedCountOf = (doc) => (doc.members || []).filter((m) => m.status === 
 const canOpenMeetup = (event, now) => !event.endDate || now - new Date(event.endDate) <= RECENT_ENDED_DAYS * DAY;
 
 // ---------- 응답 만들기 ----------
-// sideEffect 는 services/sideEffect.js 로 옮겼다 (알림 · 채팅 곁가지를 여러 서비스가 함께 쓴다)
-
-const publicUser = (user) => (user ? { _id: String(user._id), nickname: user.nickname, profileImage: user.profileImage || '' } : null);
+// publicUser · sideEffect 는 services/publicUser.js · services/sideEffect.js 로 옮겼다
+// (평가 · 친구 서비스와 함께 쓰고, 매너 점수를 한 곳에서만 싣기 위해)
 
 /**
  * 모임 문서 → API 응답
@@ -94,7 +95,7 @@ async function loadContext(docs, { withMembers }) {
 
   const [events, users, counts] = await Promise.all([
     Event.find({ _id: { $in: eventIds } }).lean(),
-    User.find({ _id: { $in: userIds } }, { nickname: 1, profileImage: 1 }).lean(),
+    User.find({ _id: { $in: userIds } }, PUBLIC_USER_FIELDS).lean(), // manner 포함 — publicUser 와 짝
     Meetup.aggregate([
       { $match: { host: { $in: hostIds.map((id) => new mongoose.Types.ObjectId(id)) } } },
       { $group: { _id: '$host', n: { $sum: 1 } } },
@@ -375,6 +376,8 @@ async function setMeetupStatus(id, hostId, status) {
   if (status === 'cancelled') {
     await sideEffect('방 닫기', () => chatService.closeMeetupRoom(doc._id));
     await sideEffect('취소 알림', () => notificationService.meetupCancelled(doc));
+    // 사람을 모아 놓고 엎은 경우만 감점 — 아무도 없으면 개설 가점(+5)도 애초에 안 생긴 상태다
+    if (approvedCountOf(doc) > 0) await sideEffect('취소 감점', () => mannerService.hostCancelled(hostId, doc));
   }
   return getMeetup(doc._id, hostId);
 }
@@ -412,6 +415,7 @@ async function applyMeetup(id, userId, joinType) {
   // 위에서 확인한 사이에 다른 요청이 먼저 바꾼 경우
   if (!updated) throw httpError(409, '신청하지 못했어요. 새로고침 후 다시 시도해 주세요');
 
+  // 신청으로도 승인으로도 점수는 움직이지 않는다 — 참여 가점은 2026-11-06 에 없앴다
   await sideEffect('신청 알림', () => notificationService.meetupApplied(doc, userId));
   return { status: 'pending', joinType };
 }
@@ -444,6 +448,9 @@ async function approveMember(id, hostId, memberUserId) {
 
   await sideEffect('참여자 들이기', () => chatService.addMeetupMember(updated.toObject(), memberUserId));
   await sideEffect('승인 알림', () => notificationService.meetupApproved(doc, memberUserId));
+  // 승인에는 점수 변동이 없다. 참여 가점(+2)은 2026-11-06 에 **없앴다** — 참석을 확인할 방법이
+  // 없어서 노쇼와 구별이 안 됐다. 참석의 보상은 함께한 분들의 평가로만 준다
+  // (services/mannerService.js 의 ★★ 절). 되살리지 말 것
   return getMeetup(doc._id, hostId);
 }
 
@@ -508,6 +515,9 @@ async function leaveMeetup(id, userId) {
   await Meetup.updateOne({ _id: doc._id }, { $pull: { members: { user: userObjectId } } });
   if (member.status === 'approved') {
     await sideEffect('참여자 내보내기', () => chatService.removeMeetupMember(doc._id, userId));
+    // 확정됐던 자리를 비운 것만 감점 — 신청 중 취소는 변동 0 (아무 자리도 비우지 않았다).
+    // members 에서 $pull 로 지워지므로 이 순간에 기록해야 한다
+    await sideEffect('취소 감점', () => mannerService.left(userId, doc));
   }
   await sideEffect('취소 알림', () => notificationService.meetupLeft(doc, userId));
   return getMeetup(doc._id, userId);
