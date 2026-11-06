@@ -35,17 +35,18 @@ const CONFIRM = {
 /**
  * 모임 상세 '참여자 관리' 팝업 — 호스트 전용, 이야기 자리 시작 전까지
  *   신청 탭: 승인 · 거절 / 확정 탭: ⋯ 메뉴 내보내기 · 신고
- * onChange: 처리 뒤 모임 상세 다시 불러오기
+ * initialTab: 처음 열 탭 (없으면 신청이 있을 때 신청 탭) · onChange: 처리 뒤 모임 상세 다시 불러오기
  */
-export default function MemberManageDialog({ meetup: initial, onChange, onClose }) {
-  const [meetup, setMeetup] = useState(initial) // 처리 응답으로 바로 갱신
+export default function MemberManageDialog({ meetup: latest, initialTab, onChange, onClose }) {
+  const [handled, setHandled] = useState(null) // { from, meetup } 처리 응답 — 상세를 다시 불러와 latest 가 바뀌면 그쪽을 씀
+  const meetup = handled?.from === latest ? handled.meetup : latest
   const members = meetup.members || []
   const pending = members.filter((m) => m.status === 'pending')
   const approved = members.filter((m) => m.status === 'approved')
   const left = meetup.capacity - approved.length
   const full = left <= 0
 
-  const [tab, setTab] = useState(pending.length === 0 && approved.length > 0 ? 'approved' : 'pending')
+  const [tab, setTab] = useState(initialTab || (pending.length === 0 && approved.length > 0 ? 'approved' : 'pending'))
   const [busy, setBusy] = useState(null) // 처리 중인 사용자 _id
   const [error, setError] = useState(null)
   const [notice, setNotice] = useState(null)
@@ -59,7 +60,7 @@ export default function MemberManageDialog({ meetup: initial, onChange, onClose 
     setError(null)
     setNotice(null)
     try {
-      setMeetup(await action(meetup._id, userId))
+      setHandled({ from: latest, meetup: await action(meetup._id, userId) })
       setNotice(doneMessage)
       setConfirm(null)
       onChange()

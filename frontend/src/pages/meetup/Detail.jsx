@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useLocation, useParams } from 'react-router-dom'
+import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
 import DataState from '../../components/common/DataState'
 import SectionHead from '../../components/common/SectionHead'
 import MannerBadge from '../../components/common/MannerBadge'
@@ -25,7 +25,10 @@ import '../../styles/meetup-detail.css'
 export default function MeetupDetail() {
   const { id } = useParams()
   const [version, setVersion] = useState(0) // 신청 · 승인 뒤 다시 불러오기
-  const { data: meetup, loading, error } = useAsync(() => fetchMeetup(id), [id, version])
+  const [searchParams] = useSearchParams()
+  const manage = searchParams.get('manage') // 참여자 관리 팝업 — 'open' | 'pending'(신청 알림에서, 신청 탭부터)
+  // manage 도 함께 — 팝업을 열 때 최신 신청자로
+  const { data: meetup, loading, error } = useAsync(() => fetchMeetup(id), [id, version, manage])
   const reload = () => setVersion((v) => v + 1)
 
   if (error?.status === 404) {
@@ -34,7 +37,7 @@ export default function MeetupDetail() {
 
   return (
     <DataState loading={loading && !meetup} error={error}>
-      {meetup && <MeetupDetailView key={meetup._id} meetup={meetup} onChange={reload} />}
+      {meetup && <MeetupDetailView key={meetup._id} meetup={meetup} manage={manage} onChange={reload} />}
     </DataState>
   )
 }
@@ -47,14 +50,24 @@ const NAV_NOTICE = {
   open: ['다시 모집을 시작했어요.', ''],
 }
 
-function MeetupDetailView({ meetup, onChange }) {
+function MeetupDetailView({ meetup, manage, onChange }) {
   const { event } = meetup
   const cat = categoryOf(event?.category)
   const status = meetupStatus(meetup)
-  const navState = useLocation().state || {}
+  const location = useLocation()
+  const navState = location.state || {}
   const notice = NAV_NOTICE[navState.created ? 'created' : navState.updated ? 'updated' : navState.statusChanged]
   const canChat = meetup.status !== 'cancelled' && (meetup.isHost || meetup.myMembership?.status === 'approved')
-  const [managing, setManaging] = useState(false) // 참여자 관리 팝업
+  const [searchParams, setSearchParams] = useSearchParams()
+  const canManage = meetup.isHost && meetup.status !== 'cancelled' && new Date(meetup.talk.startAt) > new Date()
+
+  // 참여자 관리 팝업은 주소로 열고 닫는다 — 같은 화면에서 신청 알림을 눌러도 열리게
+  const setManage = (value) => {
+    const next = new URLSearchParams(searchParams)
+    if (value) next.set('manage', value)
+    else next.delete('manage')
+    setSearchParams(next, { replace: true, state: location.state })
+  }
 
   return (
     <div className="detail">
@@ -130,9 +143,16 @@ function MeetupDetailView({ meetup, onChange }) {
           <NearbyInfo event={event} />
         </div>
 
-        <ApplyBox meetup={meetup} status={status} onChange={onChange} onManage={() => setManaging(true)} />
+        <ApplyBox meetup={meetup} status={status} onChange={onChange} onManage={() => setManage('open')} />
       </div>
-      {managing && <MemberManageDialog meetup={meetup} onChange={onChange} onClose={() => setManaging(false)} />}
+      {manage && canManage && (
+        <MemberManageDialog
+          meetup={meetup}
+          initialTab={manage === 'pending' ? 'pending' : undefined}
+          onChange={onChange}
+          onClose={() => setManage(null)}
+        />
+      )}
     </div>
   )
 }

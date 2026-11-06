@@ -54,7 +54,7 @@ const meetupApplied = async (meetup, applicantId) =>
   notify([meetup.host], {
     type: 'meetup_apply',
     message: `${await nicknameOf(applicantId)}님이 '${meetup.title}'에 참여를 신청했어요`,
-    link: `/meetup/${meetup._id}`,
+    link: `/meetup/${meetup._id}?manage=pending`, // 참여자 관리 팝업 신청 탭으로
     meetup: meetup._id,
   });
 
