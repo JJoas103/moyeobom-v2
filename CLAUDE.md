@@ -84,7 +84,7 @@ npm run migrate:report-index # 한 번만 — 신고 고유 인덱스 지우기 
 
 | type | 받는 사람 | 거는 곳 |
 |---|---|---|
-| `meetup_apply` | 호스트 | `meetupService.applyMeetup` |
+| `meetup_apply` | 호스트 | `meetupService.applyMeetup` — 누르면 참여자 관리 팝업 신청 탭(`/meetup/:id?manage=pending`) |
 | `meetup_approved` | 신청자 | `meetupService.approveMember` |
 | `meetup_left` | 호스트 | `meetupService.leaveMeetup` |
 | `meetup_cancelled` | 신청 중 · 승인 전원 | `meetupService.setMeetupStatus` |
