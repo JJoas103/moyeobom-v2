@@ -8,13 +8,16 @@ import './styles/components.css'
 import App from './App.jsx'
 import { AuthProvider } from './context/AuthContext.jsx'
 import { SocketProvider } from './context/SocketContext.jsx'
+import { LikesProvider } from './context/LikesContext.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
       <AuthProvider>
         <SocketProvider>
-          <App />
+          <LikesProvider>
+            <App />
+          </LikesProvider>
         </SocketProvider>
       </AuthProvider>
     </BrowserRouter>

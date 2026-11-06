@@ -32,7 +32,12 @@
 .condition-chips {
   margin-top: auto;
   display: flex;
+  align-items: center;
   gap: 8px;
+}
+
+.condition-chips .like-btn {
+  margin-left: auto;
 }
 
 .condition-chip {

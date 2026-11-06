@@ -201,6 +201,13 @@ async function listMyMeetups(userId) {
   };
 }
 
+/** _id 목록의 모임 — 넘긴 순서대로, 취소된 모임 제외 (찜 목록) */
+async function listMeetupsByIds(ids, viewerId) {
+  const docs = await Meetup.find({ _id: { $in: ids }, status: { $ne: 'cancelled' } }).lean();
+  const byId = new Map(docs.map((d) => [String(d._id), d]));
+  return serializeMany(ids.map((id) => byId.get(String(id))).filter(Boolean), viewerId);
+}
+
 /** 모임 하나 — 보는 사람에 따라 talk.place · members 포함. 확정 참여자면 내 평가 제출 여부도 */
 async function getMeetup(id, viewerId) {
   const doc = await findDoc(id);
@@ -515,4 +522,4 @@ async function leaveMeetup(id, userId) {
   return getMeetup(doc._id, userId);
 }
 
-module.exports = { listMeetups, listMyMeetups, getMeetup, createMeetup, updateMeetup, setMeetupStatus, applyMeetup, approveMember, rejectMember, removeMember, reportMember, reportHost, leaveMeetup };
+module.exports = { listMeetups, listMyMeetups, listMeetupsByIds, getMeetup, createMeetup, updateMeetup, setMeetupStatus, applyMeetup, approveMember, rejectMember, removeMember, reportMember, reportHost, leaveMeetup };

@@ -4,6 +4,9 @@ import CategoryChips from '../../components/common/CategoryChips'
 import SearchInput from '../../components/common/SearchInput'
 import CreateSteps from '../../components/meetup/CreateSteps'
 import EventPickRow from '../../components/meetup/EventPickRow'
+import { useAuth } from '../../context/AuthContext'
+import { fetchLikes } from '../../data/likes'
+import { canOpenMeetup } from '../../utils/event'
 import { useAsync } from '../../utils/useAsync'
 import { useDebounced } from '../../utils/useDebounced'
 import { useQueryFilters } from '../../utils/useQueryFilters'
@@ -31,6 +34,9 @@ export default function CreatePick() {
   const results = useAsync(() => fetchEvents({ q: keyword, category, sort: 'meetups', limit: RESULT_LIMIT }), [keyword, category])
   const recentEnded = useAsync(() => fetchRecentEndedEvents(), [])
   const picked = useAsync(() => (pickedId ? fetchEvent(pickedId) : Promise.resolve(null)), [pickedId])
+  const { user } = useAuth()
+  const likes = useAsync(() => (user ? fetchLikes() : Promise.resolve(null)), [user?._id])
+  const likedEvents = (likes.data?.events || []).filter((e) => canOpenMeetup(e)) // 모임을 열 수 있는 기간이 지난 행사는 뺌
 
   const pick = (event) => filters.set('event', event._id)
 
@@ -65,8 +71,14 @@ export default function CreatePick() {
             ))}
           </PickSection>
 
-          <PickSection title="찜한 행사" empty="찜한 행사는 로그인하면 여기 모여요.">
-            {/* TODO(인증 단계): GET /api/me/likes */}
+          <PickSection
+            title="찜한 행사"
+            loading={Boolean(user) && likes.loading && !likes.data}
+            empty={user ? '찜한 행사가 없어요. 행사에 하트를 눌러 모아 보세요.' : '찜한 행사는 로그인하면 여기 모여요.'}
+          >
+            {likedEvents.map((e) => (
+              <EventPickRow key={e._id} event={e} checked={pickedId === e._id} onChange={pick} />
+            ))}
           </PickSection>
 
           <PickSection

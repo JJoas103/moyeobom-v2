@@ -1,6 +1,6 @@
-import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ExternalIcon, HeartIcon } from '../common/Icons'
+import { ExternalIcon } from '../common/Icons'
+import LikeButton from '../common/LikeButton'
 import MetaLine from '../common/MetaLine'
 import { eventStatus, meetupStatus } from '../../utils/status'
 import { formatEventPeriod, formatMeetupWhen } from '../../utils/format'
@@ -8,7 +8,6 @@ import { canOpenMeetup, sourceOf } from '../../utils/event'
 
 // 행사 상세 오른쪽 박스 — 모임 수 · 찜 · 모임 만들기 · 예매
 export default function EventSideBox({ event, meetups }) {
-  const [liked, setLiked] = useState(false) // TODO(찜 단계): 서버 저장
   const status = eventStatus(event)
   const source = sourceOf(event)
   const openable = canOpenMeetup(event)
@@ -37,16 +36,7 @@ export default function EventSideBox({ event, meetups }) {
         <dd>{earliest ? formatMeetupWhen(earliest.talk.startAt) : '—'}</dd>
       </dl>
       <div className="side-box__actions">
-        <button
-          type="button"
-          className={`like-btn${liked ? ' is-on' : ''}`}
-          aria-label={liked ? '찜 해제' : '찜하기'}
-          aria-pressed={liked}
-          onClick={() => setLiked((v) => !v)}
-        >
-          <HeartIcon size={20} filled={liked} />
-          <span>찜</span>
-        </button>
+        <LikeButton type="event" id={event._id} variant="box" />
         {openable ? (
           <Link to={`/meetup/new/${event._id}`} className="btn btn--primary btn--lg side-box__cta">
             이 행사로 모임 만들기

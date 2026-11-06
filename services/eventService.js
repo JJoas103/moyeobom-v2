@@ -202,6 +202,22 @@ async function listRecentEndedEvents() {
   return events.map((e) => withCounts(e, stats));
 }
 
+/**
+ * _id 목록의 행사 — 넘긴 순서대로, 끝난 행사 포함 (찜 목록)
+ *
+ * ⚠ 모임 수는 **$lookup 이 아니라 meetupStats() 로 붙인다.** 이 파일의 다른 조회 함수들과 같다.
+ *   행사 전량에 $lookup 을 걸면 추천홈이 몇 분씩 멈춰서 2026-11-04 에 걷어낸 방식이고,
+ *   그때 `meetupCountStages` 를 아예 지웠다 (아래 '행사 목록은 한 페이지씩' 결정 — CLAUDE.md).
+ *   찜 기능이 올라올 때 그 헬퍼를 쓰고 있어서 병합하면 ReferenceError 가 났다. 되돌리지 말 것.
+ */
+async function listEventsByIds(ids) {
+  if (!ids.length) return [];
+  const events = await Event.find({ _id: { $in: ids } }, LIST_FIELDS).lean();
+  const stats = await meetupStats(ids);
+  const byId = new Map(events.map((e) => [String(e._id), withCounts(e, stats)]));
+  return ids.map((id) => byId.get(String(id))).filter(Boolean); // 넘긴 순서 유지
+}
+
 /** 행사 하나. 없으면 404 */
 async function getEvent(id) {
   const notFound = Object.assign(new Error('행사를 찾을 수 없습니다'), { status: 404 });
@@ -215,4 +231,4 @@ async function getEvent(id) {
   return { ...withCounts(event, stats), recommendReasons: null };
 }
 
-module.exports = { listEvents, listEventsForRanking, listRecentEndedEvents, getEvent, periodRange, dayRange, isValidDayRange, RECENT_ENDED_DAYS };
+module.exports = { listEvents, listEventsForRanking, listRecentEndedEvents, listEventsByIds, getEvent, periodRange, dayRange, isValidDayRange, RECENT_ENDED_DAYS };
