@@ -54,6 +54,9 @@ function dayAt(offset, hour = 19) {
   return kst(`${ymd}T${String(hour).padStart(2, '0')}:00:00`);
 }
 
+/** 지금부터 n시간 뒤 — dayAt 은 날짜 단위라 '이야기 자리까지 24시간 안' 을 만들 수 없다 */
+const hoursAt = (n) => new Date(Date.now() + n * 60 * 60 * 1000);
+
 const HOST = 'kor03187@naver.com'; // 로그인해 쓰는 계정이라야 화면이 보인다
 
 // 이미 있는 더미 회원 — 비밀번호가 없어 로그인은 못 한다 (건드리지 않는다)
@@ -86,6 +89,7 @@ const EVENTS = {
   F: '6acddf56b7266c3af6666284',
   G: '6acddf55b7266c3af66661be',
   H: '6acddf55b7266c3af6666230',
+  I: '6acddf55b7266c3af66661bf',
 };
 
 const ID = {
@@ -97,6 +101,7 @@ const ID = {
   F: 'de0000000000000000000a06',
   G: 'de0000000000000000000a07',
   H: 'de0000000000000000000a08',
+  I: 'de0000000000000000000a09',
 };
 const IDS = Object.values(ID);
 
@@ -353,6 +358,21 @@ async function seed() {
   await meetupService.setMeetupStatus(h._id, taeyang._id, 'cancelled'); // → meetup_cancelled 알림
   out.push(['H', h, '취소된 모임 (수민은 승인됐던 참여자)', `/meetup/${h._id}`]);
 
+  // ── I 이야기 자리가 3시간 뒤 · 수민이 승인된 참여자 — '늦은 취소' 경고와 -1 을 보는 더미
+  //    확정 참여자가 24시간 안에 취소하면 매너 -1 이라, 취소 팝업이 먼저 알려 주는지 여기서 본다.
+  //    G(나흘 뒤 · 신청 중)와 짝이다 — 그쪽은 경고가 안 떠야 한다
+  const i = await makeMeetup({
+    id: ID.I, event: EVENTS.I, host: jinho,
+    title: '[더미] 오늘 밤 — 늦은 취소 경고',
+    intro: '이야기 자리가 곧이라 참여를 취소하면 매너 점수가 깎이는 더미예요.',
+    startAt: hoursAt(3), place: '시청역 7번 출구', area: '시청역 근처',
+    startTitle: '시 읽고 나와서', budget: 'under1', capacity: 4,
+  });
+  await chatService.ensureMeetupRoom(i.toObject());
+  await meetupService.applyMeetup(i._id, host._id, 'talk');
+  await meetupService.approveMember(i._id, jinho._id, host._id);
+  out.push(['I', i, '수민이 승인된 참여자 · 이야기 자리 3시간 뒤', `/meetup/${i._id}`]);
+
   // ── 친구 2건 — makeFriends 로 (1:1 방 · 양쪽 매너 +1 이 같이 생긴다)
   await friendService.makeFriends(c._id, host._id, minjun._id);
   await friendService.makeFriends(c._id, host._id, yuna._id);
@@ -419,7 +439,7 @@ function printChecklist({ out, host }) {
 
   line('');
   line('━━ 먼저 할 일 ━━');
-  line('  1) npm run review:daily    → E 모임 점수 반영 (수민 개설 +5 없음 · review_low -3 · manner_down 알림)');
+  line('  1) npm run review:daily    → E 모임 점수 반영 (수민 개설 +5 없음 · review_low 1건당 -1 · manner_down 알림)');
   line('  2) npm run manner:check    → 불변식 확인');
   line(`  3) ${F} 에서 ${host.email} 로 로그인`);
   line('');
@@ -434,7 +454,9 @@ function printChecklist({ out, host }) {
   line("  [ ] C 김하윤을 '또 만나고 싶어요'로 고르고 제출 → 친구 + 1:1 방이 바로 생기는지 (/friends)");
   line('  [ ] D 카드 10장이 4·4·2 로 쌓이고 라벨이 안 깨지는지');
   line('  [ ] /my?tab=praise — 점수가 한 줄인지 · 규칙이 짧은지 · 0점 목록이 접혀 있는지');
-  line("  [ ] /my?tab=praise — 이력에 '여러 분이 매너를 아쉽게 평가했어요 -3' 이 있고 '모임을 열었어요 +5' 는 없는지");
+  line("  [ ] /my?tab=praise — 이력에 '매너가 아쉬웠다는 평가를 받았어요' 가 있고 '모임을 열었어요 +5' 는 없는지");
+  line("  [ ] /my?tab=praise — 깎일 때 맨 윗줄이 '만나기 하루 전에 참여를 취소했어요' 인지 (읽어서 바로 이해되는지)");
+  line("  [ ] /my?tab=praise — 0점 목록 첫 줄이 '만나기 하루 전보다 일찍 취소했을 때' 인지");
   line("  [ ] /my?tab=praise — '최고점이라 더 오르지 않았어요' 문구가 한 줄 보이는지 (합성 데이터)");
   line('  [ ] 헤더 종 아이콘 — manner_down · review_open · meetup_apply · meetup_cancelled 알림');
   line('  [ ] 모임 상세 · 참여자 목록 · 친구 목록에 매너 배지가 붙는지 (평가 화면엔 없어야 한다)');
@@ -450,6 +472,7 @@ function printChecklist({ out, host }) {
   line('  [ ] A 모임 채팅 — 공지 고정이 보이고, 차단한 박도현 메시지가 숨는지');
   line('  [ ] B 마감 배지 · 모집 마감 / 다시 열기');
   line('  [ ] G 신청 중 상태 · 신청 취소');
+  line("  [ ] G 신청 취소 팝업에는 경고가 없어야 한다 (나흘 뒤 + 신청 중이라 0점)");
   line('  [ ] H 취소된 모임 화면');
   line('  [ ] 모임 상세 오른쪽 카드 버튼 배치');
 
@@ -457,6 +480,8 @@ function printChecklist({ out, host }) {
   line('━━ 섞이는 자리 (병합이 깨졌으면 여기서 드러난다) ━━');
   line('  [ ] A 를 직접 취소 → 참여자가 있으니 매너 -5 + 취소 알림이 같이 가는지');
   line('  [ ] A 에서 참여자가 직접 참여 취소 → 이야기 자리가 3일 뒤라 감점 0 이어야 한다');
+  line("  [ ] I 참여 취소 팝업에 '매너 점수가 1점 깎여요' 가 뜨는지 (이야기 자리 3시간 뒤)");
+  line("  [ ] I 그대로 취소 → 이력·알림이 '만나기 하루 전에 ... 참여를 취소했어요 -1' 인지");
   line('  [ ] /my?tab=blocks 차단 목록에 박도현이 있고 해제되는지');
   line('  [ ] /friends 친구 2명 · 메모 팝업 · 친구 끊기');
   line('  [ ] /chat 목록 — 모임 방 2개 + 1:1 방 2개 · 안 읽은 수');
@@ -489,4 +514,6 @@ async function main() {
   process.exit(0);
 }
 
-main();
+// `require` 만 해도 돌아 버리면 사고가 난다 — 문법 확인하려고 require 했다가 공유 DB 가
+// 정리된 적이 있다 (2026-11-07). 직접 실행할 때만 돈다.
+if (require.main === module) main();
