@@ -415,7 +415,7 @@ async function applyMeetup(id, userId, joinType) {
   // 위에서 확인한 사이에 다른 요청이 먼저 바꾼 경우
   if (!updated) throw httpError(409, '신청하지 못했어요. 새로고침 후 다시 시도해 주세요');
 
-  // 신청만으로는 점수가 움직이지 않는다 (승인됐을 때 +2)
+  // 신청으로도 승인으로도 점수는 움직이지 않는다 — 참여 가점은 2026-11-06 에 없앴다
   await sideEffect('신청 알림', () => notificationService.meetupApplied(doc, userId));
   return { status: 'pending', joinType };
 }
@@ -448,8 +448,9 @@ async function approveMember(id, hostId, memberUserId) {
 
   await sideEffect('참여자 들이기', () => chatService.addMeetupMember(updated.toObject(), memberUserId));
   await sideEffect('승인 알림', () => notificationService.meetupApproved(doc, memberUserId));
-  // 참여 가점(+2)은 여기서 주지 않는다 — 평가 마감에 그 모임 평가를 보낸 사람에게만 준다.
-  // 승인만 받고 안 오면(노쇼) 가점이 남지 않게 하려는 것이다 (services/mannerService.js 주석 참고)
+  // 승인에는 점수 변동이 없다. 참여 가점(+2)은 2026-11-06 에 **없앴다** — 참석을 확인할 방법이
+  // 없어서 노쇼와 구별이 안 됐다. 참석의 보상은 함께한 분들의 평가로만 준다
+  // (services/mannerService.js 의 ★★ 절). 되살리지 말 것
   return getMeetup(doc._id, hostId);
 }
 

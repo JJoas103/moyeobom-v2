@@ -14,14 +14,21 @@ const mongoose = require('mongoose');
 //   점유하고 있어서(meeting_create · meeting_join 81건) 이름을 겹치지 않게 MannerLog / 'mannerlogs' 로 둔다
 const TYPES = [
   'meetup_open', // 모임을 열었고 그 자리가 실제로 열렸다 +5 (cron)
-  'meetup_join', // 참여가 확정됐다 +2
+  // ⚠ 더 이상 주지 않는다 (2026-11-06) — 참석을 확인할 방법이 없어 참여 가점을 없앴다.
+  //   이미 쌓인 이력이 이 타입을 쓰고 있어 **지우면 읽을 수 없다.** enum 에 남겨 둘 것
+  'meetup_join', // (옛) 참여가 확정됐다 +2
   'meetup_leave', // 확정된 참여를 취소했다 -1 / -3
   'meetup_cancel', // 참여자가 있는 모임을 호스트가 취소했다 -5
   'review_submit', // 평가를 보냈다 +1
   'review_skip', // 평가를 안 냈다 -1 (cron, 평가 마감)
   'review_praise', // 매너가 좋았다는 평가를 받았다 +1/건 (cron, 평가 마감) — 1건이어도 오른다
-  'review_low', // 평가자 과반(최소 2명)이 매너를 아쉽게 평가했다 -3 (cron, 평가 마감)
+  'review_low', // 매너가 아쉬웠다는 평가를 받았다 -1/건 (cron, 평가 마감) — 칭찬과 대칭, 문턱 없음
   'friend_matched', // 친구가 됐다 +1
+  // 아래 둘은 **부르는 곳이 아직 없다** — 관리자 화면(다음 작업)에서 연결한다.
+  // move() 가 enum 밖 타입을 거부하므로 미리 둬야 그때 부르는 곳 한 줄만 쓰면 된다.
+  // 알림의 manner_down 을 같은 방식으로 먼저 뒀고 실제로 그대로 맞물렸다 — 지우지 말 것
+  'manner_report', // 관리자가 신고를 인정했다 -7
+  'manner_revert', // 신고를 기각해 되돌렸다 +7 — 이력을 지우면 불변식이 깨지므로 반대 부호로 쌓는다
 ];
 
 const mannerLogSchema = new mongoose.Schema(

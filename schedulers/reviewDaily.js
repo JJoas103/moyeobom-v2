@@ -13,11 +13,14 @@ const { reviewWindow } = require('../services/socialRules');
 // 하는 일 (전부 모임에 표식을 남겨서 두 번 돌아도 중복되지 않는다)
 //   1. 열림 알림   확정 참여자에게 '평가가 열렸어요'              (Meetup.reviewOpenNoticedAt)
 //   2. 마감 임박   아직 안 낸 사람에게만 '내일 마감돼요'          (Meetup.reviewClosingNoticedAt)
-//   3. 마감 반영   활동 가점(평가를 보낸 사람만) · 칭찬 · 미제출 감점 (Meetup.reviewAppliedAt)
+//   3. 마감 반영   개설 가점 · 칭찬 · 아쉬움 · 미제출 감점        (Meetup.reviewAppliedAt)
 //
 // 2번이 3번의 전제조건이다 — 미제출 감점은 미리 알려줘야 "몰라서 못 냈다"가 안 남는다.
-// 활동 가점(개설 +5 · 참여 +2)도 3번에서 함께 준다 — 평가 제출이 그 모임에 관여했다는 증거라서,
-// 승인만 받고 안 온 사람에게는 가점이 남지 않는다 (services/mannerService.js 주석 참고).
+//
+// ⚠ 여기 **참여 가점(+2)은 없다** — 2026-11-06 에 없앴다. "평가 제출이 그 모임에 관여했다는
+//   증거"라고 적어 뒀던 게 **틀린 전제였다**: reviewService.loadForReviewer 에 출석 확인이 없어
+//   노쇼도 평가를 낼 수 있었다. 3번이 주는 건 **개설 +5**(승인 참여자 1명 이상 · 평가 제출 ·
+//   반 이상이 아쉬워하지 않음)와 받은 평가뿐이다 (services/mannerService.js 의 ★★ 절)
 //
 // ⚠ config/socket.js 의 emitToUsers 는 io 가 없으면 조용히 무시한다. cron 은 app.js 안에서 도니
 //   실시간 push 가 가지만, npm run review:daily 로 수동 실행하면 DB 에만 쌓인다 (정상)

@@ -15,8 +15,8 @@ const { summarizeMeetups } = require('./meetupSummary');
 //     분모는 **실제로 평가를 낸 사람 수**(ratedCount)다. '평가할 수 있었던 사람 수'로 세면
 //     3명 중 1명만 평가했는데 그 1명이 칭찬한 경우가 1/2명 으로 보여 적게 받은 것처럼 읽힌다.
 //     '아쉬웠어요'는 내려주지 않는다 — 문턱을 넘겨 점수가 움직였으면 매너 이력에 이미 한 줄 남는다
-//   매너 점수: 점수 + 변동 이력 + 이력 합. 화면이 '50 + 합 = 점수' 를 검산해 보여준다
-//     (services/mannerService.js 의 불변식. 사용자가 "왜?"를 묻지 않게 하는 장치다)
+//   매너 점수: 점수 + 변동 이력. 이력 줄마다 무슨 일로 몇 점인지 적혀 있다
+//     (불변식 점수 = 50 + Σ 는 npm run manner:check 가 전원에 대해 보장한다 — 화면 합계 줄은 없앴다)
 
 const oid = (id) => new mongoose.Types.ObjectId(String(id));
 const WITHDRAW_TEXT = '탈퇴'; // 소셜 가입자 탈퇴 확인 문구
@@ -92,7 +92,7 @@ async function withdraw(user, { password, confirmText }) {
 /** 마이 첫 화면 — 프로필 · 숫자 · 받은 칭찬 · 다가오는 모임 수(탈퇴 안내) */
 async function getMyPage(user) {
   const me = oid(user._id);
-  const [meetupCount, friendCount, praise, upcoming, mannerLog, mannerSum] = await Promise.all([
+  const [meetupCount, friendCount, praise, upcoming, mannerLog] = await Promise.all([
     Meetup.countDocuments({
       status: { $ne: 'cancelled' },
       $or: [{ host: me }, { members: { $elemMatch: { user: me, status: 'approved' } } }],
@@ -101,7 +101,6 @@ async function getMyPage(user) {
     receivedPraise(user._id),
     upcomingMeetups(user._id),
     mannerService.listLog(user._id),
-    mannerService.logSum(user._id),
   ]);
 
   return {
@@ -111,8 +110,7 @@ async function getMyPage(user) {
     upcoming,
     manner: {
       score: mannerService.scoreOf(user),
-      base: mannerService.BASE, // 화면 검산 줄: base + logSum = score
-      logSum: mannerSum,
+      base: mannerService.BASE, // 이력이 없을 때 '50점에서 시작한 그대로예요' 에 쓴다
       log: mannerLog,
       rules: mannerService.SCORES, // '이렇게 움직여요' 표 — 정책을 화면에 그대로 띄운다
     },

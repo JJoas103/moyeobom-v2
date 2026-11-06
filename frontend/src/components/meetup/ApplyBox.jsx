@@ -8,6 +8,7 @@ import { useAuth } from '../../context/AuthContext'
 import { applyMeetup, leaveMeetup } from '../../data/meetups'
 import { JOIN_LABEL } from '../../data/constants'
 import { formatMeetupWhen, formatTime } from '../../utils/format'
+import { isLateLeave } from '../../utils/manner'
 
 /**
  * 모임 상세 오른쪽 신청 박스 — 보는 사람에 따라
@@ -216,12 +217,16 @@ function ApplyForm({ meetup, status, onChange, onManage }) {
 
 // 참여 취소 — 신청 중이면 '신청 취소', 확정이면 '참여 취소'(모임 채팅에서도 나감). 다시 신청할 수 있음
 //   취소하면 모임 목록(/meetup)으로 이동
+// 확정 참여자가 이야기 자리 하루 안에 취소하면 매너 -1 이라 **누르기 전에** 팝업에서 알려 준다 (2026-11-07).
+//   신청 중 취소는 0점이므로 approved 일 때만 띄운다 (meetupService.leaveMeetup 이 그때만 mannerService.left 를 부른다).
+//   판정은 보여 줄지 고르는 데만 쓰고 점수는 서버가 정한다 — utils/manner.js 의 isLateLeave 주석 참고
 function LeaveButton({ meetup, approved }) {
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const label = approved ? '참여 취소' : '신청 취소'
+  const late = approved && Boolean(meetup.talk?.startAt) && isLateLeave(meetup.talk.startAt)
 
   const close = () => {
     setOpen(false)
@@ -254,6 +259,11 @@ function LeaveButton({ meetup, approved }) {
           onConfirm={onConfirm}
           onClose={close}
         >
+          {late && (
+            <p className="dialog__text">
+              이야기 자리가 곧이라 매너 점수가 <b>1점</b> 깎여요.
+            </p>
+          )}
           <p className="dialog__text">{approved ? '모임 채팅에서도 나가요. 자리가 남아 있으면 다시 신청할 수 있어요.' : '자리가 남아 있으면 다시 신청할 수 있어요.'}</p>
         </ConfirmDialog>
       )}
