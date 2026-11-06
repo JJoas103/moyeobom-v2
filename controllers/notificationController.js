@@ -18,4 +18,6 @@ module.exports = {
   unread: handle((req) => notificationService.unreadCount(me(req))),
   // POST /api/notification/read { ids? } → { read } — ids 가 없으면 전부 읽음
   read: handle((req) => notificationService.markRead(me(req), req.body?.ids)),
+  // DELETE /api/notification → { cleared } — 내 알림 전부 지우기
+  clear: handle((req) => notificationService.clearAll(me(req))),
 };

@@ -224,8 +224,47 @@ img.avatar {
   padding: 8px 12px 12px;
   margin-bottom: 4px;
   border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   font-size: 15px;
   font-weight: 700;
+}
+
+/* 모두 지우기 — 되돌릴 수 없으니 패널 안에서 한 번 묻는다 (모달은 패널을 닫아 버린다) */
+.notify__clear,
+.notify__ask-yes,
+.notify__ask-no {
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-sub);
+  cursor: pointer;
+}
+
+.notify__clear:hover,
+.notify__ask-no:hover {
+  color: var(--text);
+}
+
+.notify__ask {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-body);
+}
+
+.notify__ask-yes {
+  color: var(--cat-stage);
+}
+
+.notify__ask-yes:hover {
+  color: var(--danger-hover);
 }
 
 .notify__empty {

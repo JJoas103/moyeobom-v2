@@ -4,6 +4,7 @@
 //   GET  /api/notification?limit=  → { notifications: [{ _id, type, message, link, readAt, createdAt }] }  최근 순
 //   GET  /api/notification/unread  → { count }
 //   POST /api/notification/read { ids? } → { read }   // ids 가 없으면 전부 읽음
+//   DELETE /api/notification          → { cleared }  // 내 알림 전부 지우기
 //
 //   type: meetup_apply | meetup_approved | meetup_left | meetup_cancelled | meetup_updated
 //         review_open | review_closing | friend_matched | manner_down
@@ -16,7 +17,7 @@
 //   · 채팅 새 메시지 — 헤더에 안 읽은 수 점이 이미 따로 있다
 //   · 매너 점수가 오를 때 — 깎일 때만 알린다 (오른 건 마이페이지 이력에서 확인)
 //   · 차단 · 친구 끊기 · 평가 제출
-import { apiGet, apiPost } from '../api'
+import { apiDelete, apiGet, apiPost } from '../api'
 
 export const fetchNotifications = async (limit) => (await apiGet('/api/notification', { params: { limit } })).notifications
 
@@ -24,3 +25,6 @@ export const fetchUnreadCount = async () => (await apiGet('/api/notification/unr
 
 /** 읽음 — ids 를 안 주면 전부 읽음 */
 export const markRead = (ids) => apiPost('/api/notification/read', ids ? { ids } : {})
+
+/** 모두 지우기 — 되돌릴 수 없다. 90일 자동 삭제를 기다리지 않고 직접 치우는 수단 */
+export const clearNotifications = async () => (await apiDelete('/api/notification')).cleared
