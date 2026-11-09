@@ -1,4 +1,5 @@
 // 카카오 지도 SDK — Promise 를 모듈 레벨에 캐싱 (중복 로드 방지 · StrictMode 에서 effect 2번 실행)
+// libraries: clusterer(홈 지도) · services(모임 만들기 장소 검색 — kakao.maps.services.Places)
 let loadPromise = null
 
 export function loadKakaoMaps() {
@@ -13,7 +14,7 @@ export function loadKakaoMaps() {
       return
     }
     const script = document.createElement('script')
-    script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${appKey}&libraries=clusterer&autoload=false`
+    script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${appKey}&libraries=clusterer,services&autoload=false`
     script.async = true
     script.onload = () => window.kakao.maps.load(() => resolve(window.kakao))
     script.onerror = () => {

@@ -45,7 +45,7 @@ npm run migrate:report-index # 한 번만 — 신고 고유 인덱스 지우기 
 - 상태 배지(진행 중 · D-n · n자리 남음 · 마감)는 저장하지 않고 계산 (`frontend/src/utils/status.js`).
 - 모임 응답에서 `members` 배열과 `talk.place`(정확한 장소)는 내려주지 않는다 — 승인된 참여자 전용.
 - 디자인 토큰은 `frontend/src/index.css` `:root`. 누를 곳은 그린(`--primary`) 하나. 이모지 아이콘 쓰지 않음(`components/common/Icons.jsx`).
-- 한국어 UI 문구는 짧은 해요체.
+- 한국어 UI 문구는 짧은 해요체. **예외 — 모임 만들기(①~④ · 수정)는 명사형**(2026-11-09, 당근 · 문토 · 소모임 참고): 라벨 · 버튼 · 안내 · 빈 상태는 `호스트 제외` · `신청은 전날까지` · `찾는 행사 없음` 처럼 끊고, 오류 · 부탁(`모임 제목을 적어 주세요.`)과 질문만 해요체. 다른 화면으로 넓힐지는 아직 미정.
 
 ## 화면 진행 상황 (시안 v2 기준)
 
@@ -69,7 +69,7 @@ npm run migrate:report-index # 한 번만 — 신고 고유 인덱스 지우기 
 - 인증(passport·session, connect-mongo) 붙음 — `/member/login` · `/member/join` · `/member/social-join`.
 - 찜: `Like`(사람 · 종류 `event`|`meetup` · 대상, 같은 대상은 한 번만) · `routes/api/likeApiRouter.js` — 행사 · 모임 카드, 행사 · 모임 상세, 추천 홈의 하트(`components/common/LikeButton.jsx`, 값은 `context/LikesContext.jsx` 한 곳). 로그인 전에 누르면 로그인 화면으로. 끝난 행사는 찜에 남고, 취소된 모임은 빠지고 새로 찜할 수 없음. 내가 연 모임엔 하트 없음. 모임 만들기 ① '찜한 행사'에 모임을 열 수 있는 행사만 보임.
 - 취향 · 추천(2026-11): `User.tastes`(행사 카테고리 키 6개, 1개 이상 필수) · `User.districts`(서울 자치구, 선택, 최대 3곳). 기존 회원은 비어 있을 수 있음. `GET /api/event/recommended` 순위 = 취향 일치 → 관심 지역 일치 → 참여했던 모임과 같은 분류 → 모집 중인 모임 많은 순 → 곧 끝나는 순 (`services/recommendService.js`). 행사 · 모임 목록 API 는 달력용 `from` · `to`(`YYYY-MM-DD`)도 받음.
-- 모임: 만들기(로그인 · 만든 사람이 호스트) · 사진 업로드(`public/images/upload`) · 참여 신청(pending 저장) · 호스트 승인 · 참여 취소(`POST /api/meetup/:id/leave` — 신청 중 · 승인 모두 이야기 자리 시작 전까지, members 에서 빼서 다시 신청 가능, 승인된 사람은 채팅방에서도 빠지고 '○○님이 나갔어요') · 거절(`POST /api/meetup/:id/members/:userId/reject`) · 내보내기(`.../remove`) — 호스트가 이야기 자리 시작 전까지, members 에서 빼므로 다시 신청 가능, 상대에게 알리지 않음, 내보내면 채팅방에서도 빠지고 '○○님이 나갔어요' · 승인도 시작 전까지 · 수정(`/meetup/:id/edit`, 행사 빼고 전부, 정원은 승인 인원 이상) · 모집 마감/다시 열기 · 취소(되돌리기 없음, 목록 · 행사 모임 수에서 제외). 종료 시각은 없음. 신청자는 `Meetup.members` 배열에 임베드, 정원(`capacity`)은 **호스트 제외**. `talk.place` · `members` 는 호스트와 승인된 참여자에게만 내려준다.
+- 모임: 만들기(로그인 · 만든 사람이 호스트) · 사진 업로드(`public/images/upload`) · 참여 신청(pending 저장) · 호스트 승인 · 참여 취소(`POST /api/meetup/:id/leave` — 신청 중 · 승인 모두 이야기 자리 시작 전까지, members 에서 빼서 다시 신청 가능, 승인된 사람은 채팅방에서도 빠지고 '○○님이 나갔어요') · 거절(`POST /api/meetup/:id/members/:userId/reject`) · 내보내기(`.../remove`) — 호스트가 이야기 자리 시작 전까지, members 에서 빼므로 다시 신청 가능, 상대에게 알리지 않음, 내보내면 채팅방에서도 빠지고 '○○님이 나갔어요' · 승인도 시작 전까지 · 수정(`/meetup/:id/edit`, 행사 빼고 전부, 정원은 승인 인원 이상) · 모집 마감/다시 열기 · 취소(되돌리기 없음, 목록 · 행사 모임 수에서 제외). 종료 시각은 없음. 관람 동행은 **받을지 말지만** 고른다(2026-11-09) — 회차 · 만나는 곳은 승인 뒤 모임 채팅에서 정하고 저장하지 않는다(`watch.sessionAt` · `meetAt` · `meetPlace` 는 그 전 모임에만 남음). '관람부터 함께' 신청은 이야기 자리 **전날까지**(`socialRules.watchApplyOpen`, 프론트 거울 `utils/status.js`). 만들기는 스텝이다(2026-11-09) — ① 행사 고르기 ② 소개 · 조건 ③ 언제(관람 동행 체크 + 달력) ④ 어디서 · 타임라인 — 이야기 자리 장소는 **카카오맵 장소 검색**(`components/meetup/PlaceSearch.jsx`, SDK `libraries=services` · 행사장 근처부터, SDK 를 못 쓰거나 결과에 없으면 이름 직접 입력)으로 `talk.place` · `talk.address` · `talk.location` 을 채우고(셋 다 승인된 참여자 전용), '목록에 보일 동네'는 고른 좌표에서 가장 가까운 역(`GET /api/nearby`)으로 자동 · 수정 가능. **타임라인은 호스트가 직접 쓴다**(`components/meetup/TimelineEditor.jsx`, 상세 타임라인과 같은 모양) — 첫 줄 = 이야기 자리 시작(③의 시각, 고정), 그 뒤 [시각 · 할 일] 줄을 `Meetup.timeline` 에 최대 5줄 · 시작 뒤 12시간 안(공개, 서버 `buildMeetup` 이 검사). **'만나서 할 일'(`talk.startTitle`)은 뺐다** — 소개에 쓸 내용이라, 그 전 모임에만 남아 상세 첫 줄 제목으로 보인다. 스텝 정의는 `MeetupForm.jsx` 의 `STEPS` 한 곳, '다음'은 그 스텝 칸만 검사하고 제출 오류는 그 칸의 스텝으로 돌아간다. 수정 화면은 같은 섹션을 한 페이지에 펼친다. 이야기 자리 시각은 **주간 시간표 달력**(`components/meetup/TalkCalendar.jsx`, FullCalendar v6 timeGrid · lazy)에서 칸을 눌러 고른다 — 저장은 여전히 `talk.startAt` 하나. 달력의 형광펜 띠는 행사 회차 · 운영 시간이고 `utils/sessions.js` 가 `sessionsText` 를 **화면에서만** 읽어 칠한다(서버는 안 씀, 2026-11-09 열린 행사 76건: 다 읽음 48 · 일부 19 · 못 읽음 9). **이야기 자리 시각은 그날 띠가 끝난 뒤부터만** 고른다(`sessions.talkAvailableFrom` — 가장 먼저 끝나는 회차 · 운영 시간의 끝, 띠 없는 날 · 못 읽은 행사 · 끝이 다음날로 넘어가는 날은 제한 없음). 달력은 그 전을 빗금으로 막고 직접 입력은 검사에서 막는다. 화면에서만 막고 서버는 모른다. 수정에서 저장된 시각을 그대로 두면 검사하지 않는다(규칙 전 모임). 일부 · 못 읽음이면 달력 위에 알리고, 원문은 달력 위 `EventTimeNote` 에 항상 보인다. 회차 텍스트 모양이 새로 보이면 `sessions.js` 맨 위 표에 더하고 해석기를 고친다. 신청자는 `Meetup.members` 배열에 임베드, 정원(`capacity`)은 **호스트 제외**. `talk.place` · `members` 는 호스트와 승인된 참여자에게만 내려준다.
 
 ## 평가 · 친구 · 채팅 (결정 로그 2026-10)
 
@@ -310,9 +310,10 @@ npm run migrate:report-index # 한 번만 — 신고 고유 인덱스 지우기 
 - [ ] **OAuth 리디렉션 URI 등록** — 콜백은 백엔드(:3000) 주소다. 프론트(5173) 아님.
   - 구글 클라우드 콘솔 › 사용자 인증 정보 › 승인된 리디렉션 URI: `http://localhost:3000/api/auth/google/callback`
   - 네이버 개발자센터 › 애플리케이션 › Callback URL: `http://localhost:3000/api/auth/naver/callback` (서비스 URL: `http://localhost:5173`)
-- [ ] **카카오 지도 JS 키 도메인 등록** — 지금 등록된 도메인이 이 프로젝트 주소와 달라 지도가 안 뜬다.
+- [x] **카카오 지도 JS 키 도메인 등록** (2026-11-09 등록) — 등록 도메인이 프로젝트 주소와 다르면 지도 · 장소 검색이 안 뜬다.
   - 카카오 개발자센터 › 내 애플리케이션 › 플랫폼 › Web › 사이트 도메인에 `http://localhost:5173` 추가 (지도는 브라우저에서 부르므로 프론트 주소)
   - 키는 `frontend/.env` 의 `VITE_KAKAO_MAP_API`
+  - 모임 만들기 ④ 장소 검색(`services` 라이브러리)도 같은 키 · 같은 도메인 등록이 필요하다. 안 되면 '장소 검색을 쓸 수 없어 직접 입력'으로 떨어진다
 
 ## 완료: 행사 데이터 — 서울시 문화행사 정보 API (1~5 끝남)
 

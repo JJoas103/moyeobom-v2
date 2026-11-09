@@ -1,6 +1,6 @@
-/** 모임 만들기 단계 표시 — ① 행사 고르기 — ② 모임 정보 */
+/** 모임 만들기 단계 표시 — ① 행사 고르기 (CreatePick) — ② 소개 · 조건 — ③ 언제 — ④ 어디서 (MeetupForm 의 STEPS) */
 export default function CreateSteps({ current }) {
-  const steps = ['행사 고르기', '모임 정보']
+  const steps = ['행사 고르기', '소개 · 조건', '언제', '어디서']
   return (
     <ol className="create-steps" aria-label="모임 만들기 단계">
       {steps.map((label, i) => {

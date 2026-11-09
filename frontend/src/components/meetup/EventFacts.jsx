@@ -21,7 +21,7 @@ export default function EventFacts({ event, canChange = true }) {
     <aside className="facts">
       <div className="facts__box">
         <div className="facts__head">
-          <span>행사에서 가져온 정보</span>
+          <span>행사 정보</span>
           {canChange && (
             <Link to={`/meetup/new?event=${event._id}`} className="facts__change">
               행사 바꾸기

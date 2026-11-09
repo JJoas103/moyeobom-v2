@@ -46,10 +46,10 @@ export default function MeetupHero({ meetup, status }) {
             {formatTime(talk.startAt)}
           </InfoRow>
           <InfoRow icon={<PinIcon />} label="장소">
-            {/* talk.place 는 호스트 · 승인된 참여자에게만 옴 */}
+            {/* talk.place · address 는 호스트 · 승인된 참여자에게만 옴 (address 는 카카오맵 검색으로 고른 모임만) */}
             {talk.place ? (
               <>
-                {talk.place} <span className="info-list__sub">({talk.area})</span>
+                {talk.place} <span className="info-list__sub">({talk.address || talk.area})</span>
               </>
             ) : (
               <>

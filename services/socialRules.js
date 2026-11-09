@@ -4,6 +4,7 @@
 //   모임 채팅: 평가 마감에 읽기 전용 → 30일 동안 목록에 흐리게 · 신고 가능 → 닫힌 뒤 90일에 삭제
 //   1:1 채팅: 친구 끊기 · 차단하면 목록에서 바로 사라짐 → 90일 뒤 삭제
 //   매너 점수: 이야기 자리 24시간 안에 확정된 참여를 취소하면 늦은 취소로 본다
+//   관람 동행 신청: 이야기 자리 전날까지 (2026-11-09) — 회차는 승인 뒤 채팅에서 정하므로 맞추고 각자 예매할 하루를 남긴다
 
 const HOUR = 60 * 60 * 1000;
 const DAY = 24 * HOUR;
@@ -32,6 +33,14 @@ function meetupRoomClosesAt(meetup) {
 /** 이야기 자리를 앞두고 취소했는지 — 늦은 취소면 true (services/mannerService.js) */
 const isLateLeave = (talkStartAt, now = new Date()) => new Date(talkStartAt) - now <= LATE_LEAVE_HOURS * HOUR;
 
+/** '관람부터 함께' 신청이 닫히는 시각 — 이야기 자리 날짜(서울) 0시. 그 전날까지 받는다 */
+function watchApplyClosesAt(talkStartAt) {
+  const kst = new Date(talkStartAt).getTime() + KST_OFFSET;
+  return new Date(Math.floor(kst / DAY) * DAY - KST_OFFSET);
+}
+
+const watchApplyOpen = (talkStartAt, now = new Date()) => now < watchApplyClosesAt(talkStartAt);
+
 /** '호스트 노쇼' 신고를 받을 수 있는지 — 이야기 자리가 시작된 뒤, 취소된 모임 제외 */
 function noShowReportOpen(meetup, now = new Date()) {
   return Boolean(meetup) && meetup.status !== 'cancelled' && new Date(meetup.talk.startAt) <= now;
@@ -47,5 +56,7 @@ module.exports = {
   reviewWindow,
   meetupRoomClosesAt,
   isLateLeave,
+  watchApplyClosesAt,
+  watchApplyOpen,
   noShowReportOpen,
 };

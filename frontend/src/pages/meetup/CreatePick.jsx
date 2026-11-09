@@ -64,7 +64,7 @@ export default function CreatePick() {
             title={searching ? '검색 결과' : '지금 열려 있는 행사'}
             count={results.data?.total}
             loading={results.loading && !results.data}
-            empty={searching ? '찾는 행사가 없어요. 다른 이름으로 찾아보세요.' : '열려 있는 행사가 없어요.'}
+            empty={searching ? '찾는 행사 없음' : '열려 있는 행사 없음'}
           >
             {results.data?.events.map((e) => (
               <EventPickRow key={e._id} event={e} checked={pickedId === e._id} onChange={pick} />
@@ -74,7 +74,7 @@ export default function CreatePick() {
           <PickSection
             title="찜한 행사"
             loading={Boolean(user) && likes.loading && !likes.data}
-            empty={user ? '찜한 행사가 없어요. 행사에 하트를 눌러 모아 보세요.' : '찜한 행사는 로그인하면 여기 모여요.'}
+            empty={user ? '찜한 행사 없음' : '로그인하면 찜한 행사 표시'}
           >
             {likedEvents.map((e) => (
               <EventPickRow key={e._id} event={e} checked={pickedId === e._id} onChange={pick} />
@@ -83,9 +83,9 @@ export default function CreatePick() {
 
           <PickSection
             title="최근 끝난 행사"
-            hint="이미 본 행사로도 모임을 열 수 있어요"
+            hint="이미 본 행사로도 개설 가능"
             loading={recentEnded.loading && !recentEnded.data}
-            empty={`최근 ${RECENT_ENDED_DAYS}일 안에 끝난 행사가 없어요.`}
+            empty={`최근 ${RECENT_ENDED_DAYS}일 안에 끝난 행사 없음`}
           >
             {recentEnded.data?.map((e) => (
               <EventPickRow key={e._id} event={e} checked={pickedId === e._id} onChange={pick} />
@@ -98,19 +98,17 @@ export default function CreatePick() {
           {picked.data ? (
             <PickedSummary event={picked.data} />
           ) : (
-            <p className="pick-side__empty">왼쪽에서 행사를 하나 골라 주세요.</p>
+            <p className="pick-side__empty">왼쪽에서 행사 선택</p>
           )}
           <div className="side-box__line" />
-          <p className="side-box__note">
-            행사 정보(기간, 회차, 장소)는 공공데이터에서 그대로 가져와요. 다음 단계에서는 모임 정보만 채우면 돼요.
-          </p>
+          <p className="side-box__note">기간 · 회차 · 장소는 행사 정보로 자동 입력</p>
           <button
             type="button"
             className="btn btn--primary btn--lg"
             disabled={!picked.data}
             onClick={() => navigate(`/meetup/new/${picked.data._id}`)}
           >
-            다음 · 모임 정보 쓰기
+            다음
           </button>
         </aside>
       </div>

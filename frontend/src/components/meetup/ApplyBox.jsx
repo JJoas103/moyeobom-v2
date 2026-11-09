@@ -9,6 +9,7 @@ import { applyMeetup, leaveMeetup } from '../../data/meetups'
 import { JOIN_LABEL } from '../../data/constants'
 import { formatMeetupWhen, formatTime } from '../../utils/format'
 import { isLateLeave } from '../../utils/manner'
+import { watchApplyOpen } from '../../utils/status'
 
 /**
  * 모임 상세 오른쪽 신청 박스 — 보는 사람에 따라
@@ -31,13 +32,13 @@ function ApplyForm({ meetup, status, onChange, onManage }) {
   const location = useLocation()
   const closed = status.tone === 'closed'
   const started = new Date(talk.startAt) <= new Date()
-  const watchOpen = watch?.enabled && (!watch.sessionAt || new Date(watch.sessionAt) > new Date())
+  const watchOpen = watch?.enabled && watchApplyOpen(talk.startAt)
   const options = [
     watchOpen && {
       value: 'watch',
       title: JOIN_LABEL.watch,
-      desc: `${formatTime(watch.meetAt || watch.sessionAt)} ${watch.meetPlace || '행사장 앞'}에서 만나 같이 보고, 끝나면 이야기 자리로`,
-      note: '티켓은 각자 예매',
+      desc: '같이 볼 회차는 승인 뒤 채팅에서 정해요. 같이 보고 이야기 자리로 가요',
+      note: '티켓은 각자 예매 · 이야기 자리 전날까지 신청',
     },
     {
       value: 'talk',

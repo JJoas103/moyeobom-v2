@@ -6,8 +6,9 @@ import { cloneElement, isValidElement, useId } from 'react'
  *     <input ... />
  *   </Field>
  * 자식 입력에 id · aria-invalid · aria-describedby 자동 연결
+ * hideLabel — 위에 같은 이름의 제목(legend)이 이미 보일 때. 라벨은 화면 읽기 프로그램용으로만 남긴다
  */
-export default function Field({ label, optional, hint, error, count, children, className = '' }) {
+export default function Field({ label, optional, hint, error, count, hideLabel = false, children, className = '' }) {
   const id = useId()
   const hintId = `${id}-hint`
   const errorId = `${id}-error`
@@ -23,7 +24,7 @@ export default function Field({ label, optional, hint, error, count, children, c
 
   return (
     <div className={`field${error ? ' has-error' : ''} ${className}`}>
-      <label htmlFor={id} className="field__label">
+      <label htmlFor={id} className={hideLabel ? 'sr-only' : 'field__label'}>
         {label}
         {optional && <span className="field__optional">선택</span>}
       </label>

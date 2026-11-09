@@ -46,6 +46,11 @@
   --status-soon-line: #f0d9a8;
   --status-closed: #8c867d;
 
+  /* 형광펜 — 모임 만들기 달력의 행사 회차 · 운영 시간 띠 (누르는 곳이 아니라 참고) */
+  --marker: rgba(255, 214, 10, 0.5);
+  --marker-soft: rgba(255, 214, 10, 0.22);
+  --marker-ink: #6b5200;
+
   /* 위험 · 취향 타일 */
   --danger-soft: #fbeef0;
   --danger-hover: #8a3140;

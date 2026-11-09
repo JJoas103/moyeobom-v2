@@ -29,9 +29,20 @@ const meetupSchema = new mongoose.Schema(
     // 이야기 자리 (필수)
     talk: {
       startAt: { type: Date, required: true },
-      place: { type: String, required: true }, // 정확한 장소 — 호스트 · 승인된 참여자에게만
-      area: { type: String, required: true }, // 목록에 보이는 '혜화역 근처'
-      startTitle: { type: String, required: true, trim: true, maxlength: 30 }, // 타임라인 '모두' 칸 제목 (호스트 작성)
+      // 정확한 장소 — place · address · location 셋 다 호스트 · 승인된 참여자에게만 (meetupService.serialize)
+      place: { type: String, required: true }, // 장소 이름 (카카오맵 검색으로 고르면 그 이름, 못 쓰면 직접 입력)
+      address: { type: String, trim: true }, // 도로명(없으면 지번) 주소 — 검색으로 골랐을 때만
+      location: { lat: Number, lng: Number }, // 검색으로 골랐을 때만
+      area: { type: String, required: true }, // 목록에 보이는 '혜화역 근처' — 고른 장소에서 가장 가까운 역으로 채우고 호스트가 고칠 수 있다
+      // 타임라인 첫 줄 제목 — 2026-11-09 부터 받지 않는다 (소개에 써도 되는 내용). 그 전 모임에만 남아 있다
+      startTitle: { type: String, trim: true, maxlength: 30 },
+    },
+
+    // 타임라인 — 이야기 자리 시작 뒤로 호스트가 쓰는 줄 (2026-11-09). 공개.
+    //   첫 줄(이야기 자리 시작)은 talk.startAt 이라 여기 넣지 않는다. 시각순으로 저장
+    timeline: {
+      type: [{ _id: false, at: { type: Date, required: true }, title: { type: String, required: true, trim: true, maxlength: 30 } }],
+      default: [],
     },
 
     // 신청 전에 공개할 조건
@@ -39,9 +50,11 @@ const meetupSchema = new mongoose.Schema(
     budget: { type: String, enum: BUDGETS, required: true },
     capacity: { type: Number, required: true, min: 2, max: 10 }, // 참여자 정원 (호스트 제외)
 
-    // 관람도 함께 (선택)
+    // 관람도 함께 (선택) — 받을지 말지만. 회차는 승인 뒤 채팅에서 정한다 (2026-11-09)
+    //   신청은 이야기 자리 전날까지 (socialRules.watchApplyOpen)
     watch: {
       enabled: { type: Boolean, default: false },
+      // 아래 셋은 2026-11-09 부터 저장하지 않는다 — 그 전에 만든 모임에만 남아 있고 타임라인이 그대로 그린다
       sessionAt: { type: Date }, // 관람 회차
       meetAt: { type: Date }, // 만나는 시각
       meetPlace: { type: String }, // 만나는 곳 (공연장 1층 로비)

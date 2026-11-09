@@ -13,14 +13,15 @@ const mannerService = require('./mannerService');
 const notificationService = require('./notificationService');
 const { publicUser, PUBLIC_USER_FIELDS } = require('./publicUser');
 const { sideEffect } = require('./sideEffect');
-const { reviewWindow } = require('./socialRules');
+const { reviewWindow, watchApplyOpen } = require('./socialRules');
 
 // 모임 — 응답 모양은 frontend/src/data/meetups.js 맨 위 주석 기준
-// members · talk.place 는 호스트 · 승인된 참여자 전용
+// members · talk.place · talk.address · talk.location 은 호스트 · 승인된 참여자 전용
 
 const DAY = 24 * 60 * 60 * 1000;
-const TIMELINE_TITLE_MAX = 30; // 타임라인 '모두' 칸 제목
-const MEET_BEFORE_MS = 20 * 60 * 1000; // 관람 회차 20분 전 만남 (프론트가 안 보내면 서버 계산)
+const TIMELINE_TITLE_MAX = 30; // 타임라인 줄 제목
+const TIMELINE_ROWS_MAX = 5; // 호스트가 쓰는 줄 (첫 줄 제외)
+const TIMELINE_HOURS = 12; // 이야기 자리 시작에서 이 시간 안의 줄만
 const IMAGE_PATH = /^\/images\/upload\/[\w.-]+$/; // 우리 서버에 올린 사진만
 
 // 모임 응답에 붙이는 행사 필드
@@ -61,7 +62,7 @@ function serialize(doc, { events, users, hostedCounts, viewerId, withMembers = f
       startAt: talk.startAt,
       area: talk.area,
       startTitle: talk.startTitle,
-      ...(canSeePrivate && { place: talk.place }),
+      ...(canSeePrivate && { place: talk.place, address: talk.address, location: talk.location }),
     },
     event: pick(events.get(String(event)), EVENT_FIELDS),
     host: users.get(String(host)) ? { ...publicUser(users.get(String(host))), hostedCount: hostedCounts.get(String(host)) || 0 } : null,
@@ -247,33 +248,42 @@ function buildMeetup(body, event, now) {
   if (!startAt) e.talkStart = '만나는 날짜와 시각을 골라 주세요.';
   else if (startAt <= now) e.talkStart = '지금보다 뒤의 시각으로 골라 주세요.';
   const place = text(talk.place);
+  const address = text(talk.address);
   const area = text(talk.area);
   if (!place) e.place = '만날 장소를 적어 주세요.';
-  if (!area) e.area = '목록에 보일 동네를 적어 주세요. 예: 혜화역 근처';
-  const startTitle = text(talk.startTitle);
-  if (!startTitle) e.startTitle = '만나서 할 일을 적어 주세요.';
-  else if (startTitle.length > TIMELINE_TITLE_MAX) e.startTitle = `${TIMELINE_TITLE_MAX}자 안으로 줄여 주세요.`;
+  if (!area) e.area = '목록에 보일 동네를 적어 주세요.';
+  const lat = Number(talk.location?.lat);
+  const lng = Number(talk.location?.lng);
+  const location = Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180 ? { lat, lng } : undefined;
+
+  // 타임라인 — 이야기 자리 시작 뒤 TIMELINE_HOURS 안, 줄마다 할 일 필수 (프론트 MeetupForm validate 와 같게)
+  const rows = Array.isArray(body.timeline) ? body.timeline : [];
+  const timeline = rows.map((r) => ({ at: toDate(r?.at), title: text(r?.title) }));
+  if (timeline.length > TIMELINE_ROWS_MAX) e.timeline = `타임라인은 ${TIMELINE_ROWS_MAX}줄까지 쓸 수 있어요.`;
+  else if (startAt) {
+    const limit = startAt.getTime() + TIMELINE_HOURS * 60 * 60 * 1000;
+    const bad = timeline.findIndex((r) => !r.title || r.title.length > TIMELINE_TITLE_MAX || !r.at || r.at <= startAt || r.at > limit);
+    if (bad >= 0) {
+      const r = timeline[bad];
+      e.timeline = !r.title
+        ? `${bad + 1}번째 줄에 할 일을 적어 주세요.`
+        : r.title.length > TIMELINE_TITLE_MAX
+          ? `${bad + 1}번째 줄을 ${TIMELINE_TITLE_MAX}자 안으로 줄여 주세요.`
+          : `${bad + 1}번째 줄은 이야기 자리 시작 뒤 ${TIMELINE_HOURS}시간 안으로 골라 주세요.`;
+    }
+  }
+  timeline.sort((a, b) => a.at - b.at);
 
   if (!BUDGETS.includes(body.budget)) e.budget = '예산을 골라 주세요.';
   const capacity = Number(body.capacity);
   if (!Number.isInteger(capacity) || capacity < 2 || capacity > 10) e.capacity = '정원은 2~10명으로 골라 주세요.';
 
-  // 관람도 함께
-  const watchIn = body.watch || {};
-  let watch = { enabled: false };
-  if (watchIn.enabled) {
-    const ended = event.endDate && new Date(event.endDate) < now;
-    const sessionAt = toDate(watchIn.sessionAt);
-    const meetPlace = text(watchIn.meetPlace);
-    if (ended) e.sessionAt = '이미 끝난 행사라 이야기 자리만 열 수 있어요.';
-    else if (!sessionAt) e.sessionAt = '관람 회차 시각을 골라 주세요.';
-    else if (sessionAt <= now) e.sessionAt = '지금보다 뒤의 회차로 골라 주세요.';
-    else if (startAt && sessionAt >= startAt) e.sessionAt = '관람은 이야기 자리보다 먼저여야 해요.';
-    else if (event.endDate && sessionAt > new Date(event.endDate)) e.sessionAt = '행사 기간이 지난 회차예요.';
-    if (!meetPlace) e.meetPlace = '관람 전에 만날 곳을 적어 주세요.';
-
-    const meetAt = toDate(watchIn.meetAt) || (sessionAt && new Date(sessionAt.getTime() - MEET_BEFORE_MS));
-    watch = { enabled: true, sessionAt, meetAt, meetPlace };
+  // 관람도 함께 — 받을지 말지만 (2026-11-09). 회차 · 만나는 곳은 승인 뒤 채팅에서 정하고 따로 남기지 않는다.
+  // 수정하면 옛 모임의 sessionAt · meetAt · meetPlace 도 지워진다
+  const watch = { enabled: false };
+  if (body.watch?.enabled) {
+    if (event.endDate && new Date(event.endDate) < now) e.watch = '이미 끝난 행사라 이야기 자리만 열 수 있어요.';
+    watch.enabled = true;
   }
 
   if (Object.keys(e).length) throw fieldError(e);
@@ -283,7 +293,8 @@ function buildMeetup(body, event, now) {
     title,
     intro,
     imageUrl,
-    talk: { startAt, place, area, startTitle },
+    talk: { startAt, place, address: address || undefined, location, area },
+    timeline,
     alcohol: body.alcohol === true || body.alcohol === 'true',
     budget: body.budget,
     capacity,
@@ -331,7 +342,7 @@ async function updateMeetup(id, hostId, body) {
   const event = await Event.findById(doc.event).lean();
   if (!event) throw httpError(404, '행사를 찾을 수 없습니다');
 
-  const { title, intro, imageUrl, talk, alcohol, budget, capacity, watch } = buildMeetup(body, event, now);
+  const { title, intro, imageUrl, talk, timeline, alcohol, budget, capacity, watch } = buildMeetup(body, event, now);
   const approved = approvedCountOf(doc);
   if (capacity < approved) throw fieldError({ capacity: `이미 승인한 ${approved}명보다 적게 줄일 수 없어요.` });
 
@@ -348,7 +359,7 @@ async function updateMeetup(id, hostId, body) {
         ],
       },
     },
-    { $set: { title, intro, imageUrl, talk, alcohol, budget, capacity, watch } },
+    { $set: { title, intro, imageUrl, talk, timeline, alcohol, budget, capacity, watch } },
     { new: true }
   );
   if (!updated) throw httpError(409, '수정하지 못했어요. 새로고침 후 다시 시도해 주세요');
@@ -397,7 +408,7 @@ async function applyMeetup(id, userId, joinType) {
   if (!['watch', 'talk'].includes(joinType)) throw httpError(400, '참여 방식을 골라 주세요');
   if (joinType === 'watch') {
     if (!doc.watch?.enabled) throw httpError(400, '관람 동행을 받지 않는 모임이에요');
-    if (doc.watch.sessionAt && new Date(doc.watch.sessionAt) <= now) throw httpError(400, '관람 회차가 지나 이야기 자리만 신청할 수 있어요');
+    if (!watchApplyOpen(doc.talk.startAt, now)) throw httpError(400, '관람 동행 신청은 전날까지예요. 이야기 자리만 신청할 수 있어요');
   }
 
   const userObjectId = new mongoose.Types.ObjectId(String(userId));

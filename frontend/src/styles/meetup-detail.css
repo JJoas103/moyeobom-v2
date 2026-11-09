@@ -105,6 +105,13 @@
   text-align: right;
 }
 
+/* 시각이 없는 줄 (회차를 채팅에서 정하는 관람) */
+.timeline__time--none {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-sub);
+}
+
 .timeline__dot {
   position: relative;
   z-index: 1;
