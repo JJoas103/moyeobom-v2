@@ -8,8 +8,9 @@ const Meetup = require('../models/Meetup');
 const DAY = 24 * 60 * 60 * 1000;
 const KST = 9 * 60 * 60 * 1000;
 
-// 최근 끝난 행사로 모임을 열 수 있는 기간 — 미결정이라 임시 14일 (frontend data/events.js RECENT_ENDED_DAYS 와 같이)
-const RECENT_ENDED_DAYS = 14;
+// 최근 끝난 행사로 모임을 열 수 있는 기간 — 2026-11-09 결정 2일 (frontend data/events.js RECENT_ENDED_DAYS 와 같이)
+// 모임 만들기 ① '최근 끝난 행사' 목록도 이 기간만 보여 준다
+const RECENT_ENDED_DAYS = 2;
 
 // ---------- 기간 필터 — frontend/src/utils/period.js 와 같은 규칙, 서울 시간 기준 ----------
 
@@ -188,11 +189,18 @@ async function listEventsForRanking() {
   return events.map((e) => withCounts(e, stats));
 }
 
-/** 최근 끝난 행사 — 끝난 지 RECENT_ENDED_DAYS 일 안. 최근에 끝난 순 (14일 창이라 건수가 적어 전부 내려준다) */
+/**
+ * '최근 끝난' 창의 시작 — 서울 날짜로 RECENT_ENDED_DAYS 일 전 0시. 이 뒤에 끝난 행사까지 모임을 열 수 있다
+ * 날짜로 센다 (오늘 11.9 → 11.7 · 11.8 에 끝난 행사). 시간으로 세면 endDate 가 몇 시로 저장됐는지에 따라
+ * 하루가 밀린다 — 지금 동기화는 마지막 날 23:59 로 넣지만 그 약속에 기대지 않는다 (2026-11-09)
+ */
+const recentEndedFrom = (now = new Date()) => kstStartOfDay(now, -RECENT_ENDED_DAYS);
+
+/** 최근 끝난 행사 — 끝난 지 RECENT_ENDED_DAYS 일(날짜) 안. 최근에 끝난 순 (창이 짧아 건수가 적어 전부 내려준다) */
 async function listRecentEndedEvents() {
   const now = new Date();
   const events = await Event.find(
-    { endDate: { $lt: now, $gte: new Date(now.getTime() - RECENT_ENDED_DAYS * DAY) } },
+    { endDate: { $lt: now, $gte: recentEndedFrom(now) } },
     LIST_FIELDS
   )
     .sort({ endDate: -1, _id: 1 })
@@ -231,4 +239,4 @@ async function getEvent(id) {
   return { ...withCounts(event, stats), recommendReasons: null };
 }
 
-module.exports = { listEvents, listEventsForRanking, listRecentEndedEvents, listEventsByIds, getEvent, periodRange, dayRange, isValidDayRange, RECENT_ENDED_DAYS };
+module.exports = { listEvents, listEventsForRanking, listRecentEndedEvents, listEventsByIds, getEvent, periodRange, dayRange, isValidDayRange, RECENT_ENDED_DAYS, recentEndedFrom };

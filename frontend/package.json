@@ -11,9 +11,9 @@
   },
   "dependencies": {
     "@fullcalendar/core": "^6.1.22",
+    "@fullcalendar/daygrid": "^6.1.22",
     "@fullcalendar/interaction": "^6.1.22",
     "@fullcalendar/react": "^6.1.22",
-    "@fullcalendar/timegrid": "^6.1.22",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.0.2",

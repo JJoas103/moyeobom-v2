@@ -7,7 +7,7 @@ const User = require('../models/User');
 const Review = require('../models/Review');
 const Friendship = require('../models/Friendship');
 const { BUDGETS } = require('../models/Meetup');
-const { periodRange, dayRange, RECENT_ENDED_DAYS } = require('./eventService');
+const { periodRange, dayRange, recentEndedFrom } = require('./eventService');
 const chatService = require('./chatService');
 const mannerService = require('./mannerService');
 const notificationService = require('./notificationService');
@@ -18,7 +18,6 @@ const { reviewWindow, watchApplyOpen } = require('./socialRules');
 // 모임 — 응답 모양은 frontend/src/data/meetups.js 맨 위 주석 기준
 // members · talk.place · talk.address · talk.location 은 호스트 · 승인된 참여자 전용
 
-const DAY = 24 * 60 * 60 * 1000;
 const TIMELINE_TITLE_MAX = 30; // 타임라인 줄 제목
 const TIMELINE_ROWS_MAX = 5; // 호스트가 쓰는 줄 (첫 줄 제외)
 const TIMELINE_HOURS = 12; // 이야기 자리 시작에서 이 시간 안의 줄만
@@ -38,8 +37,8 @@ const fieldError = (fieldErrors) =>
 const idEq = (a, b) => Boolean(a && b) && String(a) === String(b);
 const approvedCountOf = (doc) => (doc.members || []).filter((m) => m.status === 'approved').length;
 
-/** 이 행사로 지금 모임을 열 수 있는지 — 끝난 지 RECENT_ENDED_DAYS 일까지 (프론트 utils/event.js canOpenMeetup 과 같게) */
-const canOpenMeetup = (event, now) => !event.endDate || now - new Date(event.endDate) <= RECENT_ENDED_DAYS * DAY;
+/** 이 행사로 지금 모임을 열 수 있는지 — 끝난 지 RECENT_ENDED_DAYS 일(날짜)까지 (프론트 utils/event.js canOpenMeetup 과 같게) */
+const canOpenMeetup = (event, now) => !event.endDate || new Date(event.endDate) >= recentEndedFrom(now);
 
 // ---------- 응답 만들기 ----------
 // publicUser · sideEffect 는 services/publicUser.js · services/sideEffect.js 로 옮겼다

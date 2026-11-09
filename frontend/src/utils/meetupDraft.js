@@ -24,13 +24,12 @@ export function guessArea(place = '') {
 }
 
 /**
- * 이야기 자리 시각 기본값 — 회차가 끝난 뒤로 잡는다
+ * 이야기 자리 시각 기본값 — 회차가 끝난 뒤로 잡는다 (기본값일 뿐 호스트가 자유롭게 바꾼다)
  *  - 회차형 · 상영 + 첫 회차 시각
- *      러닝타임이 있으면 끝나고 10분 뒤 (basis 'end')
- *      없으면 회차 2시간 반 뒤 어림 (basis 'guess') — 그냥 19:00 이면 19:30 공연보다 앞서 버린다
- *  - 그 밖에는 다음 날 19:00 (basis null) — 전시 · 축제의 시각은 회차가 아니라 운영 시간이다
- *      그날 운영이 19:00 뒤에 끝나면 끝나는 시각으로 (basis 'open') — 그 전은 고를 수 없다 (sessions.talkAvailableFrom)
- * sessionAt 은 제안의 근거가 된 회차 시각 (안내 문구 '19:30 회차 기준 추천')
+ *      러닝타임이 있으면 끝나고 10분 뒤, 없으면 회차 2시간 반 뒤 어림 — 그냥 19:00 이면 19:30 공연보다 앞서 버린다
+ *  - 그 밖에는 다음 날 19:00 — 전시 · 축제의 시각은 회차가 아니라 운영 시간이다.
+ *      그날 운영이 19:00 뒤에 끝나면 끝나는 시각으로 (sessions.talkAvailableFrom)
+ * 무엇을 기준으로 잡았는지 알리던 문구('19:30 회차 기준 추천')는 2026-11-09 에 뺐다
  */
 export function suggestDraft(event) {
   const day = nextDay(event)
@@ -40,16 +39,11 @@ export function suggestDraft(event) {
     const sessionAt = new Date(day)
     sessionAt.setHours(Number(m[1]), Number(m[2]), 0, 0)
     const after = event.runningTime ? event.runningTime + 10 : GUESS_AFTER_SESSION_MIN
-    return {
-      talkStart: ceilTo10(addMinutes(sessionAt, after)),
-      basis: event.runningTime ? 'end' : 'guess',
-      sessionAt,
-    }
+    return { talkStart: ceilTo10(addMinutes(sessionAt, after)) }
   }
 
   const talkStart = new Date(day)
   talkStart.setHours(19, 0, 0, 0)
   const from = talkAvailableFrom(event, talkStart)
-  if (from && from > talkStart) return { talkStart: ceilTo10(from), basis: 'open', sessionAt: null }
-  return { talkStart, basis: null, sessionAt: null }
+  return { talkStart: from && from > talkStart ? ceilTo10(from) : talkStart }
 }

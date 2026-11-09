@@ -16,7 +16,7 @@ import { formatMeetupWhen, formatMonthDay, formatTime, formatWeekday } from '../
 import { canOpenMeetup, estimateEndText } from '../../utils/event'
 import { fromLocalInput, toLocalInput } from '../../utils/datetime'
 import { guessArea, suggestDraft } from '../../utils/meetupDraft'
-import { talkAvailableFrom } from '../../utils/sessions'
+import { bandsOn, parseSessions } from '../../utils/sessions'
 import { fetchNearby } from '../../data/nearby'
 import PlaceSearch from './PlaceSearch'
 import TimelineEditor from './TimelineEditor'
@@ -82,7 +82,6 @@ function initialForm(event, meetup) {
       budget: meetup.budget,
       capacity: meetup.capacity,
       watchEnabled: Boolean(watch?.enabled) && !ended,
-      _hint: { basis: null, savedTalkStart: toLocalInput(talk.startAt) },
     }
   }
   return {
@@ -99,25 +98,24 @@ function initialForm(event, meetup) {
     budget: '1to2',
     capacity: 4,
     watchEnabled: !ended, // 끝난 행사는 이야기 자리만
-    _hint: { ...s, talkStartInput: toLocalInput(s.talkStart) },
   }
 }
 
-/**
- * 이야기 자리 시각 아래 한 줄 — 고른 시각을 다시 읽어 주고, 제안값 그대로면 기준 회차를 덧붙인다
- * '11.14 (토) 22:00 · 19:30 회차 기준 추천'
- * (러닝타임으로 끝을 안 경우와 어림한 경우를 문구로 가르지 않는다 — 달력 띠에 '끝 어림'이 이미 보인다)
- */
-function talkStartHint(form, hint) {
+/** 시각 칸 아래 한 줄 — 고른 날 · 시각을 다시 읽어 준다 '11.15 (일) 20:40' */
+function talkStartHint(form) {
   const at = fromLocalInput(form.talkStart)
-  if (!at) return null
-  const said = `${formatMonthDay(at)} (${formatWeekday(at)}) ${formatTime(at)}`
-  if (!hint.basis || form.talkStart !== hint.talkStartInput) return said
-  if (hint.basis === 'open') return `${said} · 운영 종료 뒤 추천`
-  return `${said} · ${formatTime(hint.sessionAt)} 회차 기준 추천`
+  return at ? `${formatMonthDay(at)} (${formatWeekday(at)}) ${formatTime(at)}` : null
 }
 
-function validate(form, event) {
+/** 고른 날의 행사 시간 — '회차 시간 19:00–20:30' (전시 · 축제는 '운영 시간') */
+function dayBandsText(event, date) {
+  if (!date) return ''
+  const what = event.runType === 'period' ? '운영 시간' : '회차 시간'
+  const labels = bandsOn(parseSessions(event.sessionsText), event, date).map((b) => b.label.replace(' 회차', ''))
+  return labels.length ? `${what} ${labels.join(' · ')}` : `${what} 없음`
+}
+
+function validate(form) {
   const e = {}
   const now = new Date()
   const title = form.title.trim()
@@ -128,15 +126,7 @@ function validate(form, event) {
   const start = fromLocalInput(form.talkStart)
   if (!start) e.talkStart = '이야기 자리 시각을 골라 주세요.'
   else if (start <= now) e.talkStart = '지금보다 뒤의 시각으로 골라 주세요.'
-  else if (form.talkStart !== form._hint.savedTalkStart) {
-    // 그날 행사 시간이 끝난 뒤부터 (sessions.talkAvailableFrom — 화면에서만 막는다)
-    // 수정에서 시각을 그대로 두면 보지 않는다 — 이 규칙 전에 만든 모임이 다른 칸도 못 고치게 된다
-    const from = talkAvailableFrom(event, start)
-    if (from && start < from) {
-      const what = event.runType === 'period' ? '운영 시간이' : '회차가'
-      e.talkStart = `${what} 끝난 ${formatTime(from)} 뒤로 골라 주세요.`
-    }
-  }
+  // 행사 시간에 맞춰 막는 규칙은 두지 않는다 (2026-11-09) — 달력은 행사 시간을 보여 주기만 하고 호스트가 고른다
 
   if (!form.place.trim()) e.place = '만날 장소를 찾아 주세요.'
   if (!form.area.trim()) e.area = '목록에 보일 동네를 적어 주세요.'
@@ -152,7 +142,9 @@ function validate(form, event) {
     if (bad >= 0) {
       const r = form.timeline[bad]
       const t = r.title.trim()
-      e.timeline = !t
+      e.timeline = !r.time
+        ? `${bad + 1}번째 줄 시간을 골라 주세요.`
+        : !t
         ? `${bad + 1}번째 줄에 할 일을 적어 주세요.`
         : t.length > TIMELINE_TITLE_MAX
           ? `${bad + 1}번째 줄을 ${TIMELINE_TITLE_MAX}자 안으로 줄여 주세요.`
@@ -179,7 +171,6 @@ export default function MeetupForm({ event, meetup }) {
   const [savedImage, setSavedImage] = useState(meetup?.imageUrl || '') // 수정 — 이미 올린 사진 경로
   const ended = eventStatus(event).tone === 'closed'
   const openable = editing || canOpenMeetup(event)
-  const hint = form._hint
   const minCapacity = Math.max(2, meetup?.approvedCount || 0) // 승인된 인원보다 적게 못 줄임
   const backTo = editing ? `/meetup/${meetup._id}` : `/event/${event._id}`
 
@@ -201,7 +192,7 @@ export default function MeetupForm({ event, meetup }) {
   // 만들기 '다음' — 지금 스텝 칸만 확인
   const next = (e) => {
     e.preventDefault()
-    const found = pickErrors(validate(form, event), STEPS[step].fields)
+    const found = pickErrors(validate(form), STEPS[step].fields)
     setErrors((x) => ({ ...x, ...found }))
     if (Object.keys(found).length > 0) return focusFirstError()
     setStep(step + 1)
@@ -215,6 +206,10 @@ export default function MeetupForm({ event, meetup }) {
     })
     if (errors[key]) setErrors((e) => ({ ...e, [key]: undefined }))
   }
+
+  // 이야기 자리 시각 — 날짜(달력)와 시각(입력칸)을 따로 바꾼다. 폼 값은 'YYYY-MM-DDTHH:mm' 하나
+  const setTalkDate = (d) => set('talkStart', `${toLocalInput(d).slice(0, 10)}T${form.talkStart.slice(11, 16) || '19:00'}`)
+  const setTalkTime = (t) => t && set('talkStart', `${form.talkStart.slice(0, 10)}T${t}`)
 
   // 장소 — PlaceSearch 가 { place, address, location, lotAddress? } 를 준다.
   // '목록에 보일 동네'는 직접 고치기 전까지 자동: 좌표가 있으면 가장 가까운 역(GET /api/nearby),
@@ -254,7 +249,7 @@ export default function MeetupForm({ event, meetup }) {
 
   const submit = async (e) => {
     e.preventDefault()
-    const found = validate(form, event)
+    const found = validate(form)
     setErrors(found)
     if (Object.keys(found).length > 0) {
       // 첫 오류 칸으로 이동 (만들기는 그 칸이 있는 스텝으로 먼저)
@@ -476,15 +471,20 @@ export default function MeetupForm({ event, meetup }) {
       </fieldset>
 
       <fieldset className="form-group">
-        {/* 이름은 '이야기 자리 시각' 하나 — 제목(legend)과 입력칸 라벨이 따로 보이면 같은 걸 두 번 부른다 */}
         <legend>이야기 자리 시각</legend>
         <EventTimeNote event={event} />
+        {/* 날짜는 월 달력에서, 시각은 아래 칸에서 — 월 달력엔 시간 칸이 없다 */}
         <Suspense fallback={<div className="talk-cal talk-cal--loading">달력 불러오는 중…</div>}>
-          <TalkCalendar event={event} value={form.talkStart} onChange={(d) => set('talkStart', toLocalInput(d))} />
+          <TalkCalendar event={event} value={form.talkStart} onPickDate={setTalkDate} />
         </Suspense>
-        <div className="form-grid form-grid--2">
-          <Field label="이야기 자리 시각" hideLabel error={errors.talkStart} hint={talkStartHint(form, hint)}>
-            <input type="datetime-local" className="input" value={form.talkStart} onChange={(e) => set('talkStart', e.target.value)} />
+        <div className="talk-when">
+          <div className="talk-when__day">
+            <span className="talk-when__label">고른 날</span>
+            <strong>{talkStartDate ? `${formatMonthDay(talkStartDate)} (${formatWeekday(talkStartDate)})` : '날짜 미선택'}</strong>
+            <span className="talk-when__bands">{dayBandsText(event, talkStartDate)}</span>
+          </div>
+          <Field label="시각" error={errors.talkStart} hint={talkStartHint(form)} className="talk-when__time">
+            <input type="time" className="input" value={form.talkStart.slice(11, 16)} onChange={(e) => setTalkTime(e.target.value)} />
           </Field>
         </div>
       </fieldset>
