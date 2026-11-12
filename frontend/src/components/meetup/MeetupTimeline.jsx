@@ -24,9 +24,13 @@ export default function MeetupTimeline({ meetup }) {
       <ol className="timeline">
         {items.map((it, i) => (
           <li key={i} className={`timeline__item timeline__item--${it.who}`}>
-            <time className="timeline__time" dateTime={it.at}>
-              {formatTime(it.at)}
-            </time>
+            {it.at ? (
+              <time className="timeline__time" dateTime={it.at}>
+                {formatTime(it.at)}
+              </time>
+            ) : (
+              <span className="timeline__time timeline__time--none">먼저</span>
+            )}
             <span className="timeline__dot" aria-hidden="true" />
             <div className="timeline__card">
               <span className="timeline__who">{WHO_LABEL[it.who]}</span>

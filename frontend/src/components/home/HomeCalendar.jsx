@@ -46,7 +46,8 @@ export default function HomeCalendar() {
   const { from, to, preset } = selection
   const rangeKey = `${from}~${to}`
 
-  const events = useAsync(() => fetchEvents({ from, to }), [rangeKey])
+  // 고른 날짜 범위라 건수가 적다. 아래에서 화면 쪽으로 다시 나누므로 서버 상한만큼 한 번에 받는다
+  const events = useAsync(() => fetchEvents({ from, to, limit: 50 }), [rangeKey])
   const meetups = useAsync(() => fetchMeetups({ from, to }), [rangeKey])
 
   // 달력의 점 — 그 달에 모임이 있는 날 (시작 전 모임만)
@@ -63,7 +64,7 @@ export default function HomeCalendar() {
     setMonth(firstOfMonth(new Date(`${next.from}T00:00:00`)))
   }
 
-  const list = events.data || []
+  const list = events.data?.events || []
   const pageCount = Math.max(1, Math.ceil(list.length / PAGE_SIZE))
   // 고른 날짜가 바뀌면 첫 쪽부터
   const pageIndex = page.key === rangeKey ? Math.min(page.index, pageCount - 1) : 0
@@ -131,7 +132,7 @@ export default function HomeCalendar() {
         <div className="home-cal__head">
           <span className="home-cal__title">{title}</span>
           <span className="home-cal__counts">
-            <MetaLine items={[`행사 ${events.data?.length ?? '-'}`, `모임 ${meetups.data?.length ?? '-'}`]} />
+            <MetaLine items={[`행사 ${events.data?.total ?? '-'}`, `모임 ${meetups.data?.length ?? '-'}`]} />
           </span>
           <span className="spacer" />
           {preset && (
@@ -141,7 +142,7 @@ export default function HomeCalendar() {
           )}
         </div>
 
-        <DataState loading={events.loading && !events.data} error={events.error} empty={events.data?.length === 0} emptyText="이 날 열리는 행사가 없어요">
+        <DataState loading={events.loading && !events.data} error={events.error} empty={events.data?.total === 0} emptyText="이 날 열리는 행사가 없어요">
           <div className={`home-cal__grid${events.loading ? ' is-refreshing' : ''}`}>
             {list.slice(pageIndex * PAGE_SIZE, (pageIndex + 1) * PAGE_SIZE).map((e) => (
               <EventCard key={e._id} event={e} />

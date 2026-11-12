@@ -2,6 +2,12 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { setMeetupStatus } from '../../data/meetups'
 
+// 취소 확인 문구 — 깎이기 전에 알린다. hadMembers = 승인한 적 있는지 (서버 감점 기준과 같다)
+const cancelAsk = (meetup) =>
+  meetup.hadMembers
+    ? '모임을 취소할까요?\n\n참여자를 받은 모임이라 매너 점수가 5점 깎여요. 지금 취소하면 참여자가 다른 모임을 찾을 시간이 있어요.\n되돌릴 수 없고, 목록에서도 빠져요.'
+    : '모임을 취소할까요? 취소하면 되돌릴 수 없고, 목록에서도 빠져요.'
+
 // 수정 페이지 아래 — 모집 마감 · 다시 열기 · 모임 취소
 export default function MeetupStatusActions({ meetup }) {
   const navigate = useNavigate()
@@ -10,7 +16,7 @@ export default function MeetupStatusActions({ meetup }) {
   const closed = meetup.status === 'closed'
 
   const change = async (status) => {
-    if (status === 'cancelled' && !window.confirm('모임을 취소할까요? 취소하면 되돌릴 수 없고, 목록에서도 빠져요.')) return
+    if (status === 'cancelled' && !window.confirm(cancelAsk(meetup))) return
     setBusy(status)
     setError(null)
     try {

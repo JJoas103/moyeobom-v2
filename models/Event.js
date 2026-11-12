@@ -48,5 +48,7 @@ const eventSchema = new mongoose.Schema(
 eventSchema.index({ 'source.name': 1, 'source.id': 1 }, { unique: true });
 eventSchema.index({ category: 1, endDate: 1 });
 
-module.exports = mongoose.model('Event', eventSchema);
+// ⚠ 컬렉션 이름은 클러스터마다 다르다 — 팀 클러스터는 'events'(v2 데이터).
+//   개인 클러스터는 'events' 에 v1 행사(스키마 다름)가 있어 'events_v2' 를 써야 한다
+module.exports = mongoose.model('Event', eventSchema, 'events');
 module.exports.CATEGORIES = CATEGORIES;

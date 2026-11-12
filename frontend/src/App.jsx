@@ -12,6 +12,7 @@ import meetupRoutes from './pages/meetup/routes'
 import memberRoutes from './pages/member/routes'
 import friendRoutes from './pages/friends/routes'
 import chatRoutes from './pages/chat/routes'
+import adminRoutes from './pages/admin/routes'
 import { useAuth } from './context/AuthContext'
 
 function App() {
@@ -31,6 +32,7 @@ function App() {
           <Route path="member" element={<Outlet />}>{memberRoutes}</Route>
           <Route path="friends" element={<Outlet />}>{friendRoutes}</Route>
           <Route path="chat" element={<Outlet />}>{chatRoutes}</Route>
+          <Route path="admin" element={<Outlet />}>{adminRoutes}</Route>
           <Route
             path="my/meetups"
             element={

@@ -69,6 +69,25 @@ export function ChevronDownIcon({ size = 14 }) {
   )
 }
 
+// 점수가 오르고 내린 방향 (PraiseTab Delta) — 쉐브론은 '펼치기/접기' 뜻이라 대가 있는 화살표를 쓴다
+export function ArrowUpIcon({ size = 12 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base}>
+      <path d="M12 19V6" />
+      <path d="M6 12l6-6 6 6" />
+    </svg>
+  )
+}
+
+export function ArrowDownIcon({ size = 12 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base}>
+      <path d="M12 5v13" />
+      <path d="M6 12l6 6 6-6" />
+    </svg>
+  )
+}
+
 export function TagIcon({ size = 18 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" {...base}>

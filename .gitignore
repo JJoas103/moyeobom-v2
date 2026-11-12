@@ -8,3 +8,6 @@ public/images/upload/*
 !public/images/upload/.gitkeep
 .DS_Store
 *.log
+
+# 데모용 더미 신고를 지우는 임시 메모 (로컬 전용)
+/신고더미_지우기.txt

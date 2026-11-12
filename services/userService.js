@@ -2,13 +2,14 @@ const fs = require('fs');
 const path = require('path');
 const bcrypt = require('bcrypt');
 const User = require('../models/User');
+const { MANNER_BASE } = require('../models/User');
 
 const SALT_ROUNDS = 10;
 const PROFILE_DIR = path.join(__dirname, '..', 'public', 'images', 'profile');
 
 const nicknameDuplicate = () => Object.assign(new Error('이미 쓰고 있는 닉네임이에요'), { code: 'NICKNAME_DUPLICATE' });
 
-/** 클라이언트에 보낼 필드만 (password 제외) */
+/** 내 정보 — 클라이언트에 보낼 필드만 (password 제외) */
 function toPublicUser(user) {
   return {
     _id: user._id.toString(),
@@ -16,8 +17,11 @@ function toPublicUser(user) {
     nickname: user.nickname,
     profileImage: user.profileImage,
     provider: user.provider,
+    role: user.role || 'user', // 'admin' 이면 헤더에 관리자 메뉴가 보인다 (판단은 서버 단독)
     tastes: user.tastes || [],
     districts: user.districts || [],
+    // 매너 점수 — 가입 직후부터 50 으로 보인다. 왜 그 숫자인지는 마이페이지 이력이 설명한다
+    manner: { score: user.manner?.score ?? MANNER_BASE },
   };
 }
 

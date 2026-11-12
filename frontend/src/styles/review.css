@@ -230,7 +230,7 @@
   cursor: pointer;
 }
 
-.person-card:has(input:focus-visible) {
+.person-card:not(.person-card--rate):has(input:focus-visible) {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
@@ -259,16 +259,86 @@
   flex-shrink: 0;
 }
 
-/* ① 칭찬 — 그린 */
-.person-card--praise.is-on {
+/* ① 매너 평가 — 사람마다 3지 선택. 기본값 '보통이에요'라 고르지 않아도 카드는 중립이다 */
+.person-card--rate {
+  padding: 20px 12px 14px;
+  margin: 0; /* fieldset 기본값 지우기 */
+  gap: 10px;
+  cursor: default; /* 카드가 아니라 안쪽 항목을 누른다 */
+}
+
+.person-card--rate.is-good {
   border: 2px solid var(--brand);
-  padding: 27px 15px 19px;
+  padding: 19px 11px 13px;
   background: var(--primary-soft);
 }
 
-.person-card--praise.is-on .person-card__mark {
+.person-card--rate.is-low {
+  border: 2px solid var(--cat-stage);
+  padding: 19px 11px 13px;
+  background: var(--danger-soft);
+}
+
+.manner-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+.manner-choice__item {
+  padding: 7px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-body);
+  text-align: center;
+  cursor: pointer;
+}
+
+.manner-choice__item:hover {
+  border-color: var(--line-field);
+}
+
+.manner-choice__item:has(input:focus-visible) {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* 고른 것만 색이 들어간다 — 누를 곳은 그린 하나, 아쉬웠어요만 기존 위험색(--cat-stage) */
+.manner-choice__item--good:has(input:checked) {
+  border-color: var(--brand);
   background: var(--primary);
   color: var(--on-fill);
+}
+
+.manner-choice__item--normal:has(input:checked) {
+  border-color: var(--line-strong);
+  background: var(--bg-muted);
+  color: var(--text);
+}
+
+.manner-choice__item--low:has(input:checked) {
+  border-color: var(--cat-stage);
+  background: var(--cat-stage);
+  color: var(--on-fill);
+}
+
+/* '아쉬웠어요'를 골랐을 때만 — 점수로 다루지 않는 일은 신고가 받는다 */
+.review-report-hint {
+  padding: 12px 14px;
+  border-radius: var(--radius-lg);
+  background: var(--bg-muted);
+  font-size: 14px;
+  color: var(--text-body);
+}
+
+.review-report-hint a {
+  font-weight: 700;
+  color: var(--primary);
+  text-decoration: underline;
 }
 
 /* ② 또 만나고 싶어요 — 비공개라 글자색 */

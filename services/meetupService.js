@@ -7,18 +7,20 @@ const User = require('../models/User');
 const Review = require('../models/Review');
 const Friendship = require('../models/Friendship');
 const { BUDGETS } = require('../models/Meetup');
-const { periodRange, dayRange, RECENT_ENDED_DAYS } = require('./eventService');
+const { periodRange, dayRange, recentEndedFrom } = require('./eventService');
 const chatService = require('./chatService');
+const mannerService = require('./mannerService');
 const notificationService = require('./notificationService');
+const { publicUser, PUBLIC_USER_FIELDS } = require('./publicUser');
 const { sideEffect } = require('./sideEffect');
-const { reviewWindow } = require('./socialRules');
+const { reviewWindow, watchApplyOpen } = require('./socialRules');
 
 // 모임 — 응답 모양은 frontend/src/data/meetups.js 맨 위 주석 기준
-// members · talk.place 는 호스트 · 승인된 참여자 전용
+// members · talk.place · talk.address · talk.location 은 호스트 · 승인된 참여자 전용
 
-const DAY = 24 * 60 * 60 * 1000;
-const TIMELINE_TITLE_MAX = 30; // 타임라인 '모두' 칸 제목
-const MEET_BEFORE_MS = 20 * 60 * 1000; // 관람 회차 20분 전 만남 (프론트가 안 보내면 서버 계산)
+const TIMELINE_TITLE_MAX = 30; // 타임라인 줄 제목
+const TIMELINE_ROWS_MAX = 5; // 호스트가 쓰는 줄 (첫 줄 제외)
+const TIMELINE_HOURS = 12; // 이야기 자리 시작에서 이 시간 안의 줄만
 const IMAGE_PATH = /^\/images\/upload\/[\w.-]+$/; // 우리 서버에 올린 사진만
 
 // 모임 응답에 붙이는 행사 필드
@@ -35,13 +37,10 @@ const fieldError = (fieldErrors) =>
 const idEq = (a, b) => Boolean(a && b) && String(a) === String(b);
 const approvedCountOf = (doc) => (doc.members || []).filter((m) => m.status === 'approved').length;
 
-/** 이 행사로 지금 모임을 열 수 있는지 — 끝난 지 RECENT_ENDED_DAYS 일까지 (프론트 utils/event.js canOpenMeetup 과 같게) */
-const canOpenMeetup = (event, now) => !event.endDate || now - new Date(event.endDate) <= RECENT_ENDED_DAYS * DAY;
+/** 이 행사로 지금 모임을 열 수 있는지 — 끝난 지 RECENT_ENDED_DAYS 일(날짜)까지 (프론트 utils/event.js canOpenMeetup 과 같게) */
+const canOpenMeetup = (event, now) => !event.endDate || new Date(event.endDate) >= recentEndedFrom(now);
 
 // ---------- 응답 만들기 ----------
-// sideEffect 는 services/sideEffect.js 로 옮겼다 (알림 · 채팅 곁가지를 여러 서비스가 함께 쓴다)
-
-const publicUser = (user) => (user ? { _id: String(user._id), nickname: user.nickname, profileImage: user.profileImage || '' } : null);
 
 /**
  * 모임 문서 → API 응답
@@ -53,18 +52,22 @@ function serialize(doc, { events, users, hostedCounts, viewerId, withMembers = f
   const approved = mine?.status === 'approved';
   const canSeePrivate = isHost || approved;
 
-  const { members = [], talk, host, event, __v, ...rest } = doc;
+  // approvedEver 는 내려주지 않는다 (서버 판정용) — 호스트에게만 아래 hadMembers 로 알린다
+  const { members = [], talk, host, event, __v, approvedEver = 0, ...rest } = doc;
   const response = {
     ...rest,
     talk: {
       startAt: talk.startAt,
       area: talk.area,
       startTitle: talk.startTitle,
-      ...(canSeePrivate && { place: talk.place }),
+      ...(canSeePrivate && { place: talk.place, address: talk.address, location: talk.location }),
     },
     event: pick(events.get(String(event)), EVENT_FIELDS),
     host: users.get(String(host)) ? { ...publicUser(users.get(String(host))), hostedCount: hostedCounts.get(String(host)) || 0 } : null,
     approvedCount: approvedCountOf(doc),
+    // 승인한 적 있는지 — **호스트에게만.** 취소 팝업이 감점(-5)을 미리 알리는 데 쓴다.
+    // 전원 내보낸 뒤에도 true 라서 approvedCount 와 다를 수 있다 (그게 이 값을 두는 이유다)
+    ...(isHost && { hadMembers: approvedEver > 0 }),
     isHost,
     myMembership: mine ? { status: mine.status, joinType: mine.joinType } : null,
     review: reviewWindow(talk.startAt), // { opensAt, closesAt } — 평가 기한 (모임 채팅도 closesAt 에 읽기 전용)
@@ -94,7 +97,7 @@ async function loadContext(docs, { withMembers }) {
 
   const [events, users, counts] = await Promise.all([
     Event.find({ _id: { $in: eventIds } }).lean(),
-    User.find({ _id: { $in: userIds } }, { nickname: 1, profileImage: 1 }).lean(),
+    User.find({ _id: { $in: userIds } }, PUBLIC_USER_FIELDS).lean(), // manner 포함 — publicUser 와 짝
     Meetup.aggregate([
       { $match: { host: { $in: hostIds.map((id) => new mongoose.Types.ObjectId(id)) } } },
       { $group: { _id: '$host', n: { $sum: 1 } } },
@@ -246,33 +249,41 @@ function buildMeetup(body, event, now) {
   if (!startAt) e.talkStart = '만나는 날짜와 시각을 골라 주세요.';
   else if (startAt <= now) e.talkStart = '지금보다 뒤의 시각으로 골라 주세요.';
   const place = text(talk.place);
+  const address = text(talk.address);
   const area = text(talk.area);
   if (!place) e.place = '만날 장소를 적어 주세요.';
-  if (!area) e.area = '목록에 보일 동네를 적어 주세요. 예: 혜화역 근처';
-  const startTitle = text(talk.startTitle);
-  if (!startTitle) e.startTitle = '만나서 할 일을 적어 주세요.';
-  else if (startTitle.length > TIMELINE_TITLE_MAX) e.startTitle = `${TIMELINE_TITLE_MAX}자 안으로 줄여 주세요.`;
+  if (!area) e.area = '목록에 보일 동네를 적어 주세요.';
+  const lat = Number(talk.location?.lat);
+  const lng = Number(talk.location?.lng);
+  const location = Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180 ? { lat, lng } : undefined;
+
+  // 타임라인 — 이야기 자리 시작 뒤 TIMELINE_HOURS 안, 줄마다 할 일 필수 (프론트 MeetupForm validate 와 같게)
+  const rows = Array.isArray(body.timeline) ? body.timeline : [];
+  const timeline = rows.map((r) => ({ at: toDate(r?.at), title: text(r?.title) }));
+  if (timeline.length > TIMELINE_ROWS_MAX) e.timeline = `타임라인은 ${TIMELINE_ROWS_MAX}줄까지 쓸 수 있어요.`;
+  else if (startAt) {
+    const limit = startAt.getTime() + TIMELINE_HOURS * 60 * 60 * 1000;
+    const bad = timeline.findIndex((r) => !r.title || r.title.length > TIMELINE_TITLE_MAX || !r.at || r.at <= startAt || r.at > limit);
+    if (bad >= 0) {
+      const r = timeline[bad];
+      e.timeline = !r.title
+        ? `${bad + 1}번째 줄에 할 일을 적어 주세요.`
+        : r.title.length > TIMELINE_TITLE_MAX
+          ? `${bad + 1}번째 줄을 ${TIMELINE_TITLE_MAX}자 안으로 줄여 주세요.`
+          : `${bad + 1}번째 줄은 이야기 자리 시작 뒤 ${TIMELINE_HOURS}시간 안으로 골라 주세요.`;
+    }
+  }
+  timeline.sort((a, b) => a.at - b.at);
 
   if (!BUDGETS.includes(body.budget)) e.budget = '예산을 골라 주세요.';
   const capacity = Number(body.capacity);
   if (!Number.isInteger(capacity) || capacity < 2 || capacity > 10) e.capacity = '정원은 2~10명으로 골라 주세요.';
 
-  // 관람도 함께
-  const watchIn = body.watch || {};
-  let watch = { enabled: false };
-  if (watchIn.enabled) {
-    const ended = event.endDate && new Date(event.endDate) < now;
-    const sessionAt = toDate(watchIn.sessionAt);
-    const meetPlace = text(watchIn.meetPlace);
-    if (ended) e.sessionAt = '이미 끝난 행사라 이야기 자리만 열 수 있어요.';
-    else if (!sessionAt) e.sessionAt = '관람 회차 시각을 골라 주세요.';
-    else if (sessionAt <= now) e.sessionAt = '지금보다 뒤의 회차로 골라 주세요.';
-    else if (startAt && sessionAt >= startAt) e.sessionAt = '관람은 이야기 자리보다 먼저여야 해요.';
-    else if (event.endDate && sessionAt > new Date(event.endDate)) e.sessionAt = '행사 기간이 지난 회차예요.';
-    if (!meetPlace) e.meetPlace = '관람 전에 만날 곳을 적어 주세요.';
-
-    const meetAt = toDate(watchIn.meetAt) || (sessionAt && new Date(sessionAt.getTime() - MEET_BEFORE_MS));
-    watch = { enabled: true, sessionAt, meetAt, meetPlace };
+  // 관람도 함께 — 받을지 말지만 (회차는 승인 뒤 채팅에서). 수정하면 옛 sessionAt · meetAt · meetPlace 도 지워진다
+  const watch = { enabled: false };
+  if (body.watch?.enabled) {
+    if (event.endDate && new Date(event.endDate) < now) e.watch = '이미 끝난 행사라 이야기 자리만 열 수 있어요.';
+    watch.enabled = true;
   }
 
   if (Object.keys(e).length) throw fieldError(e);
@@ -282,7 +293,8 @@ function buildMeetup(body, event, now) {
     title,
     intro,
     imageUrl,
-    talk: { startAt, place, area, startTitle },
+    talk: { startAt, place, address: address || undefined, location, area },
+    timeline,
     alcohol: body.alcohol === true || body.alcohol === 'true',
     budget: body.budget,
     capacity,
@@ -330,7 +342,7 @@ async function updateMeetup(id, hostId, body) {
   const event = await Event.findById(doc.event).lean();
   if (!event) throw httpError(404, '행사를 찾을 수 없습니다');
 
-  const { title, intro, imageUrl, talk, alcohol, budget, capacity, watch } = buildMeetup(body, event, now);
+  const { title, intro, imageUrl, talk, timeline, alcohol, budget, capacity, watch } = buildMeetup(body, event, now);
   const approved = approvedCountOf(doc);
   if (capacity < approved) throw fieldError({ capacity: `이미 승인한 ${approved}명보다 적게 줄일 수 없어요.` });
 
@@ -347,7 +359,7 @@ async function updateMeetup(id, hostId, body) {
         ],
       },
     },
-    { $set: { title, intro, imageUrl, talk, alcohol, budget, capacity, watch } },
+    { $set: { title, intro, imageUrl, talk, timeline, alcohol, budget, capacity, watch } },
     { new: true }
   );
   if (!updated) throw httpError(409, '수정하지 못했어요. 새로고침 후 다시 시도해 주세요');
@@ -375,6 +387,9 @@ async function setMeetupStatus(id, hostId, status) {
   if (status === 'cancelled') {
     await sideEffect('방 닫기', () => chatService.closeMeetupRoom(doc._id));
     await sideEffect('취소 알림', () => notificationService.meetupCancelled(doc));
+    // 승인한 적 있는 모임을 엎었을 때만 감점 — 지금 인원이 아니라 approvedEver 로 본다
+    // (지금 인원으로 보면 전원 내보낸 뒤 취소해 -5 를 피할 수 있다)
+    if ((doc.approvedEver || 0) > 0) await sideEffect('취소 감점', () => mannerService.hostCancelled(hostId, doc));
   }
   return getMeetup(doc._id, hostId);
 }
@@ -394,7 +409,7 @@ async function applyMeetup(id, userId, joinType) {
   if (!['watch', 'talk'].includes(joinType)) throw httpError(400, '참여 방식을 골라 주세요');
   if (joinType === 'watch') {
     if (!doc.watch?.enabled) throw httpError(400, '관람 동행을 받지 않는 모임이에요');
-    if (doc.watch.sessionAt && new Date(doc.watch.sessionAt) <= now) throw httpError(400, '관람 회차가 지나 이야기 자리만 신청할 수 있어요');
+    if (!watchApplyOpen(doc.talk.startAt, now)) throw httpError(400, '관람 동행 신청은 전날까지예요. 이야기 자리만 신청할 수 있어요');
   }
 
   const userObjectId = new mongoose.Types.ObjectId(String(userId));
@@ -412,6 +427,7 @@ async function applyMeetup(id, userId, joinType) {
   // 위에서 확인한 사이에 다른 요청이 먼저 바꾼 경우
   if (!updated) throw httpError(409, '신청하지 못했어요. 새로고침 후 다시 시도해 주세요');
 
+  // 신청 · 승인으로는 점수가 움직이지 않는다
   await sideEffect('신청 알림', () => notificationService.meetupApplied(doc, userId));
   return { status: 'pending', joinType };
 }
@@ -437,13 +453,15 @@ async function approveMember(id, hostId, memberUserId) {
       members: { $elemMatch: { user: memberObjectId, status: 'pending' } },
       $expr: notFullExpr,
     },
-    { $set: { 'members.$.status': 'approved', 'members.$.approvedAt': new Date() } },
+    // approvedEver 는 같은 수정 문서에서 올린다 — 쿼리를 따로 두면 동시 승인 두 건이 카운터를 흘린다
+    { $set: { 'members.$.status': 'approved', 'members.$.approvedAt': new Date() }, $inc: { approvedEver: 1 } },
     { new: true }
   );
   if (!updated) throw httpError(409, '승인하지 못했어요. 새로고침 후 다시 시도해 주세요');
 
   await sideEffect('참여자 들이기', () => chatService.addMeetupMember(updated.toObject(), memberUserId));
   await sideEffect('승인 알림', () => notificationService.meetupApproved(doc, memberUserId));
+  // 승인에는 점수 변동이 없다 — 참석을 확인할 수 없어 참여 가점은 두지 않는다
   return getMeetup(doc._id, hostId);
 }
 
@@ -508,6 +526,9 @@ async function leaveMeetup(id, userId) {
   await Meetup.updateOne({ _id: doc._id }, { $pull: { members: { user: userObjectId } } });
   if (member.status === 'approved') {
     await sideEffect('참여자 내보내기', () => chatService.removeMeetupMember(doc._id, userId));
+    // 확정됐던 자리를 비운 것만 감점 — 신청 중 취소는 변동 0 (아무 자리도 비우지 않았다).
+    // members 에서 $pull 로 지워지므로 이 순간에 기록해야 한다
+    await sideEffect('취소 감점', () => mannerService.left(userId, doc));
   }
   await sideEffect('취소 알림', () => notificationService.meetupLeft(doc, userId));
   return getMeetup(doc._id, userId);

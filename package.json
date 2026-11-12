@@ -10,7 +10,13 @@
     "sync:events": "node scripts/syncEvents.js",
     "sync:places": "node scripts/syncPlaces.js",
     "review:daily": "node scripts/runReviewDaily.js",
-    "migrate:report-index": "node scripts/dropReportUniqueIndex.js"
+    "seed:test": "node scripts/seedTestData.js",
+    "seed:sanction": "node scripts/seedSanction.js",
+    "manner:check": "node scripts/checkMannerLedger.js",
+    "admin:grant": "node scripts/grantAdmin.js",
+    "db:sync-indexes": "node scripts/syncIndexes.js",
+    "migrate:report-index": "node scripts/dropReportUniqueIndex.js",
+    "migrate:approved-ever": "node scripts/backfillApprovedEver.js"
   },
   "engines": {
     "node": ">=22"

@@ -106,6 +106,61 @@
   gap: 12px;
 }
 
+/* ① 목록 탭 — 섹션 제목 자리에 나란히 (지금 열려 있는 · 찜한 · 최근 끝난) */
+.pick-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.pick-tabs__tab {
+  position: relative;
+  min-height: 44px;
+  padding: 0 0 12px;
+  border: none;
+  background: transparent;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text-sub);
+}
+
+.pick-tabs__tab:hover {
+  color: var(--text);
+}
+
+.pick-tabs__tab.is-active {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.pick-tabs__tab.is-active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--text);
+}
+
+.pick-tabs__count {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-sub);
+}
+
+.pick-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 .section-head__hint {
   font-size: 13px;
   color: var(--text-sub);
@@ -404,20 +459,405 @@
   min-width: 0;
 }
 
-.create-form__head {
+/* 만들기 스텝 머리 — '2 / 3' · 제목 · 한 줄 설명 */
+.form-step-head {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  padding-bottom: 14px;
+  flex-direction: column;
+  gap: 6px;
+  padding-bottom: 16px;
   border-bottom: 1px solid var(--line);
+}
+
+.form-step-head__count {
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--primary);
+}
+
+.form-step-head h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.form-step-head p {
+  margin: 0;
   font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-body);
+}
+
+/* 수정 — 스텝 대신 섹션을 한 페이지에 */
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.form-section + .form-section {
+  padding-top: 32px;
+  border-top: 1px solid var(--line);
+}
+
+.form-section__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* 입력칸 + 그 아래 '이렇게 보여요' 미리보기 한 묶음 */
+.field-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.field-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--bg-muted);
+}
+
+.field-preview__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-sub);
+}
+
+.field-preview__label svg {
+  width: 14px;
+  height: 14px;
+}
+
+.field-preview__body {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  font-size: 15px;
+  color: var(--text);
+}
+
+.field-preview__time {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.field-preview__dot {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  border-radius: var(--radius-pill);
+  background: var(--primary);
+}
+
+.field-preview__who {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-sub);
+}
+
+.field-preview__text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-weight: 600;
 }
 
-.create-form__head-sub {
-  font-size: 13px;
-  font-weight: 400;
+.field-preview__text.is-empty {
+  font-weight: 500;
+  color: var(--text-disabled);
+}
+
+/* 라벨 오른쪽 '누구에게 보이는지' */
+.field__scope {
+  margin-left: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 500;
   color: var(--text-sub);
+}
+
+.field__scope svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* ④ 이야기 자리 장소 — 카카오맵 검색 (PlaceSearch) */
+.place-search {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.place-search__note {
+  font-size: 13px;
+  color: var(--text-sub);
+}
+
+.place-results {
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-hover);
+}
+
+.place-results__item {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.place-results__item:hover,
+.place-results__item:focus-visible {
+  background: var(--bg-muted);
+}
+
+.place-results__item strong {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.place-results__item span {
+  font-size: 13px;
+  color: var(--text-sub);
+}
+
+.place-results__empty {
+  padding: 12px;
+  font-size: 14px;
+  color: var(--text-sub);
+}
+
+.place-pick {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--line-field);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.place-pick > svg {
+  flex-shrink: 0;
+  color: var(--text-sub);
+}
+
+.place-pick__text {
+  flex-grow: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.place-pick__text strong {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.place-pick__text span {
+  font-size: 13px;
+  color: var(--text-sub);
+}
+
+.place-pick__change {
+  flex-shrink: 0;
+}
+
+/* ④ 타임라인 편집 (TimelineEditor) — 모임 상세 .timeline 과 같은 칸(시각 · 점 · 카드) */
+.tl-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tl-edit__list {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* 세로 선 — 시각(112) + 간격(12) + 점 칸 가운데(10) - 선 두께 절반 */
+.tl-edit__list::before {
+  content: '';
+  position: absolute;
+  left: 133px;
+  top: 22px;
+  bottom: 22px;
+  width: 2px;
+  background: var(--line);
+}
+
+.tl-edit__row {
+  display: grid;
+  grid-template-columns: 112px 20px minmax(0, 1fr);
+  column-gap: 12px;
+  align-items: center;
+}
+
+.tl-edit__time {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 시간 고르기 — 칸 어디를 눌러도 목록이 열린다 (select) */
+.tl-edit__time-select {
+  width: 100%;
+  height: 44px;
+  padding: 0 10px;
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.tl-edit__time-select.is-empty {
+  font-weight: 500;
+  color: var(--text-sub);
+}
+
+.tl-edit__next {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-sub);
+}
+
+.tl-edit__dot {
+  position: relative;
+  z-index: 1;
+  justify-self: center;
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-pill);
+  background: var(--brand);
+  box-shadow: 0 0 0 4px var(--primary-soft);
+}
+
+.tl-edit__card {
+  min-height: 44px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--primary-highlight);
+  background: var(--primary-soft);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 8px;
+  row-gap: 2px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.tl-edit__who {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.tl-edit__lock {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-sub);
+}
+
+/* 고정 줄 — 시각은 '언제'에서 정한다 */
+.tl-edit__row--fixed .tl-edit__time {
+  color: var(--text-body);
+}
+
+.tl-edit__row--watch .tl-edit__time {
+  font-size: 13px;
+  color: var(--text-sub);
+}
+
+.tl-edit__row--watch .tl-edit__dot {
+  border: 2px solid var(--text-body);
+  background: var(--bg);
+  box-shadow: none;
+}
+
+.tl-edit__row--watch .tl-edit__card {
+  border-color: var(--line);
+  background: var(--surface);
+  font-weight: 500;
+}
+
+.tl-edit__row--watch .tl-edit__who {
+  color: var(--text-sub);
+}
+
+/* 호스트가 쓰는 줄 — 카드 안에 입력칸 */
+.tl-edit__card--input {
+  padding: 4px 4px 4px 6px;
+  flex-wrap: nowrap;
+  background: var(--surface);
+}
+
+.tl-edit__card--input .input {
+  flex-grow: 1;
+  border-color: transparent;
+}
+
+.tl-edit__remove {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-sub);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.tl-edit__remove:hover {
+  background: var(--bg-muted);
+  color: var(--text);
+}
+
+.tl-edit__foot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-left: 144px; /* 시각 + 점 칸만큼 — 카드와 줄을 맞춘다 */
 }
 
 .form-stack {
@@ -452,6 +892,260 @@
 
 .form-group--box legend {
   padding: 0 6px;
+}
+
+/* 이야기 자리 시각 위 — 행사 회차(운영 시간) 참고 */
+.talk-ref {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  background: var(--bg-muted);
+  color: var(--text-sub);
+}
+
+.talk-ref > svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.talk-ref__body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.talk-ref__list {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.talk-ref__list div {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+}
+
+.talk-ref__list dd {
+  margin: 0;
+  color: var(--text);
+  font-weight: 500;
+}
+
+/* 이야기 자리 날짜 달력 (TalkCalendar · FullCalendar dayGrid 월간) — 색은 전부 토큰에서 */
+.talk-cal {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  --fc-border-color: var(--line);
+  --fc-page-bg-color: var(--surface);
+  --fc-neutral-bg-color: var(--bg-muted);
+  --fc-today-bg-color: transparent;
+  --fc-now-indicator-color: var(--cat-stage);
+  --fc-button-text-color: var(--text);
+  --fc-button-bg-color: var(--surface);
+  --fc-button-border-color: var(--line-field);
+  --fc-button-hover-bg-color: var(--bg-muted);
+  --fc-button-hover-border-color: var(--line-field);
+  --fc-button-active-bg-color: var(--bg-track);
+  --fc-button-active-border-color: var(--line-field);
+}
+
+.talk-cal--loading {
+  height: 560px;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  background: var(--bg-muted);
+  font-size: 14px;
+  color: var(--text-sub);
+}
+
+.talk-cal__legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  font-size: 13px;
+  color: var(--text-body);
+}
+
+.talk-cal__key {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.talk-cal__swatch {
+  width: 22px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.talk-cal__swatch--session {
+  background: var(--marker);
+}
+
+.talk-cal__swatch--open {
+  background: var(--marker-soft);
+  box-shadow: inset 0 0 0 1px var(--marker);
+}
+
+.talk-cal__swatch--pick {
+  background: var(--primary-soft);
+  box-shadow: inset 0 0 0 2px var(--primary);
+}
+
+.talk-cal__tip {
+  margin-left: auto;
+  color: var(--text-sub);
+}
+
+.talk-cal__note {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--status-soon-soft);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--status-soon);
+}
+
+.talk-cal .fc {
+  font-size: 13px;
+}
+
+.talk-cal .fc .fc-toolbar.fc-header-toolbar {
+  margin-bottom: 10px;
+}
+
+.talk-cal .fc .fc-toolbar-title {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.talk-cal .fc .fc-button {
+  height: 36px;
+  padding: 0 12px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: none;
+}
+
+.talk-cal .fc .fc-button:focus-visible {
+  box-shadow: 0 0 0 3px var(--primary-ring);
+}
+
+.talk-cal .fc-col-header-cell-cushion {
+  padding: 8px 4px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.talk-cal .fc-day-sat .fc-col-header-cell-cushion,
+.talk-cal .fc-day-sun .fc-col-header-cell-cushion {
+  color: var(--text-body);
+}
+
+/* 날짜 칸 — 누르면 그 날짜 */
+.talk-cal .fc-daygrid-day {
+  cursor: pointer;
+}
+
+.talk-cal .fc-daygrid-day-number {
+  padding: 6px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.talk-cal .fc-day-today .fc-daygrid-day-number {
+  color: var(--primary);
+}
+
+.talk-cal .fc-daygrid-day.is-picked {
+  background: var(--primary-soft);
+  box-shadow: inset 0 0 0 2px var(--primary);
+}
+
+.talk-cal .fc-daygrid-day.is-picked .fc-daygrid-day-number {
+  font-weight: 800;
+  color: var(--primary);
+}
+
+/* 형광펜 칩 — 그날 행사 시간. 누르는 곳이 아니므로 클릭은 날짜 칸으로 흘려보낸다 */
+.talk-cal .fc-event.talk-cal__band {
+  pointer-events: none;
+  margin: 1px 4px;
+  border: none;
+  border-radius: 3px;
+}
+
+.talk-cal .fc-event.talk-cal__band--session {
+  background: var(--marker);
+}
+
+.talk-cal .fc-event.talk-cal__band--open {
+  background: var(--marker-soft);
+}
+
+.talk-cal .talk-cal__band .fc-event-main,
+.talk-cal .talk-cal__band .fc-event-title {
+  padding: 0 4px;
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--marker-ink);
+}
+
+.talk-cal .fc-daygrid-more-link {
+  font-size: 11px;
+  color: var(--text-sub);
+}
+
+/* 달력 아래 — 고른 날 · 그날 행사 · 시각 칸 */
+.talk-when {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 16px 24px;
+}
+
+.talk-when__day {
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 2px;
+}
+
+.talk-when__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-sub);
+}
+
+.talk-when__day strong {
+  font-size: 20px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.talk-when__bands {
+  font-size: 13px;
+  color: var(--text-body);
+}
+
+.talk-when__time {
+  width: 220px;
 }
 
 .form-grid {

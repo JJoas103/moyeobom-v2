@@ -105,6 +105,13 @@
   text-align: right;
 }
 
+/* 시각이 없는 줄 (회차를 채팅에서 정하는 관람) */
+.timeline__time--none {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-sub);
+}
+
 .timeline__dot {
   position: relative;
   z-index: 1;
@@ -867,6 +874,13 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+/* 매너 점수 줄 — 배지와 글자를 한 줄에 */
+.manage__manner {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .manage__join {

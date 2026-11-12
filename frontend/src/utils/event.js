@@ -1,5 +1,5 @@
 // 행사 상세에서 쓰는 계산 — DB에 저장하지 않는 값들
-import { RECENT_ENDED_DAYS } from '../data/events'
+import { recentEndedFrom } from '../data/events'
 
 export const SOURCE_INFO = {
   KOPIS: { label: '공연예술통합전산망', home: 'https://www.kopis.or.kr' },
@@ -28,13 +28,13 @@ export function estimateEndText(event) {
   const total = Number(m[1]) * 60 + Number(m[2]) + event.runningTime
   const hh = String(Math.floor(total / 60) % 24).padStart(2, '0')
   const mm = String(total % 60).padStart(2, '0')
-  const firstLabel = event.sessionsText.split('·')[0].replace(m[0], '').trim()
+  // 첫 시각 앞의 말만 ('화–금 19:30' → '화–금'). 원문이 '19:00 – 20:30' 이면 뒤의 '– 20:30' 이 붙어 '– 20:30 약 20:30' 이 됐었다
+  const firstLabel = event.sessionsText.slice(0, m.index).split('·').pop().trim()
   return `${firstLabel ? firstLabel + ' ' : ''}약 ${hh}:${mm}`
 }
 
-/** 이 행사로 지금 모임을 열 수 있는지 — 끝난 지 RECENT_ENDED_DAYS 일까지 허용 (임시값) */
+/** 이 행사로 지금 모임을 열 수 있는지 — 끝난 지 RECENT_ENDED_DAYS 일(날짜)까지 허용 */
 export function canOpenMeetup(event, now = new Date()) {
   if (!event.endDate) return true
-  const end = new Date(event.endDate)
-  return now.getTime() - end.getTime() <= RECENT_ENDED_DAYS * 24 * 60 * 60 * 1000
+  return new Date(event.endDate) >= recentEndedFrom(now)
 }

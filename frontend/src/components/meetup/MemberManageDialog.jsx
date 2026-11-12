@@ -4,6 +4,7 @@ import Avatar from '../common/Avatar'
 import Dialog, { ConfirmDialog } from '../common/Dialog'
 import { CloseIcon } from '../common/Icons'
 import MetaLine from '../common/MetaLine'
+import MannerBadge from '../common/MannerBadge'
 import MoreMenu from '../common/MoreMenu'
 import ReportDialog from '../common/ReportDialog'
 import { approveMember, rejectMember, removeMember, reportMember } from '../../data/meetups'
@@ -287,7 +288,8 @@ export default function MemberManageDialog({ meetup: latest, initialTab, onChang
   )
 }
 
-// 사람 한 줄 — 닉네임 · 참여 방식 · 매너 점수(산정 방식 미결정이라 자리만)
+// 사람 한 줄 — 닉네임 · 참여 방식 · 매너 점수
+// 점수는 호스트가 승인을 판단하는 자리라 띄운다. 평가 화면에는 띄우지 않는다 (CLAUDE.md)
 function PersonText({ member }) {
   return (
     <>
@@ -297,7 +299,9 @@ function PersonText({ member }) {
           <strong>{member.user?.nickname || '알 수 없음'}</strong>
           <span className={`manage__join manage__join--${member.joinType}`}>{JOIN_LABEL[member.joinType]}</span>
         </span>
-        <span>매너 점수 —</span>
+        <span className="manage__manner">
+          매너 점수 <MannerBadge manner={member.user?.manner} label />
+        </span>
       </span>
     </>
   )

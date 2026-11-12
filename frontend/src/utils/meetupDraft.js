@@ -1,5 +1,9 @@
 // 모임 만들기 ② — 행사 정보로 입력칸 기본값 제안
 import { addMinutes, ceilTo10 } from './datetime'
+import { talkAvailableFrom } from './sessions'
+
+// 러닝타임을 모르는 회차형 — 회차 시각에서 이만큼 뒤를 이야기 자리로 제안한다 (끝나는 시각 어림)
+const GUESS_AFTER_SESSION_MIN = 150
 
 const firstSessionTime = (event) => event.sessionsText?.match(/(\d{1,2}):(\d{2})/)
 
@@ -20,39 +24,25 @@ export function guessArea(place = '') {
 }
 
 /**
- * 기본값 제안
- *  - 회차형 + 러닝타임이 있으면: 관람 회차 = 다음 날 첫 회차, 이야기 자리 = 끝나고 10분 뒤
- *  - 그 밖에는 다음 날 19:00
+ * 이야기 자리 시각 기본값 — 회차가 끝난 뒤로 잡는다 (기본값일 뿐 호스트가 자유롭게 바꾼다)
+ *  - 회차형 · 상영 + 첫 회차 시각
+ *      러닝타임이 있으면 끝나고 10분 뒤, 없으면 회차 2시간 반 뒤 어림 — 그냥 19:00 이면 19:30 공연보다 앞서 버린다
+ *  - 그 밖에는 다음 날 19:00 — 전시 · 축제의 시각은 회차가 아니라 운영 시간이다.
+ *      그날 운영이 19:00 뒤에 끝나면 끝나는 시각으로 (sessions.talkAvailableFrom)
  */
 export function suggestDraft(event) {
   const day = nextDay(event)
-  const m = firstSessionTime(event)
-  let sessionAt = null
-  let talkStart
+  const m = event.runType !== 'period' && firstSessionTime(event)
 
   if (m) {
-    sessionAt = new Date(day)
+    const sessionAt = new Date(day)
     sessionAt.setHours(Number(m[1]), Number(m[2]), 0, 0)
+    const after = event.runningTime ? event.runningTime + 10 : GUESS_AFTER_SESSION_MIN
+    return { talkStart: ceilTo10(addMinutes(sessionAt, after)) }
   }
 
-  if (sessionAt && event.runningTime) {
-    talkStart = ceilTo10(addMinutes(sessionAt, event.runningTime + 10))
-  } else {
-    talkStart = new Date(day)
-    talkStart.setHours(19, 0, 0, 0)
-  }
-
-  const meetPlace = {
-    film: '상영관 매표소 앞',
-    exhibition: '전시관 입구',
-    festival: '행사장 입구',
-  }[event.category] || '공연장 1층 로비'
-
-  return {
-    talkStart,
-    sessionAt: sessionAt || addMinutes(talkStart, -150),
-    meetPlace,
-    suggestedFromSession: Boolean(sessionAt && event.runningTime),
-    sessionEnd: sessionAt && event.runningTime ? addMinutes(sessionAt, event.runningTime) : null,
-  }
+  const talkStart = new Date(day)
+  talkStart.setHours(19, 0, 0, 0)
+  const from = talkAvailableFrom(event, talkStart)
+  return { talkStart: from && from > talkStart ? ceilTo10(from) : talkStart }
 }

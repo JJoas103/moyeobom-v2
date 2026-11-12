@@ -4,10 +4,13 @@
 //   GET /api/member/me → {
 //     profile: { _id, email, nickname, profileImage, provider, tastes, districts, createdAt },
 //     stats:   { meetupCount(연 모임 + 승인된 모임, 취소 제외), friendCount, praiseCount },
-//     praise:  { total, meetups: [{ meetup(작은 요약 — data/friends.js 와 같음), praisedCount, othersCount }] },
+//     praise:  { total, meetups: [{ meetup(작은 요약 — data/friends.js 와 같음), praisedCount, ratedCount }] },
 //     upcoming: { hosted, joined },   // 아직 안 끝난 연 모임 · 참여(신청 중 포함) 모임 수 — 하나라도 있으면 탈퇴 불가
+//     manner:  { score, base, rules, log: [{ _id, type, message, scoreChange, requested, meetup, createdAt }] },
 //   }
-//   받은 칭찬은 평가가 마감된 모임만 · 누가 칭찬했는지는 없음
+//   praise: 평가가 마감된 모임만, 평가자 없음 (ratedCount = 실제로 평가를 낸 사람 수). '아쉬웠어요'는 안 옴
+//   manner.log: scoreChange 실제 적용분 · requested 규칙상 요청분 (다르면 0 · 100 경계에 걸림)
+//   manner.rules: 규칙별 점수 (백엔드 mannerService.SCORES)
 import { apiGet, apiPatch, apiPatchForm, apiPost } from '../api'
 
 export const WITHDRAW_TEXT = '탈퇴' // 소셜 가입자 탈퇴 확인 문구 (백엔드 myPageService 와 같음)

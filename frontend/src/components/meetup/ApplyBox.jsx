@@ -8,6 +8,8 @@ import { useAuth } from '../../context/AuthContext'
 import { applyMeetup, leaveMeetup } from '../../data/meetups'
 import { JOIN_LABEL } from '../../data/constants'
 import { formatMeetupWhen, formatTime } from '../../utils/format'
+import { isLateLeave } from '../../utils/manner'
+import { watchApplyOpen } from '../../utils/status'
 
 /**
  * 모임 상세 오른쪽 신청 박스 — 보는 사람에 따라
@@ -30,13 +32,13 @@ function ApplyForm({ meetup, status, onChange, onManage }) {
   const location = useLocation()
   const closed = status.tone === 'closed'
   const started = new Date(talk.startAt) <= new Date()
-  const watchOpen = watch?.enabled && (!watch.sessionAt || new Date(watch.sessionAt) > new Date())
+  const watchOpen = watch?.enabled && watchApplyOpen(talk.startAt)
   const options = [
     watchOpen && {
       value: 'watch',
       title: JOIN_LABEL.watch,
-      desc: `${formatTime(watch.meetAt || watch.sessionAt)} ${watch.meetPlace || '행사장 앞'}에서 만나 같이 보고, 끝나면 이야기 자리로`,
-      note: '티켓은 각자 예매',
+      desc: '같이 볼 회차는 승인 뒤 채팅에서 정해요. 같이 보고 이야기 자리로 가요',
+      note: '티켓은 각자 예매 · 이야기 자리 전날까지 신청',
     },
     {
       value: 'talk',
@@ -214,14 +216,15 @@ function ApplyForm({ meetup, status, onChange, onManage }) {
   )
 }
 
-// 참여 취소 — 신청 중이면 '신청 취소', 확정이면 '참여 취소'(모임 채팅에서도 나감). 다시 신청할 수 있음
-//   취소하면 모임 목록(/meetup)으로 이동
+// 참여 취소 — 신청 중이면 '신청 취소', 확정이면 '참여 취소'(모임 채팅에서도 나감). 취소 뒤 모임 목록으로
+// 확정 참여자의 늦은 취소(-1)는 누르기 전에 팝업에서 알린다 — 점수는 서버가 정하고 여기는 경고만
 function LeaveButton({ meetup, approved }) {
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const label = approved ? '참여 취소' : '신청 취소'
+  const late = approved && Boolean(meetup.talk?.startAt) && isLateLeave(meetup.talk.startAt)
 
   const close = () => {
     setOpen(false)
@@ -254,6 +257,11 @@ function LeaveButton({ meetup, approved }) {
           onConfirm={onConfirm}
           onClose={close}
         >
+          {late && (
+            <p className="dialog__text">
+              이야기 자리가 곧이라 매너 점수가 <b>1점</b> 깎여요.
+            </p>
+          )}
           <p className="dialog__text">{approved ? '모임 채팅에서도 나가요. 자리가 남아 있으면 다시 신청할 수 있어요.' : '자리가 남아 있으면 다시 신청할 수 있어요.'}</p>
         </ConfirmDialog>
       )}

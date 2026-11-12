@@ -24,6 +24,10 @@ export function eventStatus(event, now = new Date()) {
   return { tone: 'open', label: '진행 중' }
 }
 
+// '관람부터 함께' 신청은 이야기 자리 전날까지 — 신청 박스에서 선택지를 보일지 고르는 데만 쓴다.
+// 막는 쪽은 서버 단독이다 (services/socialRules.js 의 같은 이름 함수). utils/manner.js 의 isLateLeave 와 같은 방식
+export const watchApplyOpen = (talkStartAt, now = new Date()) => now < startOfDay(talkStartAt)
+
 /** 모임 상태: n자리 남음 / 1자리 남음 / 마감 / 끝난 모임 / 취소됨 */
 export function meetupStatus(meetup, now = new Date()) {
   const left = meetup.capacity - (meetup.approvedCount || 0)

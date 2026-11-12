@@ -1,20 +1,16 @@
 const cron = require('node-cron');
 const Meetup = require('../models/Meetup');
 const Review = require('../models/Review');
+const mannerService = require('../services/mannerService');
 const notificationService = require('../services/notificationService');
 const { reviewWindow } = require('../services/socialRules');
 
-// 평가 진행에 맞춰 하루 한 번 보내는 알림 — 매일 12:00(서울)
-//
-// 평가는 이야기 자리 다음날 12:00 에 열리고 48시간 뒤(= 3일째 12:00) 마감된다. 둘 다 12:00 이라
-// 하루 한 번 도는 cron 하나로 전부 커버된다.
-//
-// 하는 일 (전부 모임에 표식을 남겨서 두 번 돌아도 중복되지 않는다)
-//   1. 열림 알림   확정 참여자에게 '평가가 열렸어요'        (Meetup.reviewOpenNoticedAt)
-//   2. 마감 임박   아직 안 낸 사람에게만 '내일 마감돼요'    (Meetup.reviewClosingNoticedAt)
-//
-// ⚠ config/socket.js 의 emitToUsers 는 io 가 없으면 조용히 무시한다. cron 은 app.js 안에서 도니
-//   실시간 push 가 가지만, npm run review:daily 로 수동 실행하면 DB 에만 쌓인다 (정상)
+// 평가 일정 처리 — 매일 12:00(서울). 평가 열림 · 마감이 둘 다 12:00 이라 하루 한 번이면 된다
+//   1. 열림 알림   확정 참여자            (Meetup.reviewOpenNoticedAt)
+//   2. 마감 임박   아직 안 낸 사람만      (Meetup.reviewClosingNoticedAt) — 미제출 감점의 전제조건
+//   3. 마감 반영   개설 가점 · 받은 평가 · 미제출 감점 (Meetup.reviewAppliedAt)
+// 모임에 표식을 남기므로 두 번 돌아도 중복되지 않는다
+// 수동 실행(npm run review:daily)은 소켓이 없어 알림이 DB 에만 쌓인다
 const SCHEDULE = '0 12 * * *';
 const TIMEZONE = 'Asia/Seoul';
 const RECENT_DAYS = 10; // 이보다 오래된 모임은 이미 처리됐다
@@ -56,7 +52,7 @@ async function pendingReviewers(meetup) {
     .filter((id) => !done.has(id));
 }
 
-/** 마감 24시간 전 — 아직 안 낸 사람에게만 */
+/** 마감 24시간 전 — 아직 안 낸 사람에게만. 미제출 감점(-1)의 전제조건이다 */
 async function noticeReviewClosing(now) {
   const docs = await Meetup.find(
     {
@@ -88,15 +84,16 @@ async function runReviewDaily(now = new Date()) {
   try {
     const noticed = await noticeReviewOpen(now);
     const closing = await noticeReviewClosing(now);
-    console.log(`[평가 알림] 열림 ${noticed} · 마감 임박 ${closing}`);
+    const applied = await mannerService.applyReviewClosed(now);
+    console.log(`[평가 하루 처리] 열림 알림 ${noticed} · 마감 임박 ${closing} · 마감 반영 ${applied}`);
   } catch (err) {
-    console.error('[평가 알림] 실행 오류:', err.message);
+    console.error('[평가 하루 처리] 실행 오류:', err.message);
   }
 }
 
 function startReviewDailyScheduler() {
   cron.schedule(SCHEDULE, () => runReviewDaily(), { name: 'review-daily', timezone: TIMEZONE, noOverlap: true });
-  console.log(`[평가 알림] 스케줄 등록: 매일 12:00 (${TIMEZONE})`);
+  console.log(`[평가 하루 처리] 스케줄 등록: 매일 12:00 (${TIMEZONE})`);
 }
 
 module.exports = { startReviewDailyScheduler, runReviewDaily };

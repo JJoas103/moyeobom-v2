@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import CategoryChips from '../../components/common/CategoryChips'
 import FilterMenu from '../../components/common/FilterMenu'
 import Switch from '../../components/common/Switch'
@@ -15,7 +15,6 @@ import MetaLine from '../../components/common/MetaLine'
 import { PERIODS, periodLabel } from '../../utils/period'
 import '../../styles/list.css'
 
-const PAGE_SIZE = 15
 const DEFAULT_PERIOD = 'week'
 
 const DISTRICT_OPTIONS = [{ value: '', label: '서울 전체' }, ...SEOUL_DISTRICTS.map((d) => ({ value: d, label: d }))]
@@ -37,37 +36,52 @@ export default function EventList() {
 
   const params = { category, district, genre, period, hasMeetup, q: keyword }
   const filterKey = JSON.stringify(params)
-  const { data: events, loading, error } = useAsync(() => fetchEvents(params), [filterKey])
 
-  // 분야 선택지용 — 분야를 고른 상태면 분야 조건만 빼고 다시 조회 (고른 분야만 남지 않게)
-  const genreParams = { ...params, genre: '' }
-  const genreKey = genre ? JSON.stringify(genreParams) : ''
-  const { data: genreSource } = useAsync(() => (genre ? fetchEvents(genreParams) : Promise.resolve(null)), [genreKey])
+  // 서버에서 한 페이지씩 받아 쌓는다. 필터가 바뀌면 key 가 달라져 바로 1페이지로 돌아간다
+  // (state 를 비우는 effect 를 쓰면 한 박자 늦어 같은 조건을 두 번 부른다)
+  const [paging, setPaging] = useState({ key: filterKey, page: 1 })
+  const page = paging.key === filterKey ? paging.page : 1
 
-  // '행사 더 보기' — 필터가 바뀌면 다시 15개부터
-  const [shown, setShown] = useState({ key: filterKey, count: PAGE_SIZE })
-  const visibleCount = shown.key === filterKey ? shown.count : PAGE_SIZE
+  const { data, loading, error } = useAsync(() => fetchEvents({ ...params, page }), [filterKey, page])
 
-  // 분야 선택지 = 분야 조건을 뺀 결과에 있는 세부 장르
+  // 받은 페이지를 누적 — useAsync 는 data 를 통째로 갈아 끼우므로 쌓는 건 여기서 한다
+  const [acc, setAcc] = useState({ key: filterKey, events: [], total: null, genres: [] })
+  useEffect(() => {
+    if (!data) return
+    setAcc((prev) => ({
+      key: filterKey,
+      events: page === 1 || prev.key !== filterKey ? data.events : [...prev.events, ...data.events],
+      total: data.total,
+      genres: data.genres,
+    }))
+    // filterKey · page 는 이 응답이 어느 조건 · 몇 페이지의 것인지 가리킨다
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data])
+
+  const fresh = acc.key === filterKey
+  const events = fresh ? acc.events : []
+  const total = fresh ? acc.total : null
+  const hasMore = total !== null && events.length < total
+
+  // 분야 선택지 — 서버가 분야 조건 전 기준으로 내려준다 (고른 분야만 남지 않게)
   const genreOptions = useMemo(() => {
-    const source = genre ? genreSource : events
-    const set = new Set((source || []).map((e) => e.genre).filter(Boolean))
+    const set = new Set(fresh ? acc.genres : [])
     if (genre) set.add(genre)
     return [{ value: '', label: '전체 분야' }, ...[...set].sort().map((g) => ({ value: g, label: g }))]
-  }, [events, genreSource, genre])
+  }, [acc.genres, fresh, genre])
 
   const resetAll = () => {
     setQ('')
     filters.reset()
   }
 
-  const firstLoad = loading && !events
+  const firstLoad = loading && events.length === 0
 
   return (
     <div className="list-page">
       <div className="page-head">
         <h1>
-          행사<span className="count">{events ? events.length : ''}</span>
+          행사<span className="count">{total ?? ''}</span>
         </h1>
         <span className="spacer" />
         <SearchInput value={q} onChange={setQ} placeholder="행사 이름으로 찾기" label="행사 검색" />
@@ -85,24 +99,30 @@ export default function EventList() {
       </div>
 
       <p className="list-summary">
-        <MetaLine items={[district || '서울 전체', periodLabel(period), '모임이 많은 순']} />
-        {loading && events && <span className="list-summary__loading meta-item"> 불러오는 중</span>}
+        <MetaLine items={[district || '서울 전체', periodLabel(period), '곧 끝나는 순']} />
+        {loading && events.length > 0 && <span className="list-summary__loading meta-item"> 불러오는 중</span>}
       </p>
 
-      <DataState loading={firstLoad} error={error} empty={events?.length === 0} emptyText={<EmptyResult title="조건에 맞는 행사가 없어요" onReset={resetAll} />}>
+      <DataState
+        loading={firstLoad}
+        error={error}
+        empty={!loading && events.length === 0}
+        emptyText={<EmptyResult title="조건에 맞는 행사가 없어요" onReset={resetAll} />}
+      >
         <div className={`card-grid${loading ? ' is-refreshing' : ''}`}>
-          {events?.slice(0, visibleCount).map((e) => (
+          {events.map((e) => (
             <EventCard key={e._id} event={e} />
           ))}
         </div>
 
-        {events && events.length > visibleCount && (
+        {hasMore && (
           <button
             type="button"
             className="btn btn--line list-more"
-            onClick={() => setShown({ key: filterKey, count: visibleCount + PAGE_SIZE })}
+            disabled={loading}
+            onClick={() => setPaging({ key: filterKey, page: page + 1 })}
           >
-            행사 더 보기
+            {loading ? '불러오는 중...' : `행사 더 보기 (${events.length}/${total})`}
           </button>
         )}
       </DataState>

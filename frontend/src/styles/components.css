@@ -674,3 +674,70 @@
   font-weight: 600;
   color: var(--text);
 }
+
+/* ---------- 매너 점수 배지 — 모임 참여자 · 친구 줄 (utils/manner.js 의 tone) ---------- */
+
+.manner-badge {
+  height: 20px;
+  padding: 0 7px;
+  border-radius: var(--radius-pill);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  font-size: 12px;
+  background: var(--bg-muted);
+  color: var(--text-sub);
+}
+
+.manner-badge b {
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.manner-badge--high {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.manner-badge--mid {
+  background: var(--status-open-soft);
+  color: var(--status-open);
+}
+
+.manner-badge--low {
+  background: var(--status-soon-soft);
+  color: var(--status-soon);
+}
+
+/* 팝업 안의 글 입력 칸 — 관리자 판정 메모 · 이의제기 글이 같이 쓴다.
+   .report-fields__detail(신고 팝업)과 모양이 비슷하지만 그쪽은 라디오 묶음에 딸린 칸이라 따로 둔다 */
+.dialog-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.dialog-field textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line-field);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font: inherit;
+  font-weight: 400;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.dialog-field__count {
+  align-self: flex-end;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-sub);
+}

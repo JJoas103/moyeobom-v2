@@ -1,3 +1,4 @@
+import MannerBadge from '../common/MannerBadge'
 import { JOIN_LABEL } from '../../data/constants'
 import { posterTone } from '../../utils/poster'
 import { profileImageUrl } from '../../utils/user'
@@ -39,7 +40,8 @@ export default function MeetupMembers({ meetup, status }) {
   )
 }
 
-// 확정된 사람 목록 — 닉네임 · 참여 방식
+// 확정된 사람 목록 — 닉네임 · 매너 점수 · 참여 방식
+// 매너 점수는 승인된 참여자끼리만 보는 자리라 띄운다 (평가 화면에는 안 띄운다 — CLAUDE.md)
 function MemberList({ members }) {
   return (
     <ul className="applicants__list">
@@ -47,7 +49,9 @@ function MemberList({ members }) {
         <li key={m.user?._id} className="applicant">
           <MemberAvatar user={m.user} />
           <span className="applicant__text">
-            <strong>{m.user?.nickname || '알 수 없음'}</strong>
+            <strong>
+              {m.user?.nickname || '알 수 없음'} <MannerBadge manner={m.user?.manner} />
+            </strong>
             <span>{JOIN_LABEL[m.joinType]}</span>
           </span>
         </li>
