@@ -17,6 +17,7 @@ function toPublicUser(user) {
     nickname: user.nickname,
     profileImage: user.profileImage,
     provider: user.provider,
+    role: user.role || 'user', // 'admin' 이면 헤더에 관리자 메뉴가 보인다 (판단은 서버 단독)
     tastes: user.tastes || [],
     districts: user.districts || [],
     // 매너 점수 — 가입 직후부터 50 으로 보인다. 왜 그 숫자인지는 마이페이지 이력이 설명한다

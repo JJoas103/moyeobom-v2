@@ -20,6 +20,7 @@ const LIST_LIMIT = 30;
 
 const oid = (id) => new mongoose.Types.ObjectId(String(id));
 
+
 const approvedUsers = (meetup) => (meetup.members || []).filter((m) => m.status === 'approved').map((m) => m.user);
 const participantsOf = (meetup) => [meetup.host, ...approvedUsers(meetup)];
 
@@ -137,6 +138,20 @@ const mannerDown = ({ userId, message, points, meetup }) =>
     meetup,
   });
 
+// ---------- 이의제기 ----------
+
+/**
+ * 이의제기 결과 — 수용이든 기각이든 보낸다.
+ * **수용은 점수가 오르는 쪽이라 move() 가 알림을 안 보낸다** — 여기서 안 보내면 당사자는
+ * 결과를 영영 모른다 (오를 땐 이력에만 남긴다는 규칙의 예외가 필요한 유일한 자리)
+ */
+const appealDone = ({ userId, accepted }) =>
+  notify([userId], {
+    type: 'appeal_done',
+    message: accepted ? '이의제기가 받아들여져 제재가 취소됐어요' : '이의제기를 다시 검토했지만 제재는 그대로예요',
+    link: '/my?tab=sanctions',
+  });
+
 // ---------- 읽기 · 읽음 · 정리 ----------
 
 const listNotifications = async (userId, limit = LIST_LIMIT) => ({
@@ -185,6 +200,7 @@ module.exports = {
   reviewClosing,
   friendMatched,
   mannerDown,
+  appealDone,
   listNotifications,
   unreadCount,
   markRead,

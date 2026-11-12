@@ -12,6 +12,8 @@ const { CATEGORIES } = require('./Event');
 const TASTES = CATEGORIES;
 const DISTRICT_MAX = 3; // 관심 지역 최대 개수
 const MANNER_BASE = 50; // 매너 점수 시작값 (services/mannerService.js 와 같이)
+// 역할 — 신고 처리 화면(/admin)에 들어갈 수 있는지. 승격은 npm run admin:grant 한 곳에서만
+const ROLES = ['user', 'admin'];
 const SEOUL_DISTRICTS = [
   '강남구', '강동구', '강북구', '강서구', '관악구', '광진구', '구로구', '금천구', '노원구',
   '도봉구', '동대문구', '동작구', '마포구', '서대문구', '서초구', '성동구', '성북구', '송파구',
@@ -25,6 +27,8 @@ const userSchema = new mongoose.Schema(
     nickname: { type: String, required: true, unique: true, trim: true },
     profileImage: { type: String, default: '' }, // public/images/profile 파일 이름. 없으면 기본 아바타
     provider: { type: String, enum: ['local', 'google', 'naver'], default: 'local' },
+    // 화면에서 바꾸는 수단을 두지 않는다 — 관리자가 관리자를 임명하면 사고가 돌이킬 수 없다 (scripts/grantAdmin.js)
+    role: { type: String, enum: ROLES, default: 'user' },
     tastes: { type: [{ type: String, enum: TASTES }], default: [] }, // 가입 때 고르고 마이에서 수정. 기존 회원은 비어 있을 수 있음
     districts: { type: [{ type: String, enum: SEOUL_DISTRICTS }], default: [] }, // 관심 지역 (선택)
     manner: {
@@ -39,3 +43,4 @@ module.exports.TASTES = TASTES;
 module.exports.DISTRICT_MAX = DISTRICT_MAX;
 module.exports.SEOUL_DISTRICTS = SEOUL_DISTRICTS;
 module.exports.MANNER_BASE = MANNER_BASE;
+module.exports.ROLES = ROLES;

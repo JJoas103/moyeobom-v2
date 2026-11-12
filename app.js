@@ -68,6 +68,7 @@ app.use('/api/friends', require('./routes/api/friendApiRouter'));
 app.use('/api/chat', require('./routes/api/chatApiRouter'));
 app.use('/api/notification', require('./routes/api/notificationApiRouter'));
 app.use('/api/likes', require('./routes/api/likeApiRouter'));
+app.use('/api/admin', require('./routes/api/adminApiRouter')); // 신고 처리 · 회원 열람 (role: 'admin' 만)
 
 // 에러 핸들링 — 라우터 등록 뒤에 위치
 app.use('/api', apiNotFound);

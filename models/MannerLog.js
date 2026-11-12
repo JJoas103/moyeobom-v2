@@ -24,11 +24,10 @@ const TYPES = [
   'review_praise', // 매너가 좋았다는 평가를 받았다 +1/건 (cron, 평가 마감) — 1건이어도 오른다
   'review_low', // 매너가 아쉬웠다는 평가를 받았다 -1/건 (cron, 평가 마감) — 칭찬과 대칭, 문턱 없음
   'friend_matched', // 친구가 됐다 +1
-  // 아래 둘은 **부르는 곳이 아직 없다** — 관리자 화면(다음 작업)에서 연결한다.
-  // move() 가 enum 밖 타입을 거부하므로 미리 둬야 그때 부르는 곳 한 줄만 쓰면 된다.
-  // 알림의 manner_down 을 같은 방식으로 먼저 뒀고 실제로 그대로 맞물렸다 — 지우지 말 것
-  'manner_report', // 관리자가 신고를 인정했다 -7
-  'manner_revert', // 신고를 기각해 되돌렸다 +7 — 이력을 지우면 불변식이 깨지므로 반대 부호로 쌓는다
+  // 아래 둘은 관리자 화면에서 건다 (2026-11-12 연결 완료 —
+  // services/adminService.js resolveReport · revertReport → mannerService.reportAccepted · reportReverted)
+  'manner_report', // 관리자가 신고를 받아들여 제재했다 -7 (화면 말은 '제재')
+  'manner_revert', // 제재를 취소했다 — 이력을 지우면 불변식이 깨지므로 반대 부호로 쌓는다 (7 고정 아님)
 ];
 
 const mannerLogSchema = new mongoose.Schema(
@@ -40,11 +39,17 @@ const mannerLogSchema = new mongoose.Schema(
     requested: { type: Number, required: true }, // 규칙상 요청분. scoreChange 와 다르면 경계에 걸린 것
     meetup: { type: mongoose.Schema.Types.ObjectId, ref: 'Meetup' }, // 이력 줄에서 모임으로 이동
     friend: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // friend_matched 상대
+    // manner_report · manner_revert 가 가리키는 신고.
+    // ⚠ 되돌릴 때 **그때 적용된 분**(scoreChange)을 찾는 데 쓴다 — +7 고정으로 되돌리면
+    //   0 경계에 걸려 덜 깎인 사람에게 점수가 생겨 불변식이 깨진다 (mannerService.reportReverted)
+    report: { type: mongoose.Schema.Types.ObjectId, ref: 'Report' },
   },
   { timestamps: true }
 );
 
 mannerLogSchema.index({ user: 1, createdAt: -1 }); // 내 이력 최근 순
+// 되돌릴 금액을 찾는 조회 (report + type). 신고 이력만 있으면 되므로 부분 인덱스로 둔다
+mannerLogSchema.index({ report: 1, type: 1 }, { partialFilterExpression: { report: { $exists: true } } });
 
 module.exports = mongoose.model('MannerLog', mannerLogSchema, 'mannerlogs');
 module.exports.TYPES = TYPES;

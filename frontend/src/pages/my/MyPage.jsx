@@ -11,6 +11,7 @@ import PraiseTab from './PraiseTab'
 import LikesTab from './LikesTab'
 import SettingsTab from './SettingsTab'
 import BlocksTab from './BlocksTab'
+import SanctionsTab from './SanctionsTab'
 import '../../styles/my.css'
 
 // 마이 — 프로필 카드 + 상단 탭 (매너 점수 · 찜 목록 · 계정 설정 · 차단 목록). 시안 html/moyeobom-my/my.html
@@ -21,6 +22,7 @@ const TABS = [
   { key: 'likes', label: '찜 목록' },
   { key: 'settings', label: '계정 설정' },
   { key: 'blocks', label: '차단 목록' },
+  { key: 'sanctions', label: '받은 제재' },
 ]
 
 export default function MyPage() {
@@ -58,6 +60,7 @@ export default function MyPage() {
         {tab === 'likes' && <LikesTab />}
         {tab === 'settings' && data && <SettingsTab profile={data.profile} upcoming={data.upcoming} onSaved={() => setVersion((v) => v + 1)} />}
         {tab === 'blocks' && <BlocksTab />}
+        {tab === 'sanctions' && <SanctionsTab />}
       </section>
     </div>
   )

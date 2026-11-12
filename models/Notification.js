@@ -24,6 +24,7 @@ const TYPES = [
   'review_closing', // 아직 안 낸 사람에게만 — 평가가 곧 마감돼요 (cron)
   'friend_matched', // 양쪽에게 — 친구가 됐어요
   'manner_down', // 본인에게 — 매너 점수가 깎였어요
+  'appeal_done', // 본인에게 — 이의제기가 처리됐어요 (수용 · 기각 둘 다)
 ];
 
 // cron 이 보내는 알림 — 하루 한 번 도는 작업이 두 번 돌아도 중복되지 않아야 한다

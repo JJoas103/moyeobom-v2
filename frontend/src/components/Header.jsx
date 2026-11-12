@@ -17,6 +17,9 @@ const NAV = [
   { to: '/my', label: '마이', end: true },
 ]
 
+// 관리자에게만 붙는 줄 — 일반 회원의 메뉴를 늘리지 않는다 (판단은 서버 단독, 여기는 표시만)
+const ADMIN_NAV = { to: '/admin', label: '관리자' }
+
 export default function Header() {
   const { user } = useAuth()
   const location = useLocation()
@@ -29,7 +32,7 @@ export default function Header() {
         </Link>
 
         <nav className="site-nav" aria-label="주 메뉴">
-          {NAV.map((item) => (
+          {(user?.role === 'admin' ? [...NAV, ADMIN_NAV] : NAV).map((item) => (
             <NavLink key={item.to} to={item.to} end={item.end}>
               {item.label}
             </NavLink>

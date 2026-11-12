@@ -788,3 +788,95 @@
   font-size: 14px;
   color: var(--text-sub);
 }
+
+/* ---------- 받은 제재 · 이의제기 (pages/my/SanctionsTab.jsx) ----------
+   '차단 목록' 옆 제 탭이다. 당사자에게 보이는 화면이라 문구를 줄이지 않는다 */
+.appeal-list {
+  margin: 0;
+  padding: 14px 16px 16px;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.appeal-item {
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+}
+
+.appeal-item__head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.appeal-item__head strong {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.appeal-item__date {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--text-sub);
+}
+
+.appeal-item__what {
+  margin: 4px 0 10px;
+  font-size: 14px;
+  color: var(--text-body);
+}
+
+.appeal-item__sent {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.appeal-item__sent blockquote {
+  margin: 0;
+  padding: 10px 12px;
+  background: var(--bg-muted);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-body);
+  white-space: pre-wrap;
+}
+
+.appeal-item__reply {
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.appeal-item__reply b {
+  margin-right: 6px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.appeal-status {
+  align-self: flex-start;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.appeal-status--open {
+  background: var(--status-soon-soft);
+  color: var(--status-soon);
+}
+
+.appeal-status--accepted {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.appeal-status--rejected {
+  background: var(--bg-muted);
+  color: var(--text-sub);
+}

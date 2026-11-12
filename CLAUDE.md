@@ -24,6 +24,8 @@ npm run sync:events         # 서울시 문화행사 수동 동기화 (자동: �
 npm run sync:places         # 공중화장실 · 지하철역 수동 동기화 (자동: 매달 1일 04:30)
 npm run review:daily        # 개설 가점 · 평가 열림/마감 알림 · 평가 마감 반영 (자동: 매일 12:00)
 npm run manner:check        # 매너 점수 불변식 검사 — 점수 = 50 + 이력 합
+npm run admin:grant -- <이메일> # 관리자 승격 (`-- --revoke` 로 해제) — 화면에 없는 유일한 길
+npm run seed:sanction       # 제재 · 이의제기 확인용 더미 계정 (끝나면 -- --clean)
 npm run db:sync-indexes     # v1 이 남긴 인덱스 떼내기 (아래 '같은 DB' 절 참고)
 npm run migrate:report-index # 한 번만 — 신고 고유 인덱스 지우기 (신고 1:n)
 ```
@@ -61,8 +63,9 @@ npm run migrate:report-index # 한 번만 — 신고 고유 인덱스 지우기 
 | 친구 | `/friends` | 완료 (실제 API) — 메모 팝업 포함. 요청 탭 없음(서로 고르면 바로 친구) |
 | 채팅 (모임 · 친구 1:1) | `/chat` · `/chat/:roomId` · `/chat/meetup/:meetupId` | 완료 (실제 API + socket.io) |
 | 내 모임 | `/my/meetups?tab=hosted\|joined` | 완료 (실제 API `GET /api/meetup/mine`) — 내가 연 / 참여한(신청 중 포함) 탭, 다가오는 · 지난 모임 카드. 머리줄에 매너 점수 배지 |
-| 마이 | `/my?tab=praise\|likes\|settings\|blocks` | 완료 (실제 API `GET/PATCH /api/member/me` · `PATCH /api/member/me/password` · `GET/DELETE /api/friends/blocks`) — 프로필 카드 + 상단 탭. 시안 `html/moyeobom-my/my.html`. `tab=praise` 는 매너 점수(점수 · 규칙 · 변동 이력 · 받은 평가), `tab=likes` 는 찜 목록 행사 · 모임(`GET /api/likes`). 탈퇴 `POST /api/member/withdraw` — 다가오는 연 모임 · 참여(신청 중 포함) 모임 있으면 막음, 비밀번호(소셜은 '탈퇴' 입력) 확인, 친구 · 차단 · 찜 · 회원 삭제(지난 모임 · 평가 · 메시지는 남김) |
+| 마이 | `/my?tab=praise\|likes\|settings\|blocks\|sanctions` | 완료 (실제 API `GET/PATCH /api/member/me` · `PATCH /api/member/me/password` · `GET/DELETE /api/friends/blocks`) — 프로필 카드 + 상단 탭. 시안 `html/moyeobom-my/my.html`. `tab=praise` 는 매너 점수(점수 · 규칙 · 변동 이력 · 받은 평가), `tab=likes` 는 찜 목록 행사 · 모임(`GET /api/likes`). 탈퇴 `POST /api/member/withdraw` — 다가오는 연 모임 · 참여(신청 중 포함) 모임 있으면 막음, 비밀번호(소셜은 '탈퇴' 입력) 확인, 친구 · 차단 · 찜 · 회원 삭제(지난 모임 · 평가 · 메시지는 남김) |
 | 홈 | `/?view=rec\|map\|cal` | 완료 (실제 API) — 시안 `html/home.html`. 추천 · 지도 · 달력 탭 + 이번 주 모임 + 지금 열려 있는 행사. 달력은 자동 넘김 · 기간 설정 없음(오늘 · 이번 주말 · 날짜 선택). 실제 카카오 지도는 도메인 등록 뒤 확인 필요 |
+| 관리자 | `/admin?tab=reports\|members` | 완료 (실제 API) — 관리자(`User.role`)만. 신고 목록 · 상세 · 제재/기각/제재 취소 · 이의제기 판정, 회원 목록 · 상세(열람만) |
 | 가입 취향 | `/member/join` · `/member/social-join` · `/my?tab=settings` | 완료 (실제 API) — 가입 ① 계정 ② 취향 ③ 지역. 마이 계정 설정에서 확인 · 수정 |
 
 - 행사 · 모임 모두 실제 API 연결됨 (`USE_MOCK_EVENTS = false`, `USE_MOCK_MEETUPS = false`). 표의 '(목업)'은 화면을 처음 만든 시점 기준.
@@ -82,7 +85,7 @@ npm run migrate:report-index # 한 번만 — 신고 고유 인덱스 지우기 
   `schedulers/reviewDaily.js` — 개설 가점 · 평가 열림/마감 임박 알림 · 평가 마감 반영.
   조회도 지금 시각과 비교하므로 cron 이 늦어도 화면은 맞음(점수 · 알림만 늦어진다).
 - **socket.io**: `config/socket.js` — 세션으로 로그인 확인, 각자 `user:<id>` 방에만 들어감. 서버가 받는 사람 user 방으로 `chat:message` · `chat:read` · `chat:notices` · `chat:rooms` · `friends:changed` · `notify:changed` 를 보냄. 프론트는 `context/SocketContext.jsx` `useSocketEvent`.
-- **차단**: 친구 끊김 + 이후 친구 성립 안 됨 + 내 모임 채팅에서 상대 메시지 숨김. **신고**: `Report` 저장만 — 처리(관리자) 화면 없음, DB에서 `status: 'done'` 으로 바꾸면 처리 끝. 이유(`reason`) 하나 필수, 기타는 내용(`detail`) 필수. 화면은 `components/common/ReportDialog.jsx` 하나 — 채팅 메시지 · 참여자, 차단하며 함께 신고, 참여자 관리 팝업(호스트 → 확정 참여자 `POST /api/meetup/:id/members/:userId/report`). 신청자 · 내보낸 사람은 채팅방 밖이라 신고 대상 아님. 모임 신고: 확정 참여자가 모임 상세 '모임 신고하기'로(`POST /api/meetup/:id/report-host`, 모임 채팅방이 목록에 보이는 동안), 신고 대상은 호스트. 항목 '호스트가 노쇼했어요'(`noshow`)는 호스트 대상(모임 신고 · 채팅 참여자 신고)에만, 이야기 자리 시작 뒤에만 · 취소된 모임 제외 (`socialRules.noShowReportOpen`). 저장만 하고 노쇼 판정 · 제재는 나중에 관리자 기능으로. 신고는 할 때마다 한 건씩 쌓임(대상 1 : 신고 n).
+- **차단**: 친구 끊김 + 이후 친구 성립 안 됨 + 내 모임 채팅에서 상대 메시지 숨김. **신고**: `Report` 저장 → **관리자 화면 `/admin` 에서 제재 · 기각** (아래 '관리자' 절). 이유(`reason`) 하나 필수, 기타는 내용(`detail`) 필수. 화면은 `components/common/ReportDialog.jsx` 하나 — 채팅 메시지 · 참여자, 차단하며 함께 신고, 참여자 관리 팝업(호스트 → 확정 참여자 `POST /api/meetup/:id/members/:userId/report`). 신청자 · 내보낸 사람은 채팅방 밖이라 신고 대상 아님. 모임 신고: 확정 참여자가 모임 상세 '모임 신고하기'로(`POST /api/meetup/:id/report-host`, 모임 채팅방이 목록에 보이는 동안), 신고 대상은 호스트. 항목 '호스트가 노쇼했어요'(`noshow`)는 호스트 대상(모임 신고 · 채팅 참여자 신고)에만, 이야기 자리 시작 뒤에만 · 취소된 모임 제외 (`socialRules.noShowReportOpen`). 노쇼 판정 · 제재는 관리자가 신고를 받아들여 제재하는 것으로 받는다. 신고는 할 때마다 한 건씩 쌓임(대상 1 : 신고 n).
 - 새 도메인(평가 · 친구 · 채팅)은 목업 없이 실제 API 전용 (`data/reviews.js` · `data/friends.js` · `data/chat.js` 맨 위 주석이 응답 모양).
 
 ## 매너 점수 · 알림 (결정 로그 2026-11)
@@ -298,6 +301,114 @@ npm run migrate:report-index # 한 번만 — 신고 고유 인덱스 지우기 
 - ⚠ `emitToUsers` 는 `io` 가 없으면 조용히 무시한다. `npm run review:daily` 로 수동 실행하면 알림이
   DB 에는 쌓이지만 실시간 push 는 안 간다 (cron 은 `app.js` 안에서 돌아 정상).
 
+## 관리자 — 신고 처리 · 회원 열람 (2026-11-12)
+
+화면 `/admin` (`frontend/src/pages/admin/`), 서버 `services/adminService.js` 한 곳. **쓰기는 신고 판정뿐**이고
+회원 쪽은 전부 읽기다 — 계정 정지 · 강제 탈퇴는 넣지 않았다 (새 정책 · 새 필드 · 진행 중 모임 처리가 딸려 온다).
+
+- **권한**: `User.role` (`'user'` | `'admin'`, 기본 `'user'`). 미들웨어 `authMiddleware.isAdmin` 이 403,
+  비로그인은 `isLoggedIn` 이 401 — **갈라 둔다** (프론트가 로그인 화면으로 보낼지 홈으로 되돌릴지가 다르다).
+  승격은 **`npm run admin:grant -- <이메일>`** (`-- --revoke` 로 해제) 하나뿐이다. **화면에 두지 않는다** —
+  관리자가 관리자를 임명할 수 있으면 한 계정이 털렸을 때 되돌릴 방법이 없다.
+  `toPublicUser` 가 `role` 을 내려 주고 헤더 · `RequireAdmin` 이 그걸 읽지만 **판단은 서버 단독**이다.
+- **API**: `GET /api/admin/reports?status=&page=` · `/reports/:id` · `POST /reports/:id/resolve`(제재 · 기각) ·
+  `POST /reports/:id/revert`(제재 취소) · `GET /members?q=&sort=` · `/members/:id`.
+  라우터 입구에서 `router.use(isLoggedIn, isAdmin)` 한 번만 건다 — 핸들러마다 걸면 새 엔드포인트에서 빠뜨린다.
+- `Report.status` 는 `pending` → `accepted` | `rejected`. **`'done'` 은 지우지 않는다** — 관리자 화면이
+  없던 동안 DB 에서 손으로 바꿔 둔 값이라 enum 에서 빼면 그 문서를 읽을 수 없다 (옛 `meetup_join` 과 같은 이유).
+  제재/기각 구분이 없으므로 화면에 '예전 처리'로만 보인다.
+
+### '기각'은 두 가지다 — 섞으면 점수가 틀린다
+
+접수만으로는 절대 깎지 않으므로(매너 원칙) **대기 중 기각은 되돌릴 것이 없다.**
+
+| 누른 것 | 상태 | 점수 | 이력 |
+|---|---|---|---|
+| 대기 중 → **기각** | `rejected` | 변동 **0** | 남기지 않는다 |
+| 대기 중 → **제재** | `accepted` | **-7** (`manner_report`) | 한 줄 + `manner_down` 알림 |
+| 제재 → **취소** | `reverted` | **그때 적용된 분만큼** (`manner_revert`) | 한 줄 **추가** (제재 이력은 안 지운다) |
+
+화면 버튼도 그래서 갈라져 있다 — 대기 중엔 `[기각] [제재하기]`, 제재한 뒤엔 `[제재 취소]`.
+**7점은 오판 비용이 커서 취소가 선택이 아니라 필수다.**
+
+**⚠ `rejected` 와 `reverted` 를 한 값으로 묶지 말 것** (2026-11-12). 전엔 취소도 `rejected` 로 넣었는데,
+둘 다 '지금 제재가 없는' 상태지만 **점수가 움직인 적이 있는지가 다르다.** 그래서 화면이 취소한 건에도
+`기각한 신고예요. 점수는 움직이지 않았어요` 라고 띄웠다 — **깎였다 돌아온 건데 거짓말이었다.**
+취소 사유도 `revertNote` 에 따로 받는다. `adminNote`(왜 제재했는지)를 덮어쓰면 "취소를 검토할 때 보라"고
+적게 한 메모가 취소하는 순간 사라진다.
+
+**⚠ 되돌릴 금액은 +7 고정이 아니다.** `move()` 는 0~100 으로 클램프하고 **실제 적용분**을 `scoreChange` 에
+적는다 — 점수 5점인 사람은 -7 을 걸어도 -5 만 적용됐다. 거기에 +7 을 주면 2점이 공짜로 생겨
+`npm run manner:check` 가 바로 실패한다. 그래서 `mannerService.reportReverted` 가 그 신고의
+`manner_report` 이력(`MannerLog.report` 참조)을 찾아 **그 적용분의 반대 부호**를 넘긴다.
+`SCORES.manner_revert`(7)는 **화면 규칙 표에 적을 숫자일 뿐 계산에 쓰지 않는다.**
+
+### 말은 '제재' 하나로 — 그리고 점수는 `50점 → 43점` 으로 보여 준다 (2026-11-12)
+
+관리자 화면만 '인정' 이라고 부르고 있었다. **제재당한 회원은 마이페이지에서 `신고로 제재를 받았어요` 를
+본다**(`MANNER_RULES` 의 `manner_report`). 같은 일을 두 이름으로 부르면 안 되므로 버튼 · 상태 칩 ·
+꼬리표를 전부 **제재**로 맞췄다. **DB 값(`accepted`)은 그대로다** — 라벨만 바꿨다.
+
+판정 모달은 `매너 점수  50점 → 43점` 으로 **두 숫자를 보여 준다.**
+
+- **`-7` 로 쓰지 않는다.** 2026-11-07 의 부호 결정과 같은 줄기다 — 하이픈은 숫자 앞에 오면 오탈자로
+  보인다. 게다가 `-7이 됩니다` 는 '점수가 -7점이 된다' 로도 읽히는데 **최저점은 0점이라 틀린 말이다.**
+- **숫자는 서버가 계산한다** (`adminService.previewOf` → 응답의 `preview`). 화면에서 빼기를 하면
+  0~100 클램프까지 프런트가 베껴야 하고 서버 `SCORES` 가 바뀌면 화면이 조용히 거짓말을 한다.
+  `preview.applied < preview.requested` 면 경계에 걸린 것이라 모달이 `최저점이라 5점만 깎여요` 를 덧붙인다.
+- 취소 쪽 금액도 같은 `MannerLog` 이력에서 읽는다 — **모달이 말한 숫자와 실제 결과가 어긋나면 안 된다.**
+
+- 알림은 **제재할 때만** 간다 — `move()` 가 깎일 때 `mannerDown` 을 이미 보내므로 거는 코드가 없다.
+  기각 · 되돌리기는 오르는 쪽이라 조용하고, **신고자에게는 아무것도 보내지 않는다**(상대가 신고당한
+  사실을 알면 안 된다는 기존 선과 같다).
+- **판정하면 증거가 사라진다.** `chatService.purgeClosedRooms` 는 **`pending` 인 신고가 있는 방만** 90일
+  정리에서 빼 준다 → 판정하는 순간 보호가 풀린다. 그래서 `resolveReport` 가 그 시점에 메시지 본문을
+  `Report.evidenceText` 로 복사한다. 대화가 이미 지워진 신고는 상세가 '삭제된 대화'로 뜬다.
+- **동시에 두 번 눌러도 한 번만 반영된다** — `findOneAndUpdate({ status: 'pending' })` 로 상태를 먼저
+  선점한 쪽만 점수를 움직인다. 조회와 수정을 나누면 -7 이 두 번 걸린다.
+- 목록 기본 정렬은 **대기 중 오래 기다린 것 먼저**, 처리된 것은 최근 처리 순.
+- 회원 목록의 '매너 점수 낮은 순'은 신고를 한 건씩 보기 전에 **문제가 쌓이는 계정을 먼저 찾는** 자리다.
+  ⚠ `users` 는 v1 과 공유 컬렉션이라 `manner` 가 없는 v1 회원이 섞여 나온다 (기본값 50 으로 떨어뜨린다).
+- 회원 상세의 매너 이력은 **마이페이지와 같은 함수 · 같은 문구**(`mannerService.listLog`)를 쓴다 —
+  갈리면 "제 화면에는 그렇게 안 적혀 있는데요" 가 생긴다.
+
+## 이의제기 (2026-11-12)
+
+제재(-7)는 **사람이 판단한 유일한 처분**이라 오판 비용이 가장 크다. 되돌리는 길이 관리자의
+자각뿐이면 당사자는 아무것도 할 수 없다 — 그래서 창구를 뒀다.
+
+`Report.appeal` 에 묻어 둔다 (제재 하나에 이의 하나라 컬렉션을 따로 두면 조인만 는다).
+당사자용은 `services/appealService.js`, 관리자용은 `adminService.decideAppeal`.
+
+- **제재 1건당 한 번.** 조건을 전부 쿼리에 넣어(`'appeal.at': { $exists: false }`) 두 번 눌러도
+  하나만 들어간다. 재심은 없다
+- 당사자에게 **신고자 · 이유 · 증거를 내려주지 않는다** — 신고자를 역추적할 여지를 만들지 않는다.
+  아는 것은 '어느 모임에서 제재를 받았다' 와 '언제' 까지다
+- **무효처리는 제재 취소와 똑같은 일**이라 `mannerService.reportReverted` 를 그대로 탄다.
+  길이 둘로 갈리면 한쪽만 고쳐져 불변식이 깨진다
+- 관리자 답(`appeal.reply`)은 **당사자에게 보인다** — 그래서 판정 모달의 메모 라벨이 그때만
+  `답 (당사자에게 보여요)` 로 바뀐다
+- 알림 `appeal_done` 은 수용 · 기각 둘 다 보낸다. **무효처리는 점수가 오르는 쪽이라
+  `move()` 가 알림을 안 보낸다** — 여기서 안 보내면 결과를 영영 모른다
+- 목록 칩 `이의제기` 는 상태가 아니라 `appeal.status: 'open'` 필터다 (상태는 여전히 `accepted`)
+- 화면은 **마이 › 받은 제재** 탭 (`pages/my/SanctionsTab.jsx`, 차단 목록 옆).
+  매너 점수 탭 안에 두면 **답할 수 있는 일**이 읽기만 하는 점수 설명에 묻힌다
+
+### 계정 정지는 만들었다가 걷어냈다 (2026-11-12)
+
+기간제 정지(`User.suspendedUntil` · `notSuspended` 미들웨어 · 소켓 차단 · 전역 띠)를 한 번
+다 만들었다가 **쓰지 않기로 하고 전부 제거했다.** 다시 꺼낼 때를 위해 걸렸던 것만 남긴다.
+
+- **호스트를 묶으면 참여자가 같이 묶인다.** 승인 · 거절 · 마감 · 취소가 다 막혀 신청자는
+  영영 답을 못 받는다. 수습을 열어 주든 모임을 자동 취소하든 **둘 중 하나는 반드시 필요**하다
+- **자동 취소를 택하면 호스트 취소 감점(-5)을 붙이면 안 된다** — 본인이 한 일이 아니다
+  (원칙 2). 그리고 취소된 모임은 복구 수단이 없어 **나중에 무효처리해도 모임은 안 돌아온다**
+- **평가 미제출 감점(-1)도 면제해야 한다** — 제출을 막아 놓고 안 냈다고 깎으면 같은 충돌이다
+- **소켓을 함께 막아야 한다.** HTTP 만 막으면 알림 · 채팅이 계속 밀려온다. 그리고
+  프런트에서도 연결을 끊어야 한다 — socket.io 기본값이 무한 재접속이라 서버만 막으면
+  403 을 끝없이 두드린다
+- **탈퇴를 막으면 계정에서 나갈 길이 없어진다** — 상한(90일)이 그 전제를 지키는 장치였다
+
 ## 행사장 근처 정보 (서울 열린데이터광장)
 
 - 공중화장실 `mgisToiletPoi` → `Toilet`, 지하철역 `subwayStationMaster` → `Station` (GeoJSON + 2dsphere). 키는 `SEOUL_OPEN_API` 하나로 됨.
@@ -400,7 +511,6 @@ v1(`Moyeobom`, 바탕화면 별도 폴더)과 v2 의 `.env` 가 **같은 Atlas �
 - 채팅 공지 최대 개수 — 지금 임시 3개 (`services/chatService.js` `NOTICE_MAX`)
 - 친구 메모 글자 수 — 지금 임시 30자 (시안 제안값, `models/Friendship.js` `MEMO_MAX` · `frontend/src/data/friends.js`)
 - 신고 기타 내용 글자 수 — 지금 임시 200자 (`models/Report.js` `DETAIL_MAX` · `frontend/src/data/constants.js`)
-- 노쇼 판정 주체 — **신고 → 관리자 판단으로 가기로 함.** 접수는 만들어졌고 **점수 정책도 확정됐다** (인정 -7 · 노쇼는 미제출 -1 과 합쳐 net -8 · 기각 시 `manner_revert +7`). `SCORES.manner_report` 와 `MannerLog.TYPES` 의 `manner_report` · `manner_revert` 도 미리 넣어 뒀다 — **부르는 곳만 없다.** 화면 '점수가 이렇게 움직여요' 에도 `-7 신고로 제재를 받았어요` 가 이미 보인다.
-  **다음 작업에 남은 것 셋** — ① 관리자 화면에 **'인정' 과 '기각' 둘 다** (인정만 있으면 억울한 -7 을 되돌릴 수 없다. -7 은 오판 비용이 커서 기각이 필수다) ② 인정 시 `mannerService.move(…, 'manner_report', SCORES.manner_report, …)` 부르는 곳 ③ 기각 시 `manner_revert` 로 **반대 부호 이력 추가** — 이력을 지우면 불변식이 깨져 `manner:check` 가 바로 실패한다. QR · 방문 인증이 생기면 노쇼 판정 자체를 다시 볼 것
+- 노쇼 판정 주체 — **신고 → 관리자 판단으로 간다. 2026-11-12 에 연결 끝났다** (아래 '관리자' 절).
+  QR · 방문 인증이 생기면 노쇼 판정 자체를 다시 볼 것
 - 모임 채팅 '채팅방 나가기' 버튼 — 참여 취소와 같은 동작으로 하기로 함(2026-10). 버튼은 아직 모임 상세 신청 박스에만 있음
-- 신고 처리 주체 · 화면 (접수만 되고 관리자 판단이 없어 매너 점수에도 반영하지 않는다)

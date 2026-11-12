@@ -86,9 +86,10 @@ const { reviewWindow, isLateLeave } = require('./socialRules');
 //   참여자가 있는 모임을 호스트가 취소          -5
 //   신고로 제재를 받았다                        -7   관리자 확인 뒤 — 가장 무겁다 (유일하게 사람이 판단한 결과)
 //                                                   접수만으로는 절대 깎이지 않는다. 신고가 무기가 되면 안 된다
-//                                                   기각하면 manner_revert 로 반대 부호 이력을 쌓아 되돌린다
-//                                                   ⚠ 부르는 곳을 만들 때 이력 문구는 화면 라벨과 맞춘다 —
-//                                                     `'${meetup.title}'에서 신고로 제재를 받았어요`
+//                                                   거는 곳은 reportAccepted 하나 (services/adminService.js)
+//                                                   ⚠ '기각'은 두 가지다 — 대기 중 기각은 깎인 적이 없어 변동 0,
+//                                                     **제재를 취소할 때만** manner_revert 로 반대 부호를 쌓는다.
+//                                                     그 금액은 +7 이 아니라 **그때 적용된 분**이다 (reportReverted)
 //
 // ── 일부러 0점인 것 (물어보면 답할 수 있어야 한다) ─────────────────────────
 //   모임에 참여했다              실제로 왔는지 확인할 방법이 없다. 함께한 분들의 평가로만 움직인다
@@ -125,13 +126,15 @@ const SCORES = {
   leave_late: -1,
   host_cancel: -5,
   review_skip: -1,
-  // 관리자가 신고를 인정했을 때 — **가장 무겁다.** 호스트 취소(-5)보다 커야 한다.
+  // 관리자가 신고를 받아들여 제재했을 때 — **가장 무겁다.** 호스트 취소(-5)보다 커야 한다.
   // 다른 감점은 전부 행동에서 추론한 것(평가를 안 냈다 · 취소했다 · 아쉽다는 평가를 받았다)이고
   // 이것만 **사람이 판단한 사실**이다. -3 은 호스트 취소보다 가벼워 서열이 뒤집혀서 버렸다.
   // 이유별(rude · ad · privacy …) 차등은 두지 않는다 — "왜 내 건 더 깎여" 가 생긴다.
-  // 경중은 관리자가 '인정할지 말지' 로 조절한다.
-  // ⚠ 거는 곳이 아직 없다 — 관리자 화면에서 연결한다 (알림 manner_down 과 같은 모양이니 지우지 말 것)
+  // 경중은 관리자가 '제재할지 말지' 로 조절한다.
   manner_report: -7,
+  // 제재를 취소할 때 — **이 값을 그대로 쓰지 않는다.** reportReverted 가 그 신고의 manner_report
+  // 이력에서 실제 적용분을 읽어 반대 부호로 넘긴다. 규칙 표(화면)에 적을 숫자로만 둔다
+  manner_revert: 7,
 };
 
 /**
@@ -163,7 +166,7 @@ const scoreOf = (user) => user?.manner?.score ?? BASE;
  * 점수를 옮기고 이력을 남긴다 — 모든 변동이 지나는 유일한 문
  * @param type   MannerLog.TYPES 중 하나
  * @param amount 규칙상 요청분 (SCORES 값)
- * @param log    { message, meetup?, friend? } — message 는 화면에 그대로 나간다
+ * @param log    { message, meetup?, friend?, report? } — message 는 화면에 그대로 나간다
  * @returns 실제 적용분 (경계에 걸렸으면 요청분보다 작다)
  */
 async function move(userId, type, amount, log) {
@@ -187,6 +190,7 @@ async function move(userId, type, amount, log) {
     requested: amount,
     meetup: log.meetup,
     friend: log.friend,
+    report: log.report,
   });
 
   // 깎일 때만 알린다 — 설명이 필요한 쪽이다. 오를 땐 조용히 이력에만
@@ -239,6 +243,44 @@ async function friendsMade(userA, userB, meetupId) {
     message: `${a?.nickname || '알 수 없음'}님과 친구가 됐어요`,
     meetup: meetupId,
     friend: userA,
+  });
+}
+
+// ---------- 신고 처리 (관리자 화면 — services/adminService.js) ----------
+
+/**
+ * 관리자가 신고를 받아들여 제재했다 -7 — **가장 무겁다.** 사람이 판단한 유일한 감점이다
+ *
+ * 접수만으로는 절대 깎이지 않는다 (신고가 무기가 되면 안 된다). 이유별 차등도 두지 않는다 —
+ * 경중은 관리자가 '제재할지 말지' 로 조절한다 (위 SCORES 주석).
+ * 알림은 따로 걸지 않는다 — move() 가 깎일 때 mannerDown 을 이미 보낸다
+ */
+const reportAccepted = (targetId, { reportId, meetup, meetupTitle }) =>
+  move(targetId, 'manner_report', SCORES.manner_report, {
+    // 모임 밖(친구 1:1 방) 신고는 제목이 없다 — 어느 모임인지 못 적을 때는 말하지 않는다
+    message: meetupTitle ? `'${meetupTitle}'에서 신고로 제재를 받았어요` : '신고로 제재를 받았어요',
+    meetup,
+    report: reportId,
+  });
+
+/**
+ * 제재를 취소했다 — **돌려줄 금액은 7점 고정이 아니다**
+ *
+ * move() 는 0~100 으로 클램프하고 **실제 적용분**을 scoreChange 에 적는다. 점수 5점인 사람은
+ * -7 을 걸어도 -5 만 적용됐다. 거기에 +7 을 주면 2점이 공짜로 생기고 `npm run manner:check` 가
+ * 바로 실패한다. 그래서 그 신고의 manner_report 이력을 찾아 **그 적용분의 반대 부호**를 넘긴다.
+ *
+ * 이력을 **지우지 않는다** — 지우면 불변식(점수 = 50 + Σ)이 깨지고 본인 점수를 설명할 수 없다.
+ * 되돌리기는 올라가는 쪽이라 알림이 가지 않는다 (오를 땐 이력에만 — 의도한 대로다)
+ */
+async function reportReverted(targetId, reportId) {
+  const log = await MannerLog.findOne({ report: oid(reportId), type: 'manner_report' }, { scoreChange: 1, meetup: 1 }).lean();
+  if (!log) return 0; // 제재 이력이 없다 — 깎인 적이 없으니 돌려줄 것도 없다
+  return move(targetId, 'manner_revert', -log.scoreChange, {
+    // 회원이 마이페이지 이력에서 보는 줄 — 규칙 패널의 '신고로 제재를 받았어요' 와 말을 맞춘다
+    message: '신고가 다시 검토돼 제재가 취소됐어요',
+    meetup: log.meetup,
+    report: reportId,
   });
 }
 
@@ -360,6 +402,8 @@ module.exports = {
   hostCancelled,
   reviewSubmitted,
   friendsMade,
+  reportAccepted,
+  reportReverted,
   applyReviewClosed,
   listLog,
 };

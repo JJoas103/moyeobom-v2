@@ -710,3 +710,34 @@
   background: var(--status-soon-soft);
   color: var(--status-soon);
 }
+
+/* 팝업 안의 글 입력 칸 — 관리자 판정 메모 · 이의제기 글이 같이 쓴다.
+   .report-fields__detail(신고 팝업)과 모양이 비슷하지만 그쪽은 라디오 묶음에 딸린 칸이라 따로 둔다 */
+.dialog-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.dialog-field textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line-field);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font: inherit;
+  font-weight: 400;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.dialog-field__count {
+  align-self: flex-end;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-sub);
+}
