@@ -12,7 +12,7 @@ frontend/   React 19 + Vite 6 + react-router 7 (ESM)      :5173  화면 전부
 
 - 백엔드: `routes/api/*` → `controllers/` → `services/` 순서. 응답은 성공 `{ success: true, ...data }`, 실패 `{ success: false, message, fieldErrors? }`.
 - 프론트: 화면은 `src/data/events.js`, `src/data/meetups.js` 의 함수만 부른다. `src/data/config.js` 의 `USE_MOCK_EVENTS` · `USE_MOCK_MEETUPS` 로 도메인별 목업/실제 API 전환.
-- 세부 세팅 규칙은 `STACK_SETUP.md` 참고 (EJS 쓰지 않음, 프록시 없음, `credentials: 'include'`).
+- 세팅 규칙: EJS 쓰지 않음, Vite 프록시 없음(API 주소는 `VITE_API_BASE_URL`, 빌드본은 자기 주소), 요청은 전부 `credentials: 'include'`(`frontend/src/api.js`). 설치 · 실행은 `README.md`.
 
 ## 실행
 
