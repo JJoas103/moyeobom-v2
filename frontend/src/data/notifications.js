@@ -5,11 +5,12 @@
 //   GET  /api/notification/unread  → { count }
 //   POST /api/notification/read { ids? } → { read }   // ids 가 없으면 전부 읽음
 //   DELETE /api/notification          → { cleared }  // 내 알림 전부 지우기
+//   DELETE /api/notification/:id      → { removed }  // 한 건 지우기 (내 알림만)
 //
 //   type: meetup_apply | meetup_approved | meetup_left | meetup_cancelled | meetup_updated
 //         review_open | review_closing | friend_matched | manner_down
 //   message 는 백엔드가 만든 문구를 그대로 보여준다 (화면마다 말투가 갈리지 않게)
-//   link 를 누르면 그 화면으로 이동. readAt 이 null 이면 안 읽음
+//   link 는 지금 화면에서 쓰지 않는다 (2026-11-09 — 누르면 이동 대신 글 펼치기). readAt 이 null 이면 안 읽음
 //
 // 실시간(socket, 내 user 방으로만 옴): 'notify:changed' (목록 · 안 읽은 수 다시 불러오기)
 //
@@ -28,3 +29,6 @@ export const markRead = (ids) => apiPost('/api/notification/read', ids ? { ids }
 
 /** 모두 지우기 — 되돌릴 수 없다. 90일 자동 삭제를 기다리지 않고 직접 치우는 수단 */
 export const clearNotifications = async () => (await apiDelete('/api/notification')).cleared
+
+/** 한 건 지우기 */
+export const removeNotification = async (id) => (await apiDelete(`/api/notification/${id}`)).removed

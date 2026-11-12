@@ -20,4 +20,6 @@ module.exports = {
   read: handle((req) => notificationService.markRead(me(req), req.body?.ids)),
   // DELETE /api/notification → { cleared } — 내 알림 전부 지우기
   clear: handle((req) => notificationService.clearAll(me(req))),
+  // DELETE /api/notification/:id → { removed } — 한 건 지우기
+  remove: handle((req) => notificationService.removeOne(me(req), req.params.id)),
 };

@@ -224,15 +224,23 @@ img.avatar {
   padding: 8px 12px 12px;
   margin-bottom: 4px;
   border-bottom: 1px solid var(--line);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
   font-size: 15px;
   font-weight: 700;
 }
 
-/* 모두 지우기 — 되돌릴 수 없으니 패널 안에서 한 번 묻는다 (모달은 패널을 닫아 버린다) */
+/* 모두 지우기 — 목록 아래에 붙어 있다 (스크롤해도 보이게 sticky, -8px 은 패널 padding 만큼) */
+.notify__foot {
+  position: sticky;
+  bottom: -8px;
+  margin: 4px -8px -8px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+  display: flex;
+  justify-content: center;
+}
+
+/* 되돌릴 수 없으니 패널 안에서 한 번 묻는다 (모달은 패널을 닫아 버린다) */
 .notify__clear,
 .notify__ask-yes,
 .notify__ask-no {
@@ -275,31 +283,105 @@ img.avatar {
 }
 
 .notify__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
 }
 
 .notify__item {
-  padding: 10px 12px;
+  position: relative;
   border-radius: var(--radius-sm);
+}
+
+/* 누르면 글 펼치기 — 오른쪽 32px 은 지우기 버튼 자리 */
+.notify__main {
+  width: 100%;
+  padding: 10px 32px 10px 12px;
+  border: none;
+  background: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  text-align: left;
+  font: inherit;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.notify__remove {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-sub);
+  cursor: pointer;
+}
+
+.notify__remove:hover {
+  background: var(--shade-08);
+  color: var(--text);
+}
+
+/* 종류 아이콘 — 색은 Header.jsx 의 NOTIFY_KINDS tone. 바탕 없이 선 색만 (2026-11-09 테스트)
+   높이를 글줄(14px × 1.45)에 맞춰 첫 줄 가운데에 온다 */
+.notify__icon {
+  flex: none;
+  height: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.notify__icon--good {
+  color: var(--primary);
+}
+
+.notify__icon--info {
+  color: var(--status-open);
+}
+
+.notify__icon--warn {
+  color: var(--status-soon);
+}
+
+.notify__icon--bad {
+  color: var(--cat-stage);
+}
+
+.notify__body {
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 3px;
-  color: var(--text);
 }
 
 .notify__item:hover {
   background: var(--bg-muted);
 }
 
-/* 안 읽은 알림 — 왼쪽에 그린 선 */
-.notify__item.is-new {
-  box-shadow: inset 2px 0 0 var(--primary);
-}
-
+/* 두 줄까지만 — 누르면(.is-open) 전부 */
 .notify__text {
   font-size: 14px;
   line-height: 1.45;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+.notify__text.is-open {
+  display: block;
+  overflow: visible;
 }
 
 .notify__when {

@@ -13,6 +13,10 @@ const { emitToUsers } = require('../config/socket');
 //   돌기 때문에 정상이다. 알림이 '안 왔다'는 제보가 오면 이걸 먼저 확인할 것
 //
 // 보내지 않는 것은 models/Notification.js 주석에 정리해 두었다
+//
+// 문구는 짧게 (2026-11-09) — 화면이 type 마다 아이콘 · 색을 붙이므로(Header.jsx NOTIFY_KINDS)
+//   '모임' · '매너 점수' 처럼 아이콘이 말해 주는 말은 뺐다. 감점 경고(review_closing)는
+//   미제출 감점의 전제조건이라 줄여도 빼지 않는다
 
 const NOTIFY_KEEP_DAYS = 90; // 채팅 메시지 보존 기간과 같게
 const DAY = 24 * 60 * 60 * 1000;
@@ -54,7 +58,7 @@ async function notify(userIds, { type, message, link, meetup }) {
 const meetupApplied = async (meetup, applicantId) =>
   notify([meetup.host], {
     type: 'meetup_apply',
-    message: `${await nicknameOf(applicantId)}님이 '${meetup.title}'에 참여를 신청했어요`,
+    message: `${await nicknameOf(applicantId)}님이 '${meetup.title}'에 신청했어요`,
     link: `/meetup/${meetup._id}?manage=pending`, // 참여자 관리 팝업 신청 탭으로
     meetup: meetup._id,
   });
@@ -70,7 +74,7 @@ const meetupApproved = (meetup, memberUserId) =>
 const meetupLeft = async (meetup, memberUserId) =>
   notify([meetup.host], {
     type: 'meetup_left',
-    message: `${await nicknameOf(memberUserId)}님이 '${meetup.title}' 참여를 취소했어요`,
+    message: `${await nicknameOf(memberUserId)}님이 '${meetup.title}'에서 나갔어요`,
     link: `/meetup/${meetup._id}`,
     meetup: meetup._id,
   });
@@ -79,13 +83,13 @@ const meetupLeft = async (meetup, memberUserId) =>
 const meetupCancelled = (meetup) =>
   notify(
     (meetup.members || []).map((m) => m.user),
-    { type: 'meetup_cancelled', message: `'${meetup.title}' 모임이 취소됐어요`, link: `/meetup/${meetup._id}`, meetup: meetup._id }
+    { type: 'meetup_cancelled', message: `'${meetup.title}' 취소됐어요`, link: `/meetup/${meetup._id}`, meetup: meetup._id }
   );
 
 const meetupUpdated = (meetup) =>
   notify(approvedUsers(meetup), {
     type: 'meetup_updated',
-    message: `'${meetup.title}' 모임 내용이 바뀌었어요`,
+    message: `'${meetup.title}' 내용이 바뀌었어요`,
     link: `/meetup/${meetup._id}`,
     meetup: meetup._id,
   });
@@ -96,7 +100,7 @@ const meetupUpdated = (meetup) =>
 const reviewOpen = (meetup) =>
   notify(participantsOf(meetup), {
     type: 'review_open',
-    message: `'${meetup.title}' 평가가 열렸어요. 48시간 동안 보낼 수 있어요`,
+    message: `'${meetup.title}' 평가가 열렸어요`, // 기한은 마감 임박 알림이 따로 알린다
     link: `/meetup/${meetup._id}/review`,
     meetup: meetup._id,
   });
@@ -108,7 +112,7 @@ const reviewOpen = (meetup) =>
 const reviewClosing = (meetup, pendingUserIds) =>
   notify(pendingUserIds, {
     type: 'review_closing',
-    message: `'${meetup.title}' 평가가 내일 마감돼요. 안 보내면 매너 점수가 1점 깎여요`,
+    message: `'${meetup.title}' 평가가 내일 마감돼요 · 안 보내면 1점 깎여요`,
     link: `/meetup/${meetup._id}/review`,
     meetup: meetup._id,
   });
@@ -133,7 +137,7 @@ const friendMatched = async (userA, userB) => {
 const mannerDown = ({ userId, message, points, meetup }) =>
   notify([userId], {
     type: 'manner_down',
-    message: `${message} · 매너 점수 ${Math.abs(points)}점 깎였어요`,
+    message: `${message} · ${Math.abs(points)}점 깎였어요`, // '매너 점수'는 내림 화살표 아이콘이 대신한다
     link: '/my?tab=praise',
     meetup,
   });
@@ -182,6 +186,13 @@ async function markRead(userId, ids) {
  */
 const clearAll = async (userId) => ({ cleared: (await Notification.deleteMany({ user: oid(userId) })).deletedCount });
 
+/** 한 건 지우기 — 내 알림만. 없거나 이미 지웠으면 removed 0 (다시 눌러도 오류 아님) */
+async function removeOne(userId, id) {
+  if (!mongoose.isValidObjectId(id)) return { removed: 0 };
+  const { deletedCount } = await Notification.deleteOne({ _id: oid(id), user: oid(userId) });
+  return { removed: deletedCount };
+}
+
 /** 90일 지난 알림 삭제 (cron) */
 async function purgeOld(now = new Date()) {
   const { deletedCount } = await Notification.deleteMany({ createdAt: { $lt: new Date(now - NOTIFY_KEEP_DAYS * DAY) } });
@@ -205,5 +216,6 @@ module.exports = {
   unreadCount,
   markRead,
   clearAll,
+  removeOne,
   purgeOld,
 };

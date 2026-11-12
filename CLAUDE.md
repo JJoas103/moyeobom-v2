@@ -315,7 +315,7 @@ npm run migrate:approved-ever # 한 번만 — 기존 모임에 approvedEver 채
 
 | type | 받는 사람 | 거는 곳 |
 |---|---|---|
-| `meetup_apply` | 호스트 | `meetupService.applyMeetup` — 누르면 참여자 관리 팝업 신청 탭(`/meetup/:id?manage=pending`) |
+| `meetup_apply` | 호스트 | `meetupService.applyMeetup` — `link` 는 참여자 관리 팝업 신청 탭(`/meetup/:id?manage=pending`), 지금 패널은 이동하지 않음 |
 | `meetup_approved` | 신청자 | `meetupService.approveMember` |
 | `meetup_left` | 호스트 | `meetupService.leaveMeetup` |
 | `meetup_cancelled` | 신청 중 · 승인 전원 | `meetupService.setMeetupStatus` |
@@ -330,11 +330,15 @@ npm run migrate:approved-ever # 한 번만 — 기존 모임에 approvedEver 채
 신고(상대가 알면 안 된다).
 
 - API: `GET /api/notification?limit=` · `GET /api/notification/unread` · `POST /api/notification/read`
-  (`ids` 없으면 전부 읽음) · **`DELETE /api/notification`(모두 지우기)**. 전부 로그인 필요 — 내 알림만 본다.
+  (`ids` 없으면 전부 읽음) · **`DELETE /api/notification`(모두 지우기)** · `DELETE /api/notification/:id`(한 건).
+  전부 로그인 필요 — 내 알림만 본다.
+- **패널 모양 (2026-11-09)**: 종류마다 아이콘 · 색(`Header.jsx` `NOTIFY_KINDS`) — 그래서 문구에서 '모임' ·
+  '매너 점수' 같은 말을 뺐다. 글은 두 줄까지, **누르면 펼친다 — 화면 이동은 뺐다**(`link` 는 저장만 하고 안 씀).
+  항목 오른쪽 위 X 로 한 건 지우기, 목록 아래에 '모두 지우기'.
 - **읽어도 사라지지 않는다.** 종을 열면 전부 읽음 처리돼 점만 없어지고 목록은 남는다.
   자동 삭제는 90일 하나뿐이라, 목록이 최근 30건까지만 보이는 동안 밀려난 알림을 치울 수단이 없었다.
   그래서 **'모두 지우기'** 를 넣었다 (2026-11-06, 패널 안에서 한 번 묻는다 — 바깥에 모달을 띄우면
-  바깥 클릭으로 패널이 먼저 닫힌다). 개별 삭제는 손이 많이 가고 얻는 게 적어 넣지 않았다.
+  바깥 클릭으로 패널이 먼저 닫힌다). 개별 삭제는 처음엔 뺐다가 2026-11-09 에 넣었다(묻지 않고 바로 지운다).
   **cron 알림을 지워도 다시 오지 않는다** — 중복 방어는 알림 문서가 아니라 모임 쪽 표식이 1차다.
 - **매너 이력은 지우는 기능을 넣지 않는다.** 알림은 놓쳐도 되는 통지지만 이력은 점수의 근거다.
   지우면 불변식이 깨지고 본인 점수를 설명할 수 없게 된다 (감점만 골라 지우면 검산이 안 맞는다).
