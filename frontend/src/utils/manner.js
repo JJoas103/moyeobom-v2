@@ -17,18 +17,21 @@ export const MANNER_BANDS = [
   { min: 80, tone: 'high', label: '아주 좋아요' },
 ]
 
-/** 칸 이름과 너비(%) — 점수 카드의 매가 쓴다. 합은 항상 100 이다 */
-export const mannerBandSpans = () =>
-  MANNER_BANDS.map((band, i) => ({
-    ...band,
-    name: band.short || band.label,
-    width: (MANNER_BANDS[i + 1]?.min ?? MANNER_MAX) - band.min,
-  }))
+/** 눈금 숫자 [0, 40, 60, 80, 100] — 매의 경계 자리에 찍는다.
+ *
+ * 이름만 있으면 몇 점부터 단계가 바뀌는지 알 수 없다. 숫자를 **경계 자리에** 두어야 자처럼
+ * 읽힌다 — 이름 옆에 `0~39 아쉬워요` 로 붙여 봤더니 눈금이 아니라 설명 문구로 읽혔다.
+ * 숫자도 MANNER_BANDS 에서만 나온다 — CSS 나 JSX 에 박지 말 것.
+ *
+ * ⚠ 칸 이름 넷을 매 아래 나란히 늘어놓던 mannerBandSpans() 는 지웠다 (2026-11-08).
+ *   칸 폭이 40/20/20/20 이라 간격이 어긋났고, 지금은 내 단계만 표시점 위 칩으로 말한다. */
+export const mannerBandEdges = () => [...MANNER_BANDS.map((b) => b.min), MANNER_MAX]
 
+/** 점수 → 단계. label 은 '보통이에요'(배지·머리줄), name 은 '보통'(매 위 칩처럼 좁은 자리) */
 export function mannerTone(score) {
   const n = typeof score === 'number' ? score : MANNER_BASE
   const band = [...MANNER_BANDS].reverse().find((b) => n >= b.min) || MANNER_BANDS[0]
-  return { tone: band.tone, label: band.label, score: n }
+  return { tone: band.tone, label: band.label, name: band.short || band.label, score: n }
 }
 
 // ⚠ 변동분에 부호를 붙이는 signed() 가 있었는데 지웠다 (2026-11-07).

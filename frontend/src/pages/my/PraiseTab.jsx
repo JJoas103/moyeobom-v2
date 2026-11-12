@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import MiniPoster from '../../components/common/MiniPoster'
 import { ArrowUpIcon, ArrowDownIcon } from '../../components/common/Icons'
 import { formatMonthDay, formatWeekday } from '../../utils/format'
-import { mannerTone, mannerBandSpans, MANNER_MAX, MANNER_RULES, MANNER_ZERO } from '../../utils/manner'
+import { mannerTone, mannerBandEdges, MANNER_MAX, MANNER_RULES, MANNER_ZERO } from '../../utils/manner'
 
 const DOT_MAX = 8 // 이보다 많으면 점 대신 숫자만
 
@@ -85,9 +85,14 @@ export default function PraiseTab({ praise, manner }) {
 //   '보통이에요'라는 말은 있었지만 0~100 중 어느 자리인지, 다음 단계가 얼마나 먼지 안 보였다.
 //   칸 경계(40·60·80)는 utils/manner.js 의 MANNER_BANDS 한 곳에서만 온다 — CSS 에 박지 않는다.
 //   읽어 주기는 매 전체에 한 문장으로 붙인다 — 표시점과 칸 이름을 하나씩 읽으면 쓸모없이 길다.
+//
+// 칸 이름 넷을 매 아래 나란히 두지 않는다 (2026-11-08). 칸 폭이 40/20/20/20 이라 이름을 각자
+//   칸 가운데에 두면 리듬이 어긋나고 오른쪽 끝('아주 좋아요' + 100)이 빽빽했다. 지금은
+//   **경계 숫자만 줄로 두고 내 단계는 표시점 위 칩 하나로** 말한다 — 줄이 하나라 비틀 게 없다.
+//   --at(0~1)은 scale 에 한 번만 주고 칩과 표시점이 같이 물려받는다 (custom property 는 상속된다).
 function MannerSum({ manner }) {
-  const { tone, label } = mannerTone(manner.score)
-  const bands = mannerBandSpans()
+  const { tone, label, name } = mannerTone(manner.score)
+  const edges = mannerBandEdges()
   const at = Math.min(MANNER_MAX, Math.max(0, manner.score))
 
   return (
@@ -97,20 +102,31 @@ function MannerSum({ manner }) {
         <strong className="manner-sum__label">매너 점수 · {label}</strong>
       </div>
 
-      <div className="manner-sum__scale" role="img" aria-label={`${MANNER_MAX}점 중 ${manner.score}점 — ${label}`}>
-        <div className="manner-sum__track" aria-hidden="true">
-          {bands.slice(1).map((band) => (
-            <i key={band.min} className="manner-sum__edge" style={{ left: `${band.min}%` }} />
-          ))}
-          <i className="manner-sum__mark" style={{ '--at': at / MANNER_MAX }} />
+      <div
+        className="manner-sum__scale"
+        role="img"
+        aria-label={`${MANNER_MAX}점 중 ${manner.score}점 — ${label}`}
+        style={{ '--at': at / MANNER_MAX }}
+      >
+        <div className="manner-sum__now" aria-hidden="true">
+          <span>{name}</span>
         </div>
-        <ul className="manner-sum__ticks" aria-hidden="true">
-          {bands.map((band) => (
-            <li key={band.min} style={{ flexBasis: `${band.width}%` }}>
-              {band.name}
-            </li>
+
+        <div className="manner-sum__track" aria-hidden="true">
+          {edges.slice(1, -1).map((v) => (
+            <i key={v} className="manner-sum__edge" style={{ left: `${v}%` }} />
           ))}
-        </ul>
+          <i className="manner-sum__mark" />
+        </div>
+
+        {/* 눈금 숫자는 경계선과 같은 자리에 — 40 이 40 선 바로 아래 선다 */}
+        <div className="manner-sum__marks" aria-hidden="true">
+          {edges.map((v) => (
+            <span key={v} style={{ left: `${v}%` }}>
+              {v}
+            </span>
+          ))}
+        </div>
       </div>
     </div>
   )
@@ -189,13 +205,13 @@ function RuleList({ title, rows }) {
 function MannerLog({ manner }) {
   const { log, base } = manner
   if (!log?.length) {
-    return <p className="manner-log__none">아직 점수가 움직인 일이 없어요. {base}점에서 시작한 그대로예요.</p>
+    return <p className="manner-log__none">아직 점수가 바뀐 적이 없어요. {base}점에서 시작한 그대로예요.</p>
   }
 
   return (
     <div className="my-section">
       <h2 className="my-section__title">
-        점수가 움직인 일<span>최근 {log.length}건</span>
+        점수가 바뀐 기록<span>최근 {log.length}건</span>
       </h2>
       <ul className="manner-log">
         {log.map((row) => (
