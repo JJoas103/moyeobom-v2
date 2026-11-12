@@ -50,26 +50,40 @@ npm run migrate:approved-ever # 한 번만 — 기존 모임에 approvedEver 채
 - 디자인 토큰은 `frontend/src/index.css` `:root`. 누를 곳은 그린(`--primary`) 하나. 이모지 아이콘 쓰지 않음(`components/common/Icons.jsx`).
 - 한국어 UI 문구는 짧은 해요체. **예외 — 모임 만들기(①~④ · 수정)는 명사형**(2026-11-09, 당근 · 문토 · 소모임 참고): 라벨 · 버튼 · 안내 · 빈 상태는 `호스트 제외` · `신청은 전날까지` · `찾는 행사 없음` 처럼 끊고, 오류 · 부탁(`모임 제목을 적어 주세요.`)과 질문만 해요체. 다른 화면으로 넓힐지는 아직 미정.
 
-## 화면 진행 상황 (시안 v2 기준)
+## 화면 진행 상황 (2026-11-12 기준)
 
-| 화면 | 경로 | 상태 |
-|------|------|------|
-| 행사 목록 | `/event` | 완료 (목업) |
-| 행사 상세 | `/event/:id` | 완료 (목업) |
-| 모임 목록 | `/meetup` | 완료 (목업) |
-| 모임 상세 | `/meetup/:id` | 완료 (목업) — B안 타임라인 + A안 상단. 호스트는 참여자 관리 팝업(신청 · 확정 탭) |
-| 모임 만들기 ① | `/meetup/new` | 완료 (목업) |
-| 모임 만들기 ② | `/meetup/new/:eventId` | 완료 (목업) |
-| 모임 평가 ①② · 완료 · 마감 | `/meetup/:id/review` | 완료 (실제 API) — 시안 `html/moyeobom-chat-friends/review-*` |
-| 친구 | `/friends` | 완료 (실제 API) — 메모 팝업 포함. 요청 탭 없음(서로 고르면 바로 친구) |
-| 채팅 (모임 · 친구 1:1) | `/chat` · `/chat/:roomId` · `/chat/meetup/:meetupId` | 완료 (실제 API + socket.io) |
-| 내 모임 | `/my/meetups?tab=hosted\|joined` | 완료 (실제 API `GET /api/meetup/mine`) — 내가 연 / 참여한(신청 중 포함) 탭, 다가오는 · 지난 모임 카드. 머리줄에 매너 점수 배지 |
-| 마이 | `/my?tab=praise\|likes\|settings\|blocks\|sanctions` | 완료 (실제 API `GET/PATCH /api/member/me` · `PATCH /api/member/me/password` · `GET/DELETE /api/friends/blocks`) — 프로필 카드 + 상단 탭. 시안 `html/moyeobom-my/my.html`. `tab=praise` 는 매너 점수(점수 · 규칙 · 변동 이력 · 받은 평가), `tab=likes` 는 찜 목록 행사 · 모임(`GET /api/likes`). 탈퇴 `POST /api/member/withdraw` — 다가오는 연 모임 · 참여(신청 중 포함) 모임 있으면 막음, 비밀번호(소셜은 '탈퇴' 입력) 확인, 친구 · 차단 · 찜 · 회원 삭제(지난 모임 · 평가 · 메시지는 남김) |
-| 홈 | `/?view=rec\|map\|cal` | 완료 (실제 API) — 시안 `html/home.html`. 추천 · 지도 · 달력 탭 + 이번 주 모임 + 지금 열려 있는 행사. 달력은 자동 넘김 · 기간 설정 없음(오늘 · 이번 주말 · 날짜 선택). 실제 카카오 지도는 도메인 등록 뒤 확인 필요 |
-| 관리자 | `/admin?tab=reports\|members` | 완료 (실제 API) — 관리자(`User.role`)만. 신고 목록 · 상세 · 제재/기각/제재 취소 · 이의제기 판정, 회원 목록 · 상세(열람만) |
-| 가입 취향 | `/member/join` · `/member/social-join` · `/my?tab=settings` | 완료 (실제 API) — 가입 ① 계정 ② 취향 ③ 지역. 마이 계정 설정에서 확인 · 수정 |
+화면은 전부 완료, 전부 실제 API 에 연결됨 (`USE_MOCK_EVENTS` · `USE_MOCK_MEETUPS` 모두 `false`).
 
-- 행사 · 모임 모두 실제 API 연결됨 (`USE_MOCK_EVENTS = false`, `USE_MOCK_MEETUPS = false`). 표의 '(목업)'은 화면을 처음 만든 시점 기준.
+| 화면 | 경로 | 로그인 | 주요 내용 |
+|------|------|--------|-----------|
+| 홈 | `/?view=rec\|map\|cal` | — | 추천(이유 칩 · 찜) · 지도 · 달력 탭 + 이번 주 모임 + 지금 열려 있는 행사. 달력은 자동 넘김 · 기간 설정 없음(오늘 · 이번 주말 · 날짜 선택). 시안 `html/home.html`. 카카오 지도는 도메인 등록 뒤 확인 필요 |
+| 행사 목록 | `/event` | — | 필터 · 검색, 카드 찜 |
+| 행사 상세 | `/event/:id` | — | 열린 모임 수 · 찜 · 이 행사로 모임 만들기 · 예매 링크 · 이 행사 모임 · 비슷한 행사 |
+| 모임 목록 | `/meetup` | — | 필터 · 검색, 카드 찜 |
+| 모임 상세 | `/meetup/:id` | — | 타임라인 · 호스트의 한마디 · 함께하는 사람 · 모임 채팅 · 이 모임의 행사 · 행사장 근처. 버튼은 보는 사람마다 다름 — 아래 표 |
+| 모임 만들기 ① 행사 고르기 | `/meetup/new` | 필요 | 검색 · 지금 열려 있는 행사 · 찜한 행사(모임을 열 수 있는 것만) · 최근 끝난 행사 |
+| 모임 만들기 ②~④ | `/meetup/new/:eventId` | 필요 | 스텝 — ② 소개 · 조건 ③ 언제(관람 동행 + 달력) ④ 어디서(카카오맵 장소 검색) · 타임라인 |
+| 모임 수정 | `/meetup/:id/edit` | 호스트 | 행사 빼고 전부, 정원은 승인 인원 이상. 아래에 모집 마감 · 다시 열기 · 모임 취소 |
+| 모임 평가 | `/meetup/:id/review` | 필요 | ① 매너(좋았어요 / 보통이에요 / 아쉬웠어요) ② 또 만나고 싶어요 · 완료 · 마감. 시안 `html/moyeobom-chat-friends/review-*` |
+| 친구 | `/friends` | 필요 | 친구 카드 · 메모 팝업 · 1:1 채팅 · 끊기 · 차단. 요청 탭 없음(서로 고르면 바로 친구) |
+| 채팅 | `/chat` · `/chat/:roomId` · `/chat/meetup/:meetupId` | 필요 | 모임 방 · 친구 1:1, socket.io 실시간, 호스트 공지 고정, 신고(이유 고르기) · 차단 |
+| 내 모임 | `/my/meetups?tab=hosted\|joined` | 필요 | 내가 연 / 참여한(신청 중 포함) 모임, 다가오는 · 지난 모임. 머리줄에 매너 점수 배지 |
+| 마이 | `/my?tab=praise\|likes\|settings\|blocks\|sanctions` | 필요 | 프로필 카드 + 매너 점수(점수 · 규칙 · 변동 이력 · 받은 평가) · 찜 목록(행사 · 모임 칩) · 계정 설정(프로필 · 비밀번호 · 취향 · 지역 · 탈퇴) · 차단 목록 · 받은 제재(이의제기). 시안 `html/moyeobom-my/my.html` |
+| 관리자 | `/admin?tab=reports\|members` | 관리자 | `User.role` 이 admin 인 사람만. 신고 목록 · 상세 · 제재/기각/제재 취소 · 이의제기 판정, 회원 목록 · 상세(열람만) |
+| 로그인 · 가입 | `/member/login` · `/member/join` · `/member/social-join` | — | 이메일 · 구글 · 네이버. 가입 ① 계정 ② 취향 ③ 지역 |
+| 헤더 | 모든 화면 | 필요 | 채팅 안 읽음 점 · 알림 종 드롭다운 (아래 '알림') |
+
+**모임 상세 — 보는 사람별**
+
+| 보는 사람 | 오른쪽 카드 | 그 밖 |
+|-----------|-------------|-------|
+| 로그인 전 · 신청 전 | 참여 방식 고르기 + 공유 · 참여 신청 (마감 · 시작 뒤엔 누를 수 없음) | 찜 |
+| 신청 중 | 승인 기다림 안내 + 다른 모임 보기 · 신청 취소하기 | 찜 |
+| 확정 참여자 | 확정 안내(정확한 장소) + 다른 모임 보기 · 참여 취소하기 | 찜 · 확정 명단 · 모임 채팅 · 맨 위 오른쪽 '모임 신고하기' |
+| 호스트 | 공유 · 참여자 관리(대기 수) + 모임 정보 수정 · 마감 | 참여자 관리 팝업(신청 탭: 승인 · 거절 / 확정 탭: 내보내기 · 신고, 주소 `?manage=`) · 확정 명단 · 모임 채팅 |
+| 이야기 자리 시작 뒤 (확정 참여자 · 호스트) | 평가 박스 | 승인 · 거절 · 내보내기 · 취소 닫힘 |
+| 취소된 모임 | 신청 전: 공유 · '취소된 모임이에요'(누를 수 없음) / 참여자: 다른 모임 보기 / 호스트: 공유 · 다른 모임 보기 | 찜 하트 없음 · 맨 위 취소 안내 |
+
 - 인증(passport·session, connect-mongo) 붙음 — `/member/login` · `/member/join` · `/member/social-join`.
 - 찜: `Like`(사람 · 종류 `event`|`meetup` · 대상, 같은 대상은 한 번만) · `routes/api/likeApiRouter.js` — 행사 · 모임 카드, 행사 · 모임 상세, 추천 홈의 하트(`components/common/LikeButton.jsx`, 값은 `context/LikesContext.jsx` 한 곳). 로그인 전에 누르면 로그인 화면으로. 끝난 행사는 찜에 남고, 취소된 모임은 빠지고 새로 찜할 수 없음. 내가 연 모임엔 하트 없음. 모임 만들기 ① '찜한 행사'에 모임을 열 수 있는 행사만 보임.
 - 취향 · 추천(2026-11): `User.tastes`(행사 카테고리 키 6개, 1개 이상 필수) · `User.districts`(서울 자치구, 선택, 최대 3곳). 기존 회원은 비어 있을 수 있음. `GET /api/event/recommended` 순위 = 취향 일치 → 관심 지역 일치 → 참여했던 모임과 같은 분류 → 모집 중인 모임 많은 순 → 곧 끝나는 순 (`services/recommendService.js`). 행사 · 모임 목록 API 는 달력용 `from` · `to`(`YYYY-MM-DD`)도 받음.
