@@ -15,7 +15,8 @@
     "manner:check": "node scripts/checkMannerLedger.js",
     "admin:grant": "node scripts/grantAdmin.js",
     "db:sync-indexes": "node scripts/syncIndexes.js",
-    "migrate:report-index": "node scripts/dropReportUniqueIndex.js"
+    "migrate:report-index": "node scripts/dropReportUniqueIndex.js",
+    "migrate:approved-ever": "node scripts/backfillApprovedEver.js"
   },
   "engines": {
     "node": ">=22"

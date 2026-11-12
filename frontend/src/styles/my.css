@@ -693,6 +693,17 @@
   color: var(--text-sub);
 }
 
+/* 호스트일 때만 해당되는 줄의 꼬리표. 주인공은 라벨이라 작고 흐리게 둔다 */
+.manner-rules__who {
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-muted);
+  font-size: 12px;
+  color: var(--text-sub);
+  white-space: nowrap;
+}
+
 .manner-rules__zero li {
   display: flex;
   flex-direction: column;

@@ -54,7 +54,8 @@ function serialize(doc, { events, users, hostedCounts, viewerId, withMembers = f
   const approved = mine?.status === 'approved';
   const canSeePrivate = isHost || approved;
 
-  const { members = [], talk, host, event, __v, ...rest } = doc;
+  // approvedEver 는 내려주지 않는다 (서버 판정용) — 호스트에게만 아래 hadMembers 로 알린다
+  const { members = [], talk, host, event, __v, approvedEver = 0, ...rest } = doc;
   const response = {
     ...rest,
     talk: {
@@ -66,6 +67,9 @@ function serialize(doc, { events, users, hostedCounts, viewerId, withMembers = f
     event: pick(events.get(String(event)), EVENT_FIELDS),
     host: users.get(String(host)) ? { ...publicUser(users.get(String(host))), hostedCount: hostedCounts.get(String(host)) || 0 } : null,
     approvedCount: approvedCountOf(doc),
+    // 승인한 적 있는지 — **호스트에게만.** 취소 팝업이 감점(-5)을 미리 알리는 데 쓴다.
+    // 전원 내보낸 뒤에도 true 라서 approvedCount 와 다를 수 있다 (그게 이 값을 두는 이유다)
+    ...(isHost && { hadMembers: approvedEver > 0 }),
     isHost,
     myMembership: mine ? { status: mine.status, joinType: mine.joinType } : null,
     review: reviewWindow(talk.startAt), // { opensAt, closesAt } — 평가 기한 (모임 채팅도 closesAt 에 읽기 전용)
@@ -386,8 +390,11 @@ async function setMeetupStatus(id, hostId, status) {
   if (status === 'cancelled') {
     await sideEffect('방 닫기', () => chatService.closeMeetupRoom(doc._id));
     await sideEffect('취소 알림', () => notificationService.meetupCancelled(doc));
-    // 사람을 모아 놓고 엎은 경우만 감점 — 아무도 없으면 개설 가점(+5)도 애초에 안 생긴 상태다
-    if (approvedCountOf(doc) > 0) await sideEffect('취소 감점', () => mannerService.hostCancelled(hostId, doc));
+    // 사람을 **받았던** 모임을 엎은 경우만 감점 — 아무도 승인하지 않았으면 개설 가점(+5)도 애초에
+    // 안 생긴 상태다. 지금 비어 있어도 승인한 적 있으면 깎인다 (approvedEver).
+    // ⚠ approvedCountOf(doc)(= 지금 승인 인원)로 판정하던 때는 **전원 내보낸 뒤 취소하면 0점**이었다
+    //   — 내보내기에는 감점이 없어서(dismissMember) 클릭 몇 번으로 -5 가 사라졌다. 되돌리지 말 것
+    if ((doc.approvedEver || 0) > 0) await sideEffect('취소 감점', () => mannerService.hostCancelled(hostId, doc));
   }
   return getMeetup(doc._id, hostId);
 }
@@ -451,7 +458,8 @@ async function approveMember(id, hostId, memberUserId) {
       members: { $elemMatch: { user: memberObjectId, status: 'pending' } },
       $expr: notFullExpr,
     },
-    { $set: { 'members.$.status': 'approved', 'members.$.approvedAt': new Date() } },
+    // approvedEver 는 같은 수정 문서에서 올린다 — 쿼리를 따로 두면 동시 승인 두 건이 카운터를 흘린다
+    { $set: { 'members.$.status': 'approved', 'members.$.approvedAt': new Date() }, $inc: { approvedEver: 1 } },
     { new: true }
   );
   if (!updated) throw httpError(409, '승인하지 못했어요. 새로고침 후 다시 시도해 주세요');

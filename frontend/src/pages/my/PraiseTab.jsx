@@ -171,7 +171,10 @@ function RuleList({ title, rows }) {
         {rows.map((r) => (
           <li key={r.key}>
             <b className={r.points < 0 ? 'is-down' : 'is-up'}>{Math.abs(r.points)}점</b>
-            <span className="manner-rules__what">{r.label}</span>
+            <span className="manner-rules__what">
+              {r.label}
+              {r.host && <span className="manner-rules__who">호스트</span>}
+            </span>
             <span className="manner-rules__when">{r.when}</span>
           </li>
         ))}

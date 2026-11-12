@@ -2,6 +2,19 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { setMeetupStatus } from '../../data/meetups'
 
+/** 취소 확인 문구 — **깎이기 전에, 깎이는 자리에서 알린다** (CLAUDE.md 매너 점수 원칙).
+ *  참여자 취소 팝업(ApplyBox 의 LeaveButton)이 '1점 깎여요'를 먼저 보여 주는 것과 같은 자리다.
+ *
+ *  hadMembers 는 **승인한 적 있는지**다 (서버 serialize, 호스트에게만). 지금 비어 있어도 true 라서
+ *  전원 내보낸 뒤 취소해도 감점을 미리 알린다 — 그게 서버 판정과 같은 기준이다.
+ *
+ *  감점은 시점으로 갈리지 않는다(일찍 취소해도 -5). 취소된 모임은 복구할 방법이 없어 손해가 같기
+ *  때문인데, 그러면 미룰 이유가 없어지므로 **미루지 말라는 말을 점수가 아니라 문구로 한다.** */
+const cancelAsk = (meetup) =>
+  meetup.hadMembers
+    ? '모임을 취소할까요?\n\n참여자를 받은 모임이라 매너 점수가 5점 깎여요. 지금 취소하면 참여자가 다른 모임을 찾을 시간이 있어요.\n되돌릴 수 없고, 목록에서도 빠져요.'
+    : '모임을 취소할까요? 취소하면 되돌릴 수 없고, 목록에서도 빠져요.'
+
 // 수정 페이지 아래 — 모집 마감 · 다시 열기 · 모임 취소
 export default function MeetupStatusActions({ meetup }) {
   const navigate = useNavigate()
@@ -10,7 +23,7 @@ export default function MeetupStatusActions({ meetup }) {
   const closed = meetup.status === 'closed'
 
   const change = async (status) => {
-    if (status === 'cancelled' && !window.confirm('모임을 취소할까요? 취소하면 되돌릴 수 없고, 목록에서도 빠져요.')) return
+    if (status === 'cancelled' && !window.confirm(cancelAsk(meetup))) return
     setBusy(status)
     setError(null)
     try {

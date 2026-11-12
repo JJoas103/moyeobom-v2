@@ -63,6 +63,12 @@ const meetupSchema = new mongoose.Schema(
     members: [memberSchema],
     status: { type: String, enum: ['open', 'closed', 'cancelled'], default: 'open' },
 
+    // 승인한 적 있는 사람 수 — **내보내기 · 거절 · 참여 취소로 줄지 않는다.** members 는 $pull 로
+    // 지워져(위 주석) 승인했던 사실이 남지 않으므로 따로 센다.
+    // 호스트 취소 감점(-5)의 판정 기준이다 — '지금 승인 인원'으로 판정하던 때는 전원 내보낸 뒤
+    // 취소해 감점을 피할 수 있었다 (2026-11-10). 줄이는 코드를 넣지 말 것
+    approvedEver: { type: Number, default: 0 },
+
     // 하루 한 번 도는 cron 이 같은 일을 두 번 하지 않게 하는 표식 (schedulers/reviewDaily.js).
     // 평가 열림 · 마감 시각은 저장하지 않고 socialRules.reviewWindow 로 계산하는 값이라
     // 쿼리로 못 걸러진다 → talk.startAt 범위로 좁히고 메모리에서 거른 뒤 이 표식을 남긴다
