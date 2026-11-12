@@ -126,7 +126,7 @@ function validate(form) {
   const start = fromLocalInput(form.talkStart)
   if (!start) e.talkStart = '이야기 자리 시각을 골라 주세요.'
   else if (start <= now) e.talkStart = '지금보다 뒤의 시각으로 골라 주세요.'
-  // 행사 시간에 맞춰 막는 규칙은 두지 않는다 (2026-11-09) — 달력은 행사 시간을 보여 주기만 하고 호스트가 고른다
+  // 행사 시간으로 막지 않는다 — 달력은 보여 주기만 하고 호스트가 고른다
 
   if (!form.place.trim()) e.place = '만날 장소를 찾아 주세요.'
   if (!form.area.trim()) e.area = '목록에 보일 동네를 적어 주세요.'
@@ -290,7 +290,7 @@ export default function MeetupForm({ event, meetup }) {
       alcohol: form.alcohol,
       budget: form.budget,
       capacity: Number(form.capacity),
-      // 관람 동행은 받을지 말지만 — 회차는 승인 뒤 채팅에서 정한다 (2026-11-09)
+      // 관람 동행은 받을지 말지만 — 회차는 승인 뒤 채팅에서 정한다
       watch: { enabled: form.watchEnabled },
     }
 
@@ -492,8 +492,7 @@ export default function MeetupForm({ event, meetup }) {
   )
 
   // ---------- ④ 어디서 · 타임라인 ----------
-  // 장소(승인된 사람만) → 동네(모두, 장소에서 자동) → 타임라인(모두) 차례. 칸마다 누구에게 보이는지 적는다
-  // '만나서 할 일'(talk.startTitle)은 뺐다 (2026-11-09) — 소개에 써도 되는 내용이고, 그날 순서는 타임라인이 맡는다
+  // 장소(승인된 사람만) → 동네(모두, 장소에서 자동) → 타임라인(모두). 칸마다 누구에게 보이는지 적는다
   const whereSection = (
     <div className="form-stack">
       <div className="field-block">
@@ -648,9 +647,7 @@ function PreviewText({ value, fallback }) {
 }
 
 /**
- * 이야기 자리 시각 달력 바로 위 — 행사 회차(운영 시간) 원문.
- * 왼쪽 '행사에서 가져온 정보'에도 있지만 시각을 고르는 자리에서 눈을 떼지 않게 여기 한 번 더 둔다.
- * 달력의 형광펜 띠는 이 원문을 읽어 칠한 것이고, 못 읽은 예외('*11.14(토) 18:00 공연')는 여기서만 보인다
+ * 달력 바로 위 행사 회차(운영 시간) 원문 — 달력이 못 읽은 예외('*11.14(토) 18:00 공연')도 여기서 보인다
  */
 function EventTimeNote({ event }) {
   if (!event.sessionsText) return null

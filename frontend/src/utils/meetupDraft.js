@@ -29,7 +29,6 @@ export function guessArea(place = '') {
  *      러닝타임이 있으면 끝나고 10분 뒤, 없으면 회차 2시간 반 뒤 어림 — 그냥 19:00 이면 19:30 공연보다 앞서 버린다
  *  - 그 밖에는 다음 날 19:00 — 전시 · 축제의 시각은 회차가 아니라 운영 시간이다.
  *      그날 운영이 19:00 뒤에 끝나면 끝나는 시각으로 (sessions.talkAvailableFrom)
- * 무엇을 기준으로 잡았는지 알리던 문구('19:30 회차 기준 추천')는 2026-11-09 에 뺐다
  */
 export function suggestDraft(event) {
   const day = nextDay(event)

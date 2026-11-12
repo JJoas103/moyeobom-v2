@@ -14,9 +14,6 @@ import BlocksTab from './BlocksTab'
 import SanctionsTab from './SanctionsTab'
 import '../../styles/my.css'
 
-// 마이 — 프로필 카드 + 상단 탭 (매너 점수 · 찜 목록 · 계정 설정 · 차단 목록). 시안 html/moyeobom-my/my.html
-//   매너 점수는 프로필 카드 네 번째 칸 · 규칙과 변동 이력은 '매너 점수' 탭(tab=praise)
-//   찜 개수는 LikesContext 에서 온다 (탭 배지)
 const TABS = [
   { key: 'praise', label: '매너 점수' },
   { key: 'likes', label: '찜 목록' },

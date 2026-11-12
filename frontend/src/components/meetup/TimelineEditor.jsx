@@ -7,7 +7,7 @@ const STEP_MIN = 10
 /**
  * 시간 고르기 목록 — 이야기 자리 시작 10분 뒤부터 TIMELINE_HOURS 안, 10분 단위 'HH:MM'
  * (12시간 안이라 같은 'HH:MM' 이 두 번 나오지 않는다. 자정을 넘긴 줄은 옆에 '다음날'이 붙는다)
- * 브라우저 기본 시간 입력은 좁은 칸에서 '오후'만 보이고 시계 아이콘을 눌러야 열려서 select 로 바꿨다 (2026-11-09)
+ * 기본 시간 입력 대신 select — 좁은 칸에서 '오후'만 보이는 문제 때문
  */
 function timeOptions(talkStart, current) {
   if (!talkStart) return current ? [current] : []

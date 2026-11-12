@@ -12,13 +12,8 @@ import { formatDeadline, formatMonthDay, formatTimeLeft, formatWeekday } from '.
 import MetaLine from '../../components/common/MetaLine'
 import '../../styles/review.css'
 
-// 시안 · 모임 평가 (review-step1 · step2 · done · closed)
-//   ① 매너 평가(사람마다 좋았어요 / 보통이에요 / 아쉬웠어요) → ② 또 만나고 싶어요(비공개, 여러 명)
-//   → 평가 보내기 → 완료. 마감 뒤: 고를 수 없는 화면
-//
-// **기본값은 '보통이에요'이고 아무것도 안 건드려도 제출된다.** 활동 가점이 평가 제출에 묶여 있어서
-// (services/mannerService.js) 평가가 무거워지면 제출률이 떨어지고 그게 미제출 감점으로 돌아온다.
-// '아쉬웠어요'로 고른 사람은 ② 에서 빠진다 — 아쉬웠다고 한 사람과 친구가 될 수는 없다.
+// 모임 평가 — ① 매너(좋았어요 / 보통이에요 / 아쉬웠어요) → ② 또 만나고 싶어요(비공개) → 완료 · 마감
+//   기본값 '보통이에요'로 아무것도 안 건드려도 제출된다. '아쉬웠어요'로 고른 사람은 ② 에서 빠진다
 export default function MeetupReview() {
   const { id } = useParams()
   const { data: review, loading, error } = useAsync(() => fetchReview(id), [id])
@@ -206,10 +201,7 @@ function Stepper({ step }) {
   )
 }
 
-// 매너 평가 — 사람마다 3지 선택. 기본값은 '보통이에요'(아무것도 안 눌러도 제출된다)
-//
-// 라디오를 쓴다 — 한 사람에게 하나만 고를 수 있어야 하고, 키보드로도 좌우 이동이 되기 때문이다.
-// 서버도 praised ∩ disappointed 를 막는다 (services/reviewService.js).
+// 매너 평가 — 사람마다 라디오 3지 선택 (하나만 · 키보드 좌우 이동)
 const MANNER_CHOICES = [
   { value: MANNER_GOOD, label: '좋았어요', tone: 'good' },
   { value: MANNER_NORMAL, label: '보통이에요', tone: 'normal' },

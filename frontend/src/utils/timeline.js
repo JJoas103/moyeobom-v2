@@ -1,8 +1,8 @@
 // 모임 상세 '그날 저녁' 타임라인 — 모임·행사 정보로 시간순 구성
 // who: 'watch' = 관람부터 함께하는 사람만 / 'event' = 행사 일정(자동) / 'all' = 모두 (제목은 호스트 작성)
-// at 이 null 인 줄은 시각 없이 맨 앞에 온다 — 회차를 채팅에서 정하는 관람 (2026-11-09 부터)
+// at 이 null 인 줄은 시각 없이 맨 앞에 온다 — 회차를 채팅에서 정하는 관람
 
-// 호스트가 쓰는 줄 (meetup.timeline, 2026-11-09) — 백엔드 meetupService 와 같게
+// 호스트가 쓰는 줄 (meetup.timeline) — 백엔드 meetupService 와 같게
 export const TIMELINE_ROWS_MAX = 5 // 첫 줄(이야기 자리 시작) 제외
 export const TIMELINE_HOURS = 12 // 이야기 자리 시작에서 이 시간 안
 export const TIMELINE_TITLE_MAX = 30
@@ -47,7 +47,7 @@ export function buildTimeline(meetup) {
     }
   }
 
-  // 초록칸 — 이야기 자리 시작. startTitle 은 2026-11-09 전 모임에만 있다
+  // 초록칸 — 이야기 자리 시작. startTitle 은 옛 모임에만 있다
   items.push({ at: talk.startAt, who: 'all', title: talk.startTitle || `이야기 자리 · ${talk.area}` })
   // 그 뒤 호스트가 쓴 줄
   for (const r of meetup.timeline || []) items.push({ at: r.at, who: 'all', title: r.title })

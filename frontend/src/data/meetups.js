@@ -7,9 +7,9 @@
 //          + host:  { _id, nickname, profileImage, hostedCount(이 사람이 연 모임 수) }
 //          + approvedCount (승인된 참여자 수 — 호스트 제외. capacity 도 호스트 제외)
 //          + isHost (보는 사람이 호스트인지) · myMembership: { status, joinType } | null (내 신청)
-//          + timeline: [{ at, title }] — 이야기 자리 시작 뒤 호스트가 쓴 줄, 시각순 (공개 · 2026-11-09)
+//          + timeline: [{ at, title }] — 이야기 자리 시작 뒤 호스트가 쓴 줄, 시각순 (공개)
 //          - talk.place · talk.address · talk.location { lat, lng } · members 는 호스트 · 승인된 참여자 전용
-//            (address · location 은 카카오맵 검색으로 고른 모임만. talk.startTitle 은 2026-11-09 전 모임만)
+//            (address · location 은 카카오맵 검색으로 고른 모임만. talk.startTitle 은 옛 모임만)
 //            members: [{ user: { _id, nickname, profileImage }, joinType, status, appliedAt, approvedAt }]
 //            (호스트는 대기 중 신청자까지, 승인된 참여자는 승인된 사람끼리 · 상세에서만)
 //          - canReportHost: 모임 신고(대상은 호스트)를 할 수 있는지 (승인된 참여자 · 모임 채팅방이 목록에 보이는 동안 · 상세에서만)

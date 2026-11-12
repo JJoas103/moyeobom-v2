@@ -5,15 +5,7 @@ import { useAsync } from '../../utils/useAsync'
 import { formatMonthDay } from '../../utils/format'
 import { APPEAL_MAX, APPEAL_STATUS_LABEL, fetchMySanctions, submitAppeal } from '../../data/appeal'
 
-// 받은 제재와 이의제기 — 마이 › 받은 제재 탭 (차단 목록 옆)
-//
-// 전에는 '매너 점수' 탭 안에 묻혀 있었다. 제재는 **답할 수 있는 일**이라
-// 읽기만 하는 점수 설명과 섞어 두면 이의제기 버튼이 묻힌다. 제 탭으로 꺼냈다.
-//
-// ★ **제재 1건당 한 번.** 낸 뒤에는 쓴 글과 상태, 관리자 답이 그 자리에 남는다.
-//   당사자에게 보이는 문구라 짧게 줄이지 않았다 — "왜?"를 남기지 않는 것이 이 화면의 목적이다.
-//
-// 취소된 제재는 서버가 내려주지 않는다 (이미 풀렸으니 이의를 낼 이유가 없다).
+// 받은 제재 · 이의제기 — 제재 1건당 한 번, 낸 뒤엔 글 · 상태 · 관리자 답이 남는다 (취소된 제재는 안 옴)
 export default function SanctionsTab() {
   const [version, setVersion] = useState(0)
   const { data, loading, error } = useAsync(() => fetchMySanctions(), [version])

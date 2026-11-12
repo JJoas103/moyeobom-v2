@@ -4,9 +4,7 @@
 //   sanction = { _id(신고 id), meetupTitle, sanctionedAt,
 //                canAppeal(아직 안 냈으면 true),
 //                appeal: { text, at, status('open'|'accepted'|'rejected'), reply, decidedAt } | null }
-//
-// **제재 1건당 한 번만** 낼 수 있다 — 낸 뒤에는 canAppeal 이 false 가 된다.
-// 신고자 · 신고 이유 · 증거는 내려오지 않는다 (신고자를 역추적할 여지를 만들지 않는다).
+// 제재 1건당 한 번. 신고자 · 신고 이유 · 증거는 내려오지 않는다
 import { apiGet, apiPost } from '../api'
 
 export const APPEAL_MAX = 500 // models/Report.js APPEAL_MAX

@@ -10,17 +10,13 @@ import { useDebounced } from '../../utils/useDebounced'
 import { formatMonthDay } from '../../utils/format'
 import { fetchMembers } from '../../data/admin'
 
-// 회원 목록 — **보기만 한다.** 제재는 신고 상세에서만 내린다
-// (근거가 될 신고 없이 임의로 제재하지 않는다 — 이의제기가 가리킬 대상도 그 신고다)
-//
-// '매너 점수 낮은 순'이 있는 이유: 신고를 한 건씩 보기 전에 문제가 쌓이는 계정을 먼저 찾는 자리다.
-// 그래서 받은 신고 수도 목록에 함께 보여 준다 (대기 중인 건수는 따로 표시).
 const PAGE = 20
 const SORTS = [
   { value: 'recent', label: '가입 최근' },
   { value: 'manner', label: '매너 점수 낮은 순' },
 ]
 
+// 회원 목록 — 보기만. 제재는 근거가 되는 신고 상세에서만 내린다
 export default function Members() {
   const [q, setQ] = useState('')
   const [sort, setSort] = useState('recent')

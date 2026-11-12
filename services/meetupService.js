@@ -41,8 +41,6 @@ const approvedCountOf = (doc) => (doc.members || []).filter((m) => m.status === 
 const canOpenMeetup = (event, now) => !event.endDate || new Date(event.endDate) >= recentEndedFrom(now);
 
 // ---------- 응답 만들기 ----------
-// publicUser · sideEffect 는 services/publicUser.js · services/sideEffect.js 로 옮겼다
-// (평가 · 친구 서비스와 함께 쓰고, 매너 점수를 한 곳에서만 싣기 위해)
 
 /**
  * 모임 문서 → API 응답
@@ -281,8 +279,7 @@ function buildMeetup(body, event, now) {
   const capacity = Number(body.capacity);
   if (!Number.isInteger(capacity) || capacity < 2 || capacity > 10) e.capacity = '정원은 2~10명으로 골라 주세요.';
 
-  // 관람도 함께 — 받을지 말지만 (2026-11-09). 회차 · 만나는 곳은 승인 뒤 채팅에서 정하고 따로 남기지 않는다.
-  // 수정하면 옛 모임의 sessionAt · meetAt · meetPlace 도 지워진다
+  // 관람도 함께 — 받을지 말지만 (회차는 승인 뒤 채팅에서). 수정하면 옛 sessionAt · meetAt · meetPlace 도 지워진다
   const watch = { enabled: false };
   if (body.watch?.enabled) {
     if (event.endDate && new Date(event.endDate) < now) e.watch = '이미 끝난 행사라 이야기 자리만 열 수 있어요.';
@@ -390,10 +387,8 @@ async function setMeetupStatus(id, hostId, status) {
   if (status === 'cancelled') {
     await sideEffect('방 닫기', () => chatService.closeMeetupRoom(doc._id));
     await sideEffect('취소 알림', () => notificationService.meetupCancelled(doc));
-    // 사람을 **받았던** 모임을 엎은 경우만 감점 — 아무도 승인하지 않았으면 개설 가점(+5)도 애초에
-    // 안 생긴 상태다. 지금 비어 있어도 승인한 적 있으면 깎인다 (approvedEver).
-    // ⚠ approvedCountOf(doc)(= 지금 승인 인원)로 판정하던 때는 **전원 내보낸 뒤 취소하면 0점**이었다
-    //   — 내보내기에는 감점이 없어서(dismissMember) 클릭 몇 번으로 -5 가 사라졌다. 되돌리지 말 것
+    // 승인한 적 있는 모임을 엎었을 때만 감점 — 지금 인원이 아니라 approvedEver 로 본다
+    // (지금 인원으로 보면 전원 내보낸 뒤 취소해 -5 를 피할 수 있다)
     if ((doc.approvedEver || 0) > 0) await sideEffect('취소 감점', () => mannerService.hostCancelled(hostId, doc));
   }
   return getMeetup(doc._id, hostId);
@@ -432,7 +427,7 @@ async function applyMeetup(id, userId, joinType) {
   // 위에서 확인한 사이에 다른 요청이 먼저 바꾼 경우
   if (!updated) throw httpError(409, '신청하지 못했어요. 새로고침 후 다시 시도해 주세요');
 
-  // 신청으로도 승인으로도 점수는 움직이지 않는다 — 참여 가점은 2026-11-06 에 없앴다
+  // 신청 · 승인으로는 점수가 움직이지 않는다
   await sideEffect('신청 알림', () => notificationService.meetupApplied(doc, userId));
   return { status: 'pending', joinType };
 }
@@ -466,9 +461,7 @@ async function approveMember(id, hostId, memberUserId) {
 
   await sideEffect('참여자 들이기', () => chatService.addMeetupMember(updated.toObject(), memberUserId));
   await sideEffect('승인 알림', () => notificationService.meetupApproved(doc, memberUserId));
-  // 승인에는 점수 변동이 없다. 참여 가점(+2)은 2026-11-06 에 **없앴다** — 참석을 확인할 방법이
-  // 없어서 노쇼와 구별이 안 됐다. 참석의 보상은 함께한 분들의 평가로만 준다
-  // (services/mannerService.js 의 ★★ 절). 되살리지 말 것
+  // 승인에는 점수 변동이 없다 — 참석을 확인할 수 없어 참여 가점은 두지 않는다
   return getMeetup(doc._id, hostId);
 }
 

@@ -7,12 +7,9 @@ import { useAsync } from '../../utils/useAsync'
 import { formatMonthDay } from '../../utils/format'
 import { fetchReports, REPORT_REASON_LABEL, REPORT_STATUS, REPORT_STATUS_LABEL } from '../../data/admin'
 
-// 신고 목록 — 기본은 대기 중, **오래 기다린 것 먼저** (서버 정렬)
-//
-// 목록에서는 판정하지 않는다 — 버튼을 여기 달면 증거를 안 보고 누를 수 있다.
-// 이유 · 대상 · 언제까지만 보여 주고 판단은 상세에서 한다.
 const PAGE = 20
 
+// 신고 목록 — 판정 버튼은 두지 않는다 (증거를 보지 않고 누르지 않게, 판정은 상세에서)
 export default function Reports() {
   const [params, setParams] = useSearchParams()
   const status = REPORT_STATUS.some((s) => s.value === params.get('status')) ? params.get('status') : 'pending'

@@ -216,11 +216,8 @@ function ApplyForm({ meetup, status, onChange, onManage }) {
   )
 }
 
-// 참여 취소 — 신청 중이면 '신청 취소', 확정이면 '참여 취소'(모임 채팅에서도 나감). 다시 신청할 수 있음
-//   취소하면 모임 목록(/meetup)으로 이동
-// 확정 참여자가 이야기 자리 하루 안에 취소하면 매너 -1 이라 **누르기 전에** 팝업에서 알려 준다 (2026-11-07).
-//   신청 중 취소는 0점이므로 approved 일 때만 띄운다 (meetupService.leaveMeetup 이 그때만 mannerService.left 를 부른다).
-//   판정은 보여 줄지 고르는 데만 쓰고 점수는 서버가 정한다 — utils/manner.js 의 isLateLeave 주석 참고
+// 참여 취소 — 신청 중이면 '신청 취소', 확정이면 '참여 취소'(모임 채팅에서도 나감). 취소 뒤 모임 목록으로
+// 확정 참여자의 늦은 취소(-1)는 누르기 전에 팝업에서 알린다 — 점수는 서버가 정하고 여기는 경고만
 function LeaveButton({ meetup, approved }) {
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)

@@ -65,8 +65,7 @@ async function makeFriends(meetupId, a, b) {
   emitToUsers([userA, userB], 'chat:rooms', {});
   notify([userA, userB]); // 상대가 화면을 열어 두고 있으면 새로고침 없이 나타난다
 
-  // 친구가 됐다 +1 — 양쪽에. 상호 선택이라 양쪽 다 아는 사실이고, 친구 목록과 1:1 방으로 확인된다.
-  // (한쪽만 '또 만나고 싶어요'를 고른 경우는 여기 오지 않으므로 점수도 안 움직인다 — 비공개 약속)
+  // 친구가 됐다 +1 — 양쪽에 (한쪽만 고른 경우는 여기 오지 않는다)
   await sideEffect('친구 가점', () => mannerService.friendsMade(userA, userB, meetupId));
   await sideEffect('친구 알림', () => notificationService.friendMatched(userA, userB));
 }

@@ -34,12 +34,11 @@ const meetupSchema = new mongoose.Schema(
       address: { type: String, trim: true }, // 도로명(없으면 지번) 주소 — 검색으로 골랐을 때만
       location: { lat: Number, lng: Number }, // 검색으로 골랐을 때만
       area: { type: String, required: true }, // 목록에 보이는 '혜화역 근처' — 고른 장소에서 가장 가까운 역으로 채우고 호스트가 고칠 수 있다
-      // 타임라인 첫 줄 제목 — 2026-11-09 부터 받지 않는다 (소개에 써도 되는 내용). 그 전 모임에만 남아 있다
+      // (옛) 타임라인 첫 줄 제목 — 더 받지 않고 예전 모임에만 남아 있다
       startTitle: { type: String, trim: true, maxlength: 30 },
     },
 
-    // 타임라인 — 이야기 자리 시작 뒤로 호스트가 쓰는 줄 (2026-11-09). 공개.
-    //   첫 줄(이야기 자리 시작)은 talk.startAt 이라 여기 넣지 않는다. 시각순으로 저장
+    // 타임라인 — 이야기 자리 시작 뒤 호스트가 쓰는 줄(공개, 시각순). 첫 줄은 talk.startAt 이라 넣지 않는다
     timeline: {
       type: [{ _id: false, at: { type: Date, required: true }, title: { type: String, required: true, trim: true, maxlength: 30 } }],
       default: [],
@@ -50,11 +49,10 @@ const meetupSchema = new mongoose.Schema(
     budget: { type: String, enum: BUDGETS, required: true },
     capacity: { type: Number, required: true, min: 2, max: 10 }, // 참여자 정원 (호스트 제외)
 
-    // 관람도 함께 (선택) — 받을지 말지만. 회차는 승인 뒤 채팅에서 정한다 (2026-11-09)
-    //   신청은 이야기 자리 전날까지 (socialRules.watchApplyOpen)
+    // 관람도 함께 (선택) — 받을지 말지만. 회차는 승인 뒤 채팅에서 정한다
     watch: {
       enabled: { type: Boolean, default: false },
-      // 아래 셋은 2026-11-09 부터 저장하지 않는다 — 그 전에 만든 모임에만 남아 있고 타임라인이 그대로 그린다
+      // (옛) 아래 셋은 더 저장하지 않는다 — 예전 모임에만 남아 있고 타임라인이 그대로 그린다
       sessionAt: { type: Date }, // 관람 회차
       meetAt: { type: Date }, // 만나는 시각
       meetPlace: { type: String }, // 만나는 곳 (공연장 1층 로비)
@@ -63,15 +61,11 @@ const meetupSchema = new mongoose.Schema(
     members: [memberSchema],
     status: { type: String, enum: ['open', 'closed', 'cancelled'], default: 'open' },
 
-    // 승인한 적 있는 사람 수 — **내보내기 · 거절 · 참여 취소로 줄지 않는다.** members 는 $pull 로
-    // 지워져(위 주석) 승인했던 사실이 남지 않으므로 따로 센다.
-    // 호스트 취소 감점(-5)의 판정 기준이다 — '지금 승인 인원'으로 판정하던 때는 전원 내보낸 뒤
-    // 취소해 감점을 피할 수 있었다 (2026-11-10). 줄이는 코드를 넣지 말 것
+    // 승인한 적 있는 사람 수 — 호스트 취소 감점(-5)의 기준. 내보내기 · 취소로 줄지 않는다
+    // (지금 인원으로 판정하면 전원 내보낸 뒤 취소해 감점을 피할 수 있다 — 줄이는 코드를 넣지 말 것)
     approvedEver: { type: Number, default: 0 },
 
-    // 하루 한 번 도는 cron 이 같은 일을 두 번 하지 않게 하는 표식 (schedulers/reviewDaily.js).
-    // 평가 열림 · 마감 시각은 저장하지 않고 socialRules.reviewWindow 로 계산하는 값이라
-    // 쿼리로 못 걸러진다 → talk.startAt 범위로 좁히고 메모리에서 거른 뒤 이 표식을 남긴다
+    // cron(reviewDaily)이 같은 일을 두 번 하지 않게 하는 표식
     reviewAppliedAt: { type: Date }, // 평가 마감분(활동 가점 · 매너 평가 · 미제출 감점)을 반영한 시각
     reviewOpenNoticedAt: { type: Date }, // '평가가 열렸어요' 알림을 보낸 시각
     reviewClosingNoticedAt: { type: Date }, // '평가가 곧 마감돼요' 알림을 보낸 시각

@@ -93,9 +93,7 @@ async function submitReview(meetupId, me, body) {
     throw err;
   }
 
-  // 평가를 보냈다 +1 — 내가 누른 일이라 설명이 필요 없다.
-  // 받은 매너 평가(좋았어요 +1/건 · 아쉬웠어요 -1/건) · 개설 가점 · 미제출 감점은
-  // 평가 마감에 cron 이 한꺼번에 반영한다 (schedulers/reviewDaily.js → mannerService.applyReviewClosed)
+  // 평가 제출 +1 은 바로. 받은 평가 · 개설 가점 · 미제출 감점은 마감 cron 이 반영한다
   await sideEffect('제출 가점', () => mannerService.reviewSubmitted(me, meetup));
 
   // 상대도 나를 골랐는지

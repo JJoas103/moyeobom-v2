@@ -18,9 +18,8 @@ const sameDay = (a, b) => a && b && a.toDateString() === b.toDateString()
 
 /**
  * 모임 만들기 › 이야기 자리 날짜 — 월 달력 (FullCalendar dayGrid)
- *   날짜 칸마다 그날 행사 시간(회차 · 운영 시간)을 형광펜 칩으로 보여 준다 — utils/sessions.js 가 sessionsText 를 읽어서.
- *   **보여 주기만** 한다 (2026-11-09): 어느 날 · 몇 시든 호스트가 고른다. 시각은 MeetupForm 의 입력칸에서 고른다
- *   칸을 누르면 그 날짜 → onPickDate(Date)
+ *   날짜 칸마다 그날 행사 시간을 형광펜 칩으로 보여 준다 (utils/sessions.js). 보여 주기만 하고 막지 않는다
+ *   칸을 누르면 그 날짜 → onPickDate(Date). 시각은 MeetupForm 입력칸에서 고른다
  * value 는 폼 값 그대로('YYYY-MM-DDTHH:mm') — Date 로 받으면 렌더마다 새 객체라 칩을 매번 다시 계산한다
  */
 export default function TalkCalendar({ event, value: valueInput, onPickDate }) {

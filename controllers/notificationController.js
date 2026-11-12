@@ -1,6 +1,6 @@
 const notificationService = require('../services/notificationService');
 
-// 컨트롤러 공통 — 서비스 결과를 { success: true, ...data } 로 (controllers/chatController.js 와 같은 모양)
+// 컨트롤러 공통 — 서비스 결과를 { success: true, ...data } 로
 const handle = (run) => async (req, res, next) => {
   try {
     res.json({ success: true, ...(await run(req)) });

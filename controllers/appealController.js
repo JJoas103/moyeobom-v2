@@ -1,6 +1,6 @@
 const appealService = require('../services/appealService');
 
-// 이의제기 — 제재당한 당사자용 (controllers/adminController.js 의 handle 과 같은 모양)
+// 이의제기 — 제재받은 당사자용
 const handle = (run) => async (req, res, next) => {
   try {
     res.json({ success: true, ...(await run(req)) });

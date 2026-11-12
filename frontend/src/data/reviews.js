@@ -23,8 +23,8 @@ export async function fetchReview(meetupId) {
 
 /**
  * 평가 보내기
- * @param praised      매너가 좋았어요 (1건당 +1 — 한 명만 골라도 상대 점수가 오른다)
- * @param disappointed 매너가 아쉬웠어요 (1건당 -1 — 한 명만 골라도 상대 점수가 깎인다)
+ * @param praised      매너가 좋았어요 (1건당 +1)
+ * @param disappointed 매너가 아쉬웠어요 (1건당 -1)
  * @param again        또 만나고 싶어요 (비공개 — 서로 골랐을 때만 친구)
  */
 export async function submitReview(meetupId, { praised, disappointed, again }) {

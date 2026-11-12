@@ -20,7 +20,7 @@ import '../../styles/create.css'
 
 const RESULT_LIMIT = 8
 
-// 목록 탭 — 세 목록을 위아래로 쌓으면 화면이 길어져서 한 번에 하나만 (2026-11-09)
+// 목록 탭 — 세 목록 중 한 번에 하나만 보여 준다
 const TABS = [
   { key: 'open', label: '지금 열려 있는 행사' },
   { key: 'liked', label: '찜한 행사' },

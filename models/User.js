@@ -1,12 +1,8 @@
 const mongoose = require('mongoose');
 const { CATEGORIES } = require('./Event');
 
-// 회원 — 로컬(이메일·비밀번호) 또는 소셜(구글·네이버) 가입
-// v1(모여봄) User 에서 v2에 없는 기능 필드 제외 (혼잡도 알림 · 이모지 아바타 등)
-//
-// 매너 점수는 숫자 하나(manner.score)만 저장하고, 왜 그 숫자인지는 MannerLog 이력이 설명한다.
-// 불변식: score === clamp(50 + Σ MannerLog.scoreChange) — services/mannerService.js 한 곳에서만 움직인다.
-// v1 도 같은 users 컬렉션을 쓰지만 v1 필드는 manner_score(스네이크)라 겹치지 않는다
+// 회원 — 로컬(이메일 · 비밀번호) 또는 소셜(구글 · 네이버). v1 과 users 컬렉션을 같이 쓴다
+// manner.score 는 mannerService 만 바꾼다 — 근거는 MannerLog (점수 = 50 + Σ scoreChange)
 
 // 취향 = 행사 카테고리 키. 라벨은 frontend/src/data/constants.js CATEGORIES
 const TASTES = CATEGORIES;
@@ -27,8 +23,7 @@ const userSchema = new mongoose.Schema(
     nickname: { type: String, required: true, unique: true, trim: true },
     profileImage: { type: String, default: '' }, // public/images/profile 파일 이름. 없으면 기본 아바타
     provider: { type: String, enum: ['local', 'google', 'naver'], default: 'local' },
-    // 화면에서 바꾸는 수단을 두지 않는다 — 관리자가 관리자를 임명하면 사고가 돌이킬 수 없다 (scripts/grantAdmin.js)
-    role: { type: String, enum: ROLES, default: 'user' },
+    role: { type: String, enum: ROLES, default: 'user' }, // 화면에서 바꾸지 않는다 — 승격은 scripts/grantAdmin.js 만
     tastes: { type: [{ type: String, enum: TASTES }], default: [] }, // 가입 때 고르고 마이에서 수정. 기존 회원은 비어 있을 수 있음
     districts: { type: [{ type: String, enum: SEOUL_DISTRICTS }], default: [] }, // 관심 지역 (선택)
     manner: {

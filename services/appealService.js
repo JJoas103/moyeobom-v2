@@ -4,16 +4,8 @@ const { APPEAL_MAX } = require('../models/Report');
 const ChatRoom = require('../models/ChatRoom');
 const Meetup = require('../models/Meetup');
 
-// 이의제기 — **제재당한 당사자용.** 관리자가 보는 쪽은 services/adminService.js 다.
-//
-// ★ 왜 있나: 제재(-7)는 **사람이 판단한 유일한 처분**이라 오판 비용이 가장 크다.
-//   되돌리는 길이 관리자의 자각뿐이면 당사자는 아무것도 할 수 없다. 창구를 둔다.
-//
-// ★★ **제재 1건당 한 번.** `appeal.at` 이 있으면 두 번째 제출을 막는다. 재심을 열면
-//   같은 글을 반복해 읽게 되고, 한 번뿐이라는 걸 알아야 사람이 제대로 쓴다.
-//
-// 신고 내용(누가 무엇을 신고했는지)은 **내려주지 않는다** — 신고자를 역추적할 여지를 만들지 않는다.
-// 당사자가 아는 것은 '어느 모임에서 제재를 받았다' 와 '언제' 까지다.
+// 이의제기 — 제재받은 당사자용 (관리자 쪽은 adminService). 제재 1건당 한 번(appeal.at)
+// 신고자 · 신고 내용은 내려주지 않는다 — 당사자는 어느 모임에서 언제 제재받았는지까지만 안다
 
 const httpError = (status, message) => Object.assign(new Error(message), { status });
 const oid = (id) => new mongoose.Types.ObjectId(String(id));

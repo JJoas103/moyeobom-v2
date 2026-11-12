@@ -8,12 +8,9 @@
 //     upcoming: { hosted, joined },   // 아직 안 끝난 연 모임 · 참여(신청 중 포함) 모임 수 — 하나라도 있으면 탈퇴 불가
 //     manner:  { score, base, rules, log: [{ _id, type, message, scoreChange, requested, meetup, createdAt }] },
 //   }
-//   받은 매너 평가는 평가가 마감된 모임만 · 누가 평가했는지는 없음 (분모 ratedCount = 실제로 평가를 낸 사람 수)
-//   '아쉬웠어요'는 내려오지 않는다 — 1건당 -1 이라 manner.log 에 이미 한 줄 남는다
-//   매너 점수: 이력 줄마다 무슨 일로 몇 점 움직였는지 적혀 있다 (합계 줄은 없앴다 — 합이 0 이면 정보가 없고
-//     목록이 최근 30건까지라 보이는 줄을 더해도 전체 합과 안 맞았다). 불변식은 npm run manner:check 가 본다
-//     scoreChange 는 실제 적용분, requested 는 규칙상 요청분. 다르면 0 · 100 경계에 걸린 것이다
-//     rules 는 '이렇게 움직여요' 표에 쓰는 규칙별 점수 (백엔드 mannerService.SCORES)
+//   praise: 평가가 마감된 모임만, 평가자 없음 (ratedCount = 실제로 평가를 낸 사람 수). '아쉬웠어요'는 안 옴
+//   manner.log: scoreChange 실제 적용분 · requested 규칙상 요청분 (다르면 0 · 100 경계에 걸림)
+//   manner.rules: 규칙별 점수 (백엔드 mannerService.SCORES)
 import { apiGet, apiPatch, apiPatchForm, apiPost } from '../api'
 
 export const WITHDRAW_TEXT = '탈퇴' // 소셜 가입자 탈퇴 확인 문구 (백엔드 myPageService 와 같음)

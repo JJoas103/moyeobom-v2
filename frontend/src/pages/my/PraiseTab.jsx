@@ -7,17 +7,8 @@ import { mannerTone, mannerBandEdges, MANNER_MAX, MANNER_RULES, MANNER_ZERO } fr
 
 const DOT_MAX = 8 // 이보다 많으면 점 대신 숫자만
 
-// 받은 매너 평가 · 매너 점수
-//
-// '아쉬웠어요'는 받은 평가 목록에 싣지 않는다 — 1건당 -1 이라 아래 변동 이력에 이미 한 줄 남는다.
-// 누가 몇 건이었는지까지 보여 주면 역추적과 상처만 남는다 (services/myPageService.js)
-//
-// 이 탭의 목적은 "왜 내 점수가 이 숫자지?"를 남기지 않는 것이다. 그래서 셋을 함께 보여준다.
-//   ① 점수 + 어느 단계인지 보이는 매   ② 규칙 — 오를 때 · 깎일 때   ③ 변동 이력
-// 합계(검산) 줄은 두지 않는다 — 이유는 MannerLog 주석. 불변식은 npm run manner:check 가 본다.
-//
-// '일부러 안 움직이는 것'은 ② 안쪽 토글로 접어 둔다 (2026-11-05) — 기본 화면을 가볍게 하되
-// "노쇼는 왜 안 깎여?" 에 답할 수단은 남긴다. 지우지 않는 이유는 utils/manner.js 주석 참고.
+// 매너 점수 탭 — ① 점수 + 0~100 매 ② 규칙(오를 때 · 깎일 때, 안쪽에 '일부러 안 움직이는 것') ③ 변동 이력
+//   받은 평가 목록에 '아쉬웠어요'는 싣지 않는다 — 변동 이력에 이미 남는다
 export default function PraiseTab({ praise, manner }) {
   return (
     <div className="mypage-panel">
@@ -78,18 +69,9 @@ export default function PraiseTab({ praise, manner }) {
   )
 }
 
-// 점수 — 큰 숫자 + 라벨, 그 아래 0~100 매. 설명 문단은 두지 않는다 (2026-11-05)
-//   문단이 3~4줄로 감기면 카드가 높아져서 숫자가 빈 상자 가운데 떠 보인다.
-//
-// 매를 더한 이유 (2026-11-07) — 숫자만으로는 **50 이 어디쯤인지 알 수 없었다.**
-//   '보통이에요'라는 말은 있었지만 0~100 중 어느 자리인지, 다음 단계가 얼마나 먼지 안 보였다.
-//   칸 경계(40·60·80)는 utils/manner.js 의 MANNER_BANDS 한 곳에서만 온다 — CSS 에 박지 않는다.
-//   읽어 주기는 매 전체에 한 문장으로 붙인다 — 표시점과 칸 이름을 하나씩 읽으면 쓸모없이 길다.
-//
-// 칸 이름 넷을 매 아래 나란히 두지 않는다 (2026-11-08). 칸 폭이 40/20/20/20 이라 이름을 각자
-//   칸 가운데에 두면 리듬이 어긋나고 오른쪽 끝('아주 좋아요' + 100)이 빽빽했다. 지금은
-//   **경계 숫자만 줄로 두고 내 단계는 표시점 위 칩 하나로** 말한다 — 줄이 하나라 비틀 게 없다.
-//   --at(0~1)은 scale 에 한 번만 주고 칩과 표시점이 같이 물려받는다 (custom property 는 상속된다).
+// 점수 — 큰 숫자 + 라벨, 그 아래 0~100 매 (경계 숫자 줄 + 내 단계는 표시점 위 칩)
+//   경계는 MANNER_BANDS 에서만. --at(0~1)은 scale 에 한 번 주고 칩 · 표시점이 물려받는다
+//   스크린 리더에는 매 전체를 한 문장으로 읽어 준다
 function MannerSum({ manner }) {
   const { tone, label, name } = mannerTone(manner.score)
   const edges = mannerBandEdges()
@@ -199,9 +181,7 @@ function RuleList({ title, rows }) {
   )
 }
 
-// 변동 이력 — 줄마다 무슨 일로 몇 점 움직였는지. 각 줄이 이미 설명이라 합계 줄은 두지 않는다
-// (합이 0 이면 '50점 0 = 50점' 이 되어 아무 정보가 없고, 목록은 최근 30건까지만 보여주므로
-//  보이는 줄을 더해도 전체 합과 맞지 않았다. 불변식은 npm run manner:check 가 보장한다)
+// 변동 이력 — 줄마다 무슨 일로 몇 점. 합계 줄은 두지 않는다 (최근 30건만이라 합이 맞지 않는다)
 function MannerLog({ manner }) {
   const { log, base } = manner
   if (!log?.length) {
@@ -239,11 +219,8 @@ function MannerLog({ manner }) {
   )
 }
 
-// 한 줄이 몇 점 움직였는지 — 부호 대신 **알약 색 + 화살표**로 말한다 (2026-11-07 → utils/manner.js 주석)
-//
-// ⚠ change 가 0 인 줄이 있다 — 0·100 경계에 걸려 요청분만큼 못 움직인 이력이다.
-//   화살표를 붙이면 '올랐다'고 거짓말이 되므로 중립색 알약에 0 만 넣는다. 왜 0 인지는
-//   바로 옆 manner-log__note('최고점이라 더 오르지 않았어요')가 말한다.
+// 한 줄의 변동 — 부호 대신 알약 색 + 화살표
+//   0 인 줄(경계에 걸린 이력)은 화살표 없이 중립색 — 이유는 옆 manner-log__note 가 말한다
 function Delta({ change }) {
   const size = Math.abs(change)
   const dir = change > 0 ? 'up' : change < 0 ? 'down' : 'flat'

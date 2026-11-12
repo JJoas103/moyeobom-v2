@@ -8,7 +8,7 @@ const Meetup = require('../models/Meetup');
 const DAY = 24 * 60 * 60 * 1000;
 const KST = 9 * 60 * 60 * 1000;
 
-// 최근 끝난 행사로 모임을 열 수 있는 기간 — 2026-11-09 결정 2일 (frontend data/events.js RECENT_ENDED_DAYS 와 같이)
+// 최근 끝난 행사로 모임을 열 수 있는 기간 (frontend data/events.js 와 같은 값)
 // 모임 만들기 ① '최근 끝난 행사' 목록도 이 기간만 보여 준다
 const RECENT_ENDED_DAYS = 2;
 
@@ -54,11 +54,8 @@ const dayRange = (from, to) => (from && to ? [new Date(`${from}T00:00:00+09:00`)
 // ---------- 모임 수 ----------
 
 // 행사별 모임 수 · 모집 중 모임 수 (모집 중 = open + 승인 인원 < 정원)
-//
-// 행사마다 $lookup 서브쿼리를 돌리지 않고 모임 쪽에서 한 번에 모아 Map 으로 붙인다.
-// 모임이 행사보다 훨씬 적고(행사 수천 : 모임 수십), 무엇보다 이래야 목록에서 $limit 을
-// 정렬 바로 뒤에 둘 수 있다 — 전량에 $lookup 을 걸면 3분, 페이지만 세면 100ms 대다.
-// 추천(listEventsForRanking)도 같은 이유로 이걸 쓴다.
+// $lookup 대신 모임 쪽에서 한 번에 모아 붙인다 — 그래야 $limit 을 앞에 둘 수 있다 (전량 $lookup 3분 → 100ms)
+// ⚠ 행사에 모임 수를 붙이는 함수는 전부 이걸 쓴다. meetupCountStages($lookup)를 되살리지 말 것
 const approvedSize = {
   $size: { $filter: { input: { $ifNull: ['$members', []] }, cond: { $eq: ['$$this.status', 'approved'] } } },
 };
@@ -176,10 +173,7 @@ async function listEvents({
   };
 }
 
-/**
- * 추천 순위 계산용 안 끝난 행사 — 비교에 쓰는 필드만 받아 전송량을 줄임
- * 모임 수는 $lookup 대신 meetupStats 로 붙인다 (전량 $lookup 이 추천홈을 몇 분씩 멈추게 했다)
- */
+/** 추천 순위 계산용 안 끝난 행사 — 비교에 쓰는 필드만 */
 async function listEventsForRanking() {
   const now = new Date();
   const events = await Event.aggregate([
@@ -191,9 +185,8 @@ async function listEventsForRanking() {
 }
 
 /**
- * '최근 끝난' 창의 시작 — 서울 날짜로 RECENT_ENDED_DAYS 일 전 0시. 이 뒤에 끝난 행사까지 모임을 열 수 있다
- * 날짜로 센다 (오늘 11.9 → 11.7 · 11.8 에 끝난 행사). 시간으로 세면 endDate 가 몇 시로 저장됐는지에 따라
- * 하루가 밀린다 — 지금 동기화는 마지막 날 23:59 로 넣지만 그 약속에 기대지 않는다 (2026-11-09)
+ * '최근 끝난' 창의 시작 — 서울 날짜로 RECENT_ENDED_DAYS 일 전 0시 (오늘 11.9 → 11.7 · 11.8 에 끝난 행사)
+ * 시간이 아니라 날짜로 센다 — endDate 의 시각에 따라 하루가 밀리지 않게
  */
 const recentEndedFrom = (now = new Date()) => kstStartOfDay(now, -RECENT_ENDED_DAYS);
 
@@ -211,14 +204,7 @@ async function listRecentEndedEvents() {
   return events.map((e) => withCounts(e, stats));
 }
 
-/**
- * _id 목록의 행사 — 넘긴 순서대로, 끝난 행사 포함 (찜 목록)
- *
- * ⚠ 모임 수는 **$lookup 이 아니라 meetupStats() 로 붙인다.** 이 파일의 다른 조회 함수들과 같다.
- *   행사 전량에 $lookup 을 걸면 추천홈이 몇 분씩 멈춰서 2026-11-04 에 걷어낸 방식이고,
- *   그때 `meetupCountStages` 를 아예 지웠다 (아래 '행사 목록은 한 페이지씩' 결정 — CLAUDE.md).
- *   찜 기능이 올라올 때 그 헬퍼를 쓰고 있어서 병합하면 ReferenceError 가 났다. 되돌리지 말 것.
- */
+/** _id 목록의 행사 — 넘긴 순서대로, 끝난 행사 포함 (찜 목록) */
 async function listEventsByIds(ids) {
   if (!ids.length) return [];
   const events = await Event.find({ _id: { $in: ids } }, LIST_FIELDS).lean();

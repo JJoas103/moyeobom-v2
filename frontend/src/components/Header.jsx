@@ -115,8 +115,7 @@ function ChatButton() {
 }
 
 // 알림 종 — 안 읽은 게 있으면 점. 새 알림(소켓) · 화면 이동마다 다시 셈
-// 누르면 목록을 열고 그 자리에서 전부 읽음 처리한다
-// 항목은 두 줄까지 보이고 누르면 펼친다 (2026-11-09 — 누르면 이동하던 것을 뺐다)
+// 열면 전부 읽음 처리. 항목은 두 줄까지, 누르면 펼친다 (화면 이동 없음)
 function BellButton() {
   const { pathname } = useLocation()
   const [unread, setUnread] = useState(0)

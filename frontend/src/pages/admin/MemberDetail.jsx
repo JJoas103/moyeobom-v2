@@ -10,11 +10,7 @@ import { fetchMember, REPORT_REASON_LABEL, REPORT_STATUS_LABEL } from '../../dat
 import '../../styles/admin.css'
 import '../../styles/my.css' // 매너 이력 줄(.manner-log · .manner-delta)을 마이페이지와 같은 모양으로
 
-// 회원 한 명 — **읽기만.** 여기서 바꿀 수 있는 것은 없다
-//
-// 매너 이력은 마이페이지(pages/my/PraiseTab.jsx)와 같은 문구 · 같은 모양으로 보여 준다.
-// 문구는 서버가 만들고(services/mannerService.js) 화면은 받아 적을 뿐이라, 본인이 보는 설명과
-// 관리자가 보는 설명이 갈리지 않는다 — 갈리면 "제 화면에는 그렇게 안 적혀 있는데요" 가 생긴다.
+// 회원 상세 — 읽기만. 매너 이력은 본인 화면과 같은 서버 문구를 그대로 보여 준다
 export default function MemberDetail() {
   const { id } = useParams()
   const { data, loading, error } = useAsync(() => fetchMember(id), [id])

@@ -93,7 +93,7 @@ export async function fetchRecommendedEvent() {
   return { event, reasons: toReasons(reasons), basis }
 }
 
-/** 최근 끝난 행사 — 모임 만들기 ①. 끝난 행사로 모임을 열 수 있는 기간도 이 값 (2026-11-09 결정 2일, 백엔드 eventService 와 같게) */
+/** 최근 끝난 행사 — 모임 만들기 ①. 끝난 행사로 모임을 열 수 있는 기간도 이 값 (백엔드 eventService 와 같게) */
 export const RECENT_ENDED_DAYS = 2
 
 /** '최근 끝난' 창의 시작 — RECENT_ENDED_DAYS 일 전 0시. 날짜로 센다 (오늘 11.9 → 11.7 · 11.8 에 끝난 행사, 백엔드 eventService.recentEndedFrom 과 같게) */
