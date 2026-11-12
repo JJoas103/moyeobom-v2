@@ -101,6 +101,7 @@ const FAR_FUTURE = new Date('9999-12-31');
 const LIST_FIELDS = {
   title: 1, subtitle: 1, category: 1, genre: 1, runType: 1, posterUrl: 1,
   venue: 1, area: 1, district: 1, startDate: 1, endDate: 1, sessionsText: 1, runningTime: 1,
+  location: 1, // 홈 '지도로 보기' 핀 — 빠지면 지도가 '볼 행사가 없어요' 로 뜬다
 };
 
 const LIST_LIMIT = 15; // 프론트 data/events.js PAGE_SIZE 와 같게
