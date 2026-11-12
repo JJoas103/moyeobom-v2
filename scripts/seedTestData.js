@@ -13,6 +13,11 @@
 //   그러면 알림 · 채팅방 · 매너 이력 · 불변식이 알아서 맞게 따라온다.
 //   직접 꽂는 건 서비스가 못 하는 것만 — 과거 날짜 모임과 이미 들어온 평가다.
 //
+// 제목은 **실제 모임처럼** 쓴다 (2026-11-08). 전에는 '[더미] 평가 열림 — 카드 10장' 처럼
+// 테스트 케이스 이름이었는데, 모임 제목은 매너 이력 줄과 알림 줄에 **모임 이름 자리로** 그대로
+// 들어가서 "'평가 열림 — 카드 10장' 평가가 내일 마감돼요" 로 읽혔다. 무엇을 보는 더미인지는
+// intro 와 아래 체크리스트 출력(out.push 의 설명)이 들고 있으니 제목까지 맡을 필요가 없다.
+//
 // ⚠ 팀 공유 Atlas 에 쓴다. 이번엔 A·B·G·H 가 **미래 모임이라 팀원의 /meetup 목록에 보인다**
 //   (참여자 관리를 테스트하려면 미래여야 한다). 제목 [더미] 접두사로 가짜임을 알리고,
 //   **테스트가 끝나면 바로 npm run seed:test -- --clean 으로 지운다.**
@@ -238,7 +243,7 @@ async function seed() {
   //    멤버십은 서비스로 만든다 → meetup_apply 알림과 채팅방이 함께 생긴다
   const a = await makeMeetup({
     id: ID.A, event: EVENTS.A, host,
-    title: '[더미] 신청자 대기 중 — 참여자 관리',
+    title: '[더미] 전시 보고 커피 한 잔',
     intro: '승인 · 거절 · 내보내기 · 참여자 신고를 눌러 보는 더미예요.',
     startAt: dayAt(3), place: '종로 세로카페 2층', area: '안국역 근처',
     startTitle: '전시 본 얘기부터', budget: '1to2', capacity: 6,
@@ -254,7 +259,7 @@ async function seed() {
   // ── B 정원 꽉 찬 모임 (미래)
   const b = await makeMeetup({
     id: ID.B, event: EVENTS.B, host,
-    title: '[더미] 정원 꽉 찬 모임',
+    title: '[더미] 연주 끝나고 소리 나눠요',
     intro: '마감 배지 · 모집 마감/다시 열기를 보는 더미예요.',
     startAt: dayAt(5), place: '동대문 소리홀 로비', area: '제기동역 근처',
     startTitle: '연주 감상 나누기', budget: '2to3', capacity: 2,
@@ -269,7 +274,7 @@ async function seed() {
   // ── C 평가 열림 3명 (어제) — 과거라 멤버를 직접 넣는다
   const c = await makeMeetup({
     id: ID.C, event: EVENTS.C, host,
-    title: '[더미] 평가 열림 — 3단계 눌러 보기',
+    title: '[더미] 영화 보고 나와서 한 시간',
     intro: '매너 3단계 평가와 상호 선택 친구 성립을 보는 더미예요.',
     startAt: dayAt(-2), place: '반포동 들숨카페', area: '고속터미널역 근처',
     startTitle: '영화 보고 나온 얘기부터', budget: '1to2', capacity: 4,
@@ -286,7 +291,7 @@ async function seed() {
   // ── D 평가 열림 10명 (어제) — 카드가 많을 때
   const d = await makeMeetup({
     id: ID.D, event: EVENTS.D, host,
-    title: '[더미] 평가 열림 — 카드 10장',
+    title: '[더미] 다 같이 한마디씩',
     intro: '평가 카드가 10장일 때 어떻게 보이는지 확인하는 더미예요.',
     startAt: dayAt(-2), place: '서초동 숨비소리홀 옆', area: '방배역 근처',
     startTitle: '다 같이 한마디', budget: '2to3', capacity: 10,
@@ -299,7 +304,7 @@ async function seed() {
   // ── E 평가 마감 + 과반 감점 (-5일) — cron 이 반영할 상태로 둔다
   const e = await makeMeetup({
     id: ID.E, event: EVENTS.E, host,
-    title: '[더미] 평가 마감 — 과반 감점 확인',
+    title: '[더미] 전시 소감 한 바퀴',
     intro: 'review:daily 가 점수를 반영하는 더미예요.',
     startAt: dayAt(-5), place: '월계동 숲속책방', area: '월계역 근처',
     startTitle: '전시 소감 한 바퀴', budget: 'under1', capacity: 4,
@@ -322,7 +327,7 @@ async function seed() {
   // ── F 수민이 참여자 (어제) — '모임 신고하기 + 호스트 노쇼'는 참여자만 볼 수 있다
   const f = await makeMeetup({
     id: ID.F, event: EVENTS.F, host: jinho,
-    title: '[더미] 내가 참여자 — 모임 신고',
+    title: '[더미] 야외도서관 다녀와서',
     intro: '모임 신고하기와 호스트 노쇼 항목을 보는 더미예요.',
     startAt: dayAt(-2), place: '서울광장 옆 북카페', area: '시청역 근처',
     startTitle: '야외도서관 다녀와서', budget: 'under1', capacity: 4,
@@ -335,7 +340,7 @@ async function seed() {
   // ── G 수민이 신청 중 (미래) — 서비스로 신청하면 호스트에게 알림도 간다
   const g = await makeMeetup({
     id: ID.G, event: EVENTS.G, host: areum,
-    title: '[더미] 내가 신청 중',
+    title: '[더미] 축제 구경하고 저녁까지',
     intro: '신청 상태 표시와 신청 취소를 보는 더미예요.',
     startAt: dayAt(4), place: '노원 어울림마당 앞', area: '노원역 근처',
     startTitle: '축제 구경하고', budget: 'under1', capacity: 5,
@@ -347,7 +352,7 @@ async function seed() {
   // ── H 취소된 모임 (미래) — setMeetupStatus 로 실제 취소해 알림까지 만든다
   const h = await makeMeetup({
     id: ID.H, event: EVENTS.H, host: taeyang,
-    title: '[더미] 취소된 모임',
+    title: '[더미] 공연 보고 수다 떨어요',
     intro: '취소 화면과 취소 알림을 보는 더미예요.',
     startAt: dayAt(6), place: '종로 가족극장 앞', area: '종각역 근처',
     startTitle: '공연 보고 수다', budget: '1to2', capacity: 4,
@@ -363,7 +368,7 @@ async function seed() {
   //    G(나흘 뒤 · 신청 중)와 짝이다 — 그쪽은 경고가 안 떠야 한다
   const i = await makeMeetup({
     id: ID.I, event: EVENTS.I, host: jinho,
-    title: '[더미] 오늘 밤 — 늦은 취소 경고',
+    title: '[더미] 시 읽고 나와서',
     intro: '이야기 자리가 곧이라 참여를 취소하면 매너 점수가 깎이는 더미예요.',
     startAt: hoursAt(3), place: '시청역 7번 출구', area: '시청역 근처',
     startTitle: '시 읽고 나와서', budget: 'under1', capacity: 4,
@@ -412,17 +417,12 @@ async function seed() {
     await Block.create({ blocker: host._id, blocked: dohyun._id });
   }
 
-  // ── 매너 이력에 합성 1건 — 이 스크립트의 **유일한 합성 데이터**다.
-  //    scoreChange 0 · requested 1 이라 점수 합에 영향이 없어 불변식은 그대로이고,
-  //    PraiseTab 의 '최고점이라 더 오르지 않았어요' 분기를 눌러 볼 수 있다
-  await MannerLog.create({
-    user: host._id,
-    type: 'review_praise',
-    message: `'${c.title}'에서 매너가 좋았다는 평가를 1번 받았어요`,
-    scoreChange: 0,
-    requested: 1,
-    meetup: c._id,
-  });
+  // ── 매너 이력 합성 1건은 **뺐다** (2026-11-10). 이 스크립트에 합성 데이터는 이제 없다.
+  //    scoreChange 0 · requested 1 로 넣어 PraiseTab 의 '최고점이라 더 오르지 않았어요'
+  //    분기를 눌러 보는 용도였는데, 발표 캡처에 그대로 찍혀 **점수 카드는 50점인데
+  //    "최고점이라"라고 적힌 화면**이 나왔다 (100점일 때만 나오는 문구다).
+  //    분기를 다시 확인하려면 여기 되살리지 말고, 그 계정 점수를 100 으로 올린 뒤
+  //    실제로 칭찬 평가를 받게 해서 move() 가 클램프하도록 둘 것 — 그래야 화면과 값이 맞는다.
 
   return { out, host, made, pinned };
 }
@@ -457,7 +457,7 @@ function printChecklist({ out, host }) {
   line("  [ ] /my?tab=praise — 이력에 '매너가 아쉬웠다는 평가를 받았어요' 가 있고 '모임을 열었어요 +5' 는 없는지");
   line("  [ ] /my?tab=praise — 깎일 때 맨 윗줄이 '만나기 하루 전에 참여를 취소했어요' 인지 (읽어서 바로 이해되는지)");
   line("  [ ] /my?tab=praise — 0점 목록 첫 줄이 '만나기 하루 전보다 일찍 취소했을 때' 인지");
-  line("  [ ] /my?tab=praise — '최고점이라 더 오르지 않았어요' 문구가 한 줄 보이는지 (합성 데이터)");
+  // '최고점이라 더 오르지 않았어요' 확인 줄은 뺐다 (2026-11-10) — 그 합성 이력을 없앴다. 위 주석 참고
   line('  [ ] 헤더 종 아이콘 — manner_down · review_open · meetup_apply · meetup_cancelled 알림');
   line('  [ ] 모임 상세 · 참여자 목록 · 친구 목록에 매너 배지가 붙는지 (평가 화면엔 없어야 한다)');
 
