@@ -53,7 +53,7 @@ export default function MyPage() {
       </div>
 
       <section role="tabpanel" aria-label={TABS.find((t) => t.key === tab).label}>
-        {tab === 'praise' && data && <PraiseTab praise={data.praise} manner={data.manner} />}
+        {tab === 'praise' && data && <PraiseTab manner={data.manner} />}
         {tab === 'likes' && <LikesTab />}
         {tab === 'settings' && data && <SettingsTab profile={data.profile} upcoming={data.upcoming} onSaved={() => setVersion((v) => v + 1)} />}
         {tab === 'blocks' && <BlocksTab />}
