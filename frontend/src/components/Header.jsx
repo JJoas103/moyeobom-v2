@@ -123,7 +123,6 @@ function BellButton() {
   const [open, setOpen] = useState(false)
   const [list, setList] = useState(null) // null = 불러오는 중
   const [asking, setAsking] = useState(false) // 모두 지우기 확인 단계
-  const [expanded, setExpanded] = useState(() => new Set()) // 펼친 알림 _id
   const boxRef = useRef(null)
   const bump = () => setVersion((v) => v + 1)
 
@@ -175,19 +174,12 @@ function BellButton() {
     }
   }
 
-  const toggleExpand = (id) =>
-    setExpanded((prev) => {
-      const next = new Set(prev)
-      if (!next.delete(id)) next.add(id)
-      return next
-    })
 
   const toggle = async () => {
     setAsking(false)
     if (open) return setOpen(false)
     setOpen(true)
     setList(null)
-    setExpanded(new Set())
     try {
       setList(await fetchNotifications())
       if (unread > 0) {
@@ -225,18 +217,28 @@ function BellButton() {
               <ul className="notify__list">
                 {list.map((n) => {
                   const { Icon, tone } = NOTIFY_KINDS[n.type] || NOTIFY_FALLBACK
-                  const isOpen = expanded.has(n._id)
+                  // 누르면 그 화면으로 간다 (2026-11-19). 링크가 없는 알림은 안 눌리는 자리로 둔다 —
+                  // 눌렀는데 아무 데도 안 가는 것보다 낫다. 패널은 이동하면서 닫는다
+                  const inner = (
+                    <>
+                      <span className={`notify__icon notify__icon--${tone}`}>
+                        <Icon size={16} />
+                      </span>
+                      <span className="notify__body">
+                        <span className="notify__text">{n.message}</span>
+                        <span className="notify__when">{formatMeetupWhen(n.createdAt)}</span>
+                      </span>
+                    </>
+                  )
                   return (
                     <li key={n._id} className="notify__item">
-                      <button type="button" className="notify__main" aria-expanded={isOpen} onClick={() => toggleExpand(n._id)}>
-                        <span className={`notify__icon notify__icon--${tone}`}>
-                          <Icon size={16} />
-                        </span>
-                        <span className="notify__body">
-                          <span className={`notify__text${isOpen ? ' is-open' : ''}`}>{n.message}</span>
-                          <span className="notify__when">{formatMeetupWhen(n.createdAt)}</span>
-                        </span>
-                      </button>
+                      {n.link ? (
+                        <Link to={n.link} className="notify__main" onClick={() => setOpen(false)}>
+                          {inner}
+                        </Link>
+                      ) : (
+                        <span className="notify__main notify__main--flat">{inner}</span>
+                      )}
                       <button type="button" className="notify__remove" aria-label="이 알림 지우기" onClick={() => remove(n._id)}>
                         <CloseIcon size={14} />
                       </button>
