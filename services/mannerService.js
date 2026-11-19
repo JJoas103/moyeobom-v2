@@ -32,7 +32,11 @@ const SCORES = {
   host_cancel: -5,
   review_skip: -1,
   manner_report: -7, // 관리자 제재 — 유일하게 사람이 판단한 감점이라 가장 무겁다. 이유별 차등 없음
-  manner_revert: 7, // 화면 표시용 — 실제로는 reportReverted 가 그때 적용분을 되돌린다
+  // ⚠ 참고용 숫자다 — **계산에도 화면에도 쓰지 않는다.** 되돌리는 금액은 reportReverted 가
+  //   그 신고의 manner_report 이력에서 '그때 적용된 만큼'을 꺼내 반대 부호로 넘긴다.
+  //   화면 규칙 표에도 넣지 않는다 (되돌리기는 '오를 때'가 아니다 — frontend utils/manner.js 주석).
+  //   manner_report 의 -7 과 짝을 이뤄 규칙의 명목 금액을 코드에서 읽을 수 있게 남겨 둔다
+  manner_revert: 7,
 };
 
 /**

@@ -39,7 +39,9 @@ export default function ReviewBox({ meetup }) {
       <>
         <span className="review-box__title">평가를 보냈어요</span>
         <span className="review-box__text">
-          서로 '또 만나고 싶어요'를 골랐다면 평가 마감({formatDeadline(closesAt)}) 뒤 친구 '요청' 탭에 나타나요.
+          {/* ⚠ '요청 탭'은 2026-10 에 없앴다 — 서로 고르면 양쪽 평가가 들어온 **그 순간** 친구가 된다
+              (friendService.makeFriends). 마감을 기다리지 않는다. 다른 안내 문구들과 같은 말로 둘 것 */}
+          서로 '또 만나고 싶어요'를 골랐다면 상대가 평가를 보내는 순간 바로 친구가 되고 1:1 채팅이 열려요.
         </span>
       </>
     )

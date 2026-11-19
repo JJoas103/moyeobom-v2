@@ -45,8 +45,9 @@ export default function MeetupMembers({ meetup, status }) {
 function MemberList({ members }) {
   return (
     <ul className="applicants__list">
-      {members.map((m) => (
-        <li key={m.user?._id} className="applicant">
+      {/* 탈퇴한 사람은 m.user 가 null 이라 _id 로 key 를 못 만든다 — 아래 '알 수 없음' 과 같은 자리 */}
+      {members.map((m, i) => (
+        <li key={m.user?._id || `gone-${i}`} className="applicant">
           <MemberAvatar user={m.user} />
           <span className="applicant__text">
             <strong>
