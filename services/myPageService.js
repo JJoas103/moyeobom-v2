@@ -7,7 +7,6 @@ const friendService = require('./friendService');
 const likeService = require('./likeService');
 const mannerService = require('./mannerService');
 const { reviewWindow } = require('./socialRules');
-const { summarizeMeetups } = require('./meetupSummary');
 
 // 마이 — 응답 모양은 frontend/src/data/member.js 맨 위 주석 기준
 //   참여한 모임: 내가 연 모임 + 승인된 모임 (취소 제외, 신청 중 제외)
@@ -18,38 +17,30 @@ const { summarizeMeetups } = require('./meetupSummary');
 const oid = (id) => new mongoose.Types.ObjectId(String(id));
 const WITHDRAW_TEXT = '탈퇴'; // 소셜 가입자 탈퇴 확인 문구
 
-/** 받은 칭찬 → { total, meetups: [{ meetup(작은 요약), praisedCount, ratedCount }] } 최근 모임 순 */
-async function receivedPraise(userId, now = new Date()) {
+/**
+ * 받은 '좋았어요' 건수 — 프로필 카드의 `좋은 평가` 타일과 탭 배지에 쓰는 숫자 하나.
+ *
+ * 모임별 목록도 같이 내려 줬는데 2026-11-18 에 걷어냈다 — 마이페이지에서 그 목록이 바로 위
+ * 매너 이력과 모임 제목 · 날짜 · 건수 · 링크까지 겹쳤다 (`PraiseTab.jsx` 머리말).
+ * ⚠ **마감 · 취소 필터는 그대로 둔다.** `Review.countDocuments({ praised: me })` 한 줄로 바꾸면
+ *   아직 평가 기간이 열려 있는 모임까지 세어 화면의 숫자가 조용히 커진다.
+ */
+async function countPraise(userId, now = new Date()) {
   const me = oid(userId);
   const counts = await Review.aggregate([
     { $match: { praised: me } },
     { $group: { _id: '$meetup', praisedCount: { $sum: 1 } } },
   ]);
-  if (counts.length === 0) return { total: 0, meetups: [] };
+  if (counts.length === 0) return 0;
 
-  const meetupIds = counts.map((c) => c._id);
-  const docs = await Meetup.find({ _id: { $in: meetupIds }, status: { $ne: 'cancelled' } }, { talk: 1 }).lean();
-  const closed = docs.filter((m) => reviewWindow(m.talk.startAt).closesAt <= now);
-
-  // 분모 — 그 모임에서 나를 평가할 수 있었던 평가자 수 (내가 낸 평가는 세지 않는다)
-  const [summaries, raterRows] = await Promise.all([
-    summarizeMeetups(closed.map((m) => m._id)),
-    Review.aggregate([
-      { $match: { meetup: { $in: closed.map((m) => m._id) }, reviewer: { $ne: me } } },
-      { $group: { _id: '$meetup', ratedCount: { $sum: 1 } } },
-    ]),
-  ]);
-  const countMap = new Map(counts.map((c) => [String(c._id), c.praisedCount]));
-  const raterMap = new Map(raterRows.map((r) => [String(r._id), r.ratedCount]));
-
-  const meetups = closed
-    .sort((a, b) => new Date(b.talk.startAt) - new Date(a.talk.startAt))
-    .map((m) => ({
-      meetup: summaries.get(String(m._id)),
-      praisedCount: countMap.get(String(m._id)),
-      ratedCount: raterMap.get(String(m._id)) || 0,
-    }));
-  return { total: meetups.reduce((sum, m) => sum + m.praisedCount, 0), meetups };
+  const docs = await Meetup.find(
+    { _id: { $in: counts.map((c) => c._id) }, status: { $ne: 'cancelled' } },
+    { talk: 1 }
+  ).lean();
+  const closed = new Set(
+    docs.filter((m) => reviewWindow(m.talk.startAt).closesAt <= now).map((m) => String(m._id))
+  );
+  return counts.reduce((sum, c) => (closed.has(String(c._id)) ? sum + c.praisedCount : sum), 0);
 }
 
 /** 아직 안 끝난 모임 수 — 탈퇴 막는 조건 { hosted(내가 연), joined(신청 중 · 승인) } */
@@ -86,24 +77,23 @@ async function withdraw(user, { password, confirmText }) {
   await userService.deleteUser(user);
 }
 
-/** 마이 첫 화면 — 프로필 · 숫자 · 받은 칭찬 · 다가오는 모임 수(탈퇴 안내) */
+/** 마이 첫 화면 — 프로필 · 숫자 · 다가오는 모임 수(탈퇴 안내) · 매너 점수와 이력 */
 async function getMyPage(user) {
   const me = oid(user._id);
-  const [meetupCount, friendCount, praise, upcoming, mannerLog] = await Promise.all([
+  const [meetupCount, friendCount, praiseCount, upcoming, mannerLog] = await Promise.all([
     Meetup.countDocuments({
       status: { $ne: 'cancelled' },
       $or: [{ host: me }, { members: { $elemMatch: { user: me, status: 'approved' } } }],
     }),
     Friendship.countDocuments({ $or: [{ userA: me }, { userB: me }] }),
-    receivedPraise(user._id),
+    countPraise(user._id),
     upcomingMeetups(user._id),
     mannerService.listLog(user._id),
   ]);
 
   return {
     profile: { ...userService.toPublicUser(user), createdAt: user.createdAt },
-    stats: { meetupCount, friendCount, praiseCount: praise.total },
-    praise,
+    stats: { meetupCount, friendCount, praiseCount },
     upcoming,
     manner: {
       score: mannerService.scoreOf(user),
@@ -114,4 +104,4 @@ async function getMyPage(user) {
   };
 }
 
-module.exports = { WITHDRAW_TEXT, getMyPage, receivedPraise, withdraw };
+module.exports = { WITHDRAW_TEXT, getMyPage, withdraw };

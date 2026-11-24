@@ -4,11 +4,11 @@
 //   GET /api/member/me → {
 //     profile: { _id, email, nickname, profileImage, provider, tastes, districts, createdAt },
 //     stats:   { meetupCount(연 모임 + 승인된 모임, 취소 제외), friendCount, praiseCount },
-//     praise:  { total, meetups: [{ meetup(작은 요약 — data/friends.js 와 같음), praisedCount, ratedCount }] },
 //     upcoming: { hosted, joined },   // 아직 안 끝난 연 모임 · 참여(신청 중 포함) 모임 수 — 하나라도 있으면 탈퇴 불가
 //     manner:  { score, base, rules, log: [{ _id, type, message, scoreChange, requested, meetup, createdAt }] },
 //   }
-//   praise: 평가가 마감된 모임만, 평가자 없음 (ratedCount = 실제로 평가를 낸 사람 수). '아쉬웠어요'는 안 옴
+//   stats.praiseCount: 받은 '좋았어요' 건수 — 평가가 마감된 모임만, 취소된 모임 제외. '아쉬웠어요'는 안 센다
+//     (모임별 목록 praise 는 2026-11-18 에 뺐다 — 매너 이력과 겹쳐서. services/myPageService.countPraise)
 //   manner.log: scoreChange 실제 적용분 · requested 규칙상 요청분 (다르면 0 · 100 경계에 걸림)
 //   manner.rules: 규칙별 점수 (백엔드 mannerService.SCORES)
 import { apiGet, apiPatch, apiPatchForm, apiPost } from '../api'

@@ -295,7 +295,8 @@ img.avatar {
   border-radius: var(--radius-sm);
 }
 
-/* 누르면 글 펼치기 — 오른쪽 32px 은 지우기 버튼 자리 */
+/* 누르면 그 화면으로 — 오른쪽 32px 은 지우기 버튼 자리.
+   <a> 다 (2026-11-19 에 <button> 펼치기에서 바뀌었다). 링크 없는 알림은 .notify__main--flat <span> */
 .notify__main {
   width: 100%;
   padding: 10px 32px 10px 12px;
@@ -307,7 +308,12 @@ img.avatar {
   text-align: left;
   font: inherit;
   color: var(--text);
+  text-decoration: none;
   cursor: pointer;
+}
+
+.notify__main--flat {
+  cursor: default;
 }
 
 .notify__remove {
@@ -368,7 +374,7 @@ img.avatar {
   background: var(--bg-muted);
 }
 
-/* 두 줄까지만 — 누르면(.is-open) 전부 */
+/* 두 줄까지만 — 잘려도 눌러서 그 화면에 가면 원문이 있다 */
 .notify__text {
   font-size: 14px;
   line-height: 1.45;
@@ -377,11 +383,6 @@ img.avatar {
   -webkit-line-clamp: 2;
   line-clamp: 2;
   overflow: hidden;
-}
-
-.notify__text.is-open {
-  display: block;
-  overflow: visible;
 }
 
 .notify__when {

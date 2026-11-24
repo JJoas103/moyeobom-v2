@@ -1,5 +1,7 @@
 // 병합분 전체를 손으로 테스트할 더미 데이터: npm run seed:test
 //   정리:  npm run seed:test -- --clean
+//   문구:  npm run seed:test -- --report   ← 결과보고서 부록 캡처용. 제목의 [더미] 를 떼고
+//                                            소개도 호스트가 쓴 것처럼 바꾼다 (아래 `copy`)
 //
 // 기능별로 필요한 상태가 달라서 모임을 8건 만든다. 코드를 읽어 확인한 제약 둘이 이 구조를 정했다.
 //   · 참여자 관리와 평가는 한 모임에서 같이 못 본다 — ApplyBox 가 이야기 자리 뒤엔 ReviewBox 로 바뀐다
@@ -110,6 +112,19 @@ const ID = {
 };
 const IDS = Object.values(ID);
 
+// `--report` — 결과보고서 부록(졸업작품 사진)에 들어갈 캡처를 찍을 때 쓰는 문구 모드.
+// 기본값은 제목에 `[더미]` 를 붙인다. 팀원이 /meetup 목록에서 **한눈에 더미로 알아봐야**
+// 하기 때문이고, 그게 기본이어야 지우는 걸 잊었을 때도 사고가 안 된다.
+// 보고서에 실리는 그림에는 그 표식이 그대로 찍히므로(제목은 모임 목록 · 상세 · 채팅 ·
+// 평가 · 내 모임 · 알림까지 아홉 화면에 나온다) 그때만 사람이 쓴 것 같은 문구로 바꾼다.
+//   **바뀌는 건 title · intro 둘뿐이다.** place · area · startTitle · 채팅 메시지 ·
+//   메모 · 닉네임은 이미 그대로 실어도 되는 문구라 모드와 무관하게 하나만 쓴다.
+const REPORT = process.argv.includes('--report');
+
+/** 모임 문구 한 쌍. 보고서 모드면 접두사 없는 제목 + 호스트가 쓴 듯한 소개를 쓴다 */
+const copy = (title, intro, reportIntro) =>
+  (REPORT ? { title, intro: reportIntro } : { title: `[더미] ${title}`, intro });
+
 // ---------- 공용 ----------
 
 /** 이메일 → User. 하나라도 없으면 멈춘다 */
@@ -141,7 +156,7 @@ const member = (user, status, appliedAt) => ({
 });
 
 /** 모임 한 건 — 과거 날짜는 서비스가 거부하므로 모델에 직접 넣는다 */
-function makeMeetup({ id, event, host, title, intro, startAt, place, area, startTitle, budget, capacity, members, status }) {
+function makeMeetup({ id, event, host, title, intro, startAt, place, area, startTitle, budget, capacity, members, status, watch }) {
   return Meetup.create({
     _id: oid(id),
     event: oid(event),
@@ -152,7 +167,7 @@ function makeMeetup({ id, event, host, title, intro, startAt, place, area, start
     alcohol: false,
     budget,
     capacity,
-    watch: { enabled: false },
+    watch: watch || { enabled: false },
     members: members || [],
     status: status || 'open',
   });
@@ -243,10 +258,15 @@ async function seed() {
   //    멤버십은 서비스로 만든다 → meetup_apply 알림과 채팅방이 함께 생긴다
   const a = await makeMeetup({
     id: ID.A, event: EVENTS.A, host,
-    title: '[더미] 전시 보고 커피 한 잔',
-    intro: '승인 · 거절 · 내보내기 · 참여자 신고를 눌러 보는 더미예요.',
+    ...copy('전시 보고 커피 한 잔',
+      '승인 · 거절 · 내보내기 · 참여자 신고를 눌러 보는 더미예요.',
+      '전시 보고 나와서 한 시간쯤 이야기해요. 처음 오셔도 편하게 신청해 주세요.'),
     startAt: dayAt(3), place: '종로 세로카페 2층', area: '안국역 근처',
     startTitle: '전시 본 얘기부터', budget: '1to2', capacity: 6,
+    // 관람 동행을 받는 **유일한 더미** — 신청 박스에 참여 방식 두 장(관람부터 함께 ·
+    // 이야기 자리만)이 떠야 고르는 모습을 보여 줄 수 있다 (ApplyBox 의 watchOpen 조건).
+    // 이야기 자리가 사흘 뒤라 socialRules.watchApplyOpen(전날까지)도 통과한다
+    watch: { enabled: true },
   });
   await chatService.ensureMeetupRoom(a.toObject());
   for (const u of [hayoon, dohyun]) {
@@ -254,13 +274,14 @@ async function seed() {
     await meetupService.approveMember(a._id, host._id, u._id);
   }
   for (const u of [seoyeon, minjun, yuna]) await meetupService.applyMeetup(a._id, u._id, 'talk');
-  out.push(['A', a, '참여자 관리 — 승인 2 · 대기 3', `/meetup/${a._id}`]);
+  out.push(['A', a, '참여자 관리 — 승인 2 · 대기 3 · 관람 동행 받음', `/meetup/${a._id}`]);
 
   // ── B 정원 꽉 찬 모임 (미래)
   const b = await makeMeetup({
     id: ID.B, event: EVENTS.B, host,
-    title: '[더미] 연주 끝나고 소리 나눠요',
-    intro: '마감 배지 · 모집 마감/다시 열기를 보는 더미예요.',
+    ...copy('연주 끝나고 소리 나눠요',
+      '마감 배지 · 모집 마감/다시 열기를 보는 더미예요.',
+      '연주 끝나고 로비에 모여서 들은 이야기를 나눠요.'),
     startAt: dayAt(5), place: '동대문 소리홀 로비', area: '제기동역 근처',
     startTitle: '연주 감상 나누기', budget: '2to3', capacity: 2,
   });
@@ -274,8 +295,9 @@ async function seed() {
   // ── C 평가 열림 3명 (어제) — 과거라 멤버를 직접 넣는다
   const c = await makeMeetup({
     id: ID.C, event: EVENTS.C, host,
-    title: '[더미] 영화 보고 나와서 한 시간',
-    intro: '매너 3단계 평가와 상호 선택 친구 성립을 보는 더미예요.',
+    ...copy('영화 보고 나와서 한 시간',
+      '매너 3단계 평가와 상호 선택 친구 성립을 보는 더미예요.',
+      '영화 보고 나와서 가볍게 한 시간만 이야기해요.'),
     startAt: dayAt(-2), place: '반포동 들숨카페', area: '고속터미널역 근처',
     startTitle: '영화 보고 나온 얘기부터', budget: '1to2', capacity: 4,
     members: [hayoon, dohyun, seoyeon].map((u) => member(u, 'approved', dayAt(-3))),
@@ -291,8 +313,9 @@ async function seed() {
   // ── D 평가 열림 10명 (어제) — 카드가 많을 때
   const d = await makeMeetup({
     id: ID.D, event: EVENTS.D, host,
-    title: '[더미] 다 같이 한마디씩',
-    intro: '평가 카드가 10장일 때 어떻게 보이는지 확인하는 더미예요.',
+    ...copy('다 같이 한마디씩',
+      '평가 카드가 10장일 때 어떻게 보이는지 확인하는 더미예요.',
+      '끝나고 다 같이 모여서 한마디씩 나눠요.'),
     startAt: dayAt(-2), place: '서초동 숨비소리홀 옆', area: '방배역 근처',
     startTitle: '다 같이 한마디', budget: '2to3', capacity: 10,
     members: all10.map((u) => member(u, 'approved', dayAt(-4))),
@@ -304,8 +327,9 @@ async function seed() {
   // ── E 평가 마감 + 과반 감점 (-5일) — cron 이 반영할 상태로 둔다
   const e = await makeMeetup({
     id: ID.E, event: EVENTS.E, host,
-    title: '[더미] 전시 소감 한 바퀴',
-    intro: 'review:daily 가 점수를 반영하는 더미예요.',
+    ...copy('전시 소감 한 바퀴',
+      'review:daily 가 점수를 반영하는 더미예요.',
+      '전시 보고 느낀 걸 돌아가며 한 바퀴 이야기해요.'),
     startAt: dayAt(-5), place: '월계동 숲속책방', area: '월계역 근처',
     startTitle: '전시 소감 한 바퀴', budget: 'under1', capacity: 4,
     members: [minjun, yuna, jiwoo].map((u) => member(u, 'approved', dayAt(-7))),
@@ -327,8 +351,9 @@ async function seed() {
   // ── F 수민이 참여자 (어제) — '모임 신고하기 + 호스트 노쇼'는 참여자만 볼 수 있다
   const f = await makeMeetup({
     id: ID.F, event: EVENTS.F, host: jinho,
-    title: '[더미] 야외도서관 다녀와서',
-    intro: '모임 신고하기와 호스트 노쇼 항목을 보는 더미예요.',
+    ...copy('야외도서관 다녀와서',
+      '모임 신고하기와 호스트 노쇼 항목을 보는 더미예요.',
+      '야외도서관 둘러보고 근처 북카페에서 이야기해요.'),
     startAt: dayAt(-2), place: '서울광장 옆 북카페', area: '시청역 근처',
     startTitle: '야외도서관 다녀와서', budget: 'under1', capacity: 4,
     members: [host, areum, taeyang].map((u) => member(u, 'approved', dayAt(-3))),
@@ -340,8 +365,9 @@ async function seed() {
   // ── G 수민이 신청 중 (미래) — 서비스로 신청하면 호스트에게 알림도 간다
   const g = await makeMeetup({
     id: ID.G, event: EVENTS.G, host: areum,
-    title: '[더미] 축제 구경하고 저녁까지',
-    intro: '신청 상태 표시와 신청 취소를 보는 더미예요.',
+    ...copy('축제 구경하고 저녁까지',
+      '신청 상태 표시와 신청 취소를 보는 더미예요.',
+      '축제 한 바퀴 돌고 저녁까지 같이 있어요.'),
     startAt: dayAt(4), place: '노원 어울림마당 앞', area: '노원역 근처',
     startTitle: '축제 구경하고', budget: 'under1', capacity: 5,
   });
@@ -352,8 +378,9 @@ async function seed() {
   // ── H 취소된 모임 (미래) — setMeetupStatus 로 실제 취소해 알림까지 만든다
   const h = await makeMeetup({
     id: ID.H, event: EVENTS.H, host: taeyang,
-    title: '[더미] 공연 보고 수다 떨어요',
-    intro: '취소 화면과 취소 알림을 보는 더미예요.',
+    ...copy('공연 보고 수다 떨어요',
+      '취소 화면과 취소 알림을 보는 더미예요.',
+      '공연 보고 나와서 근처에서 수다 떨어요.'),
     startAt: dayAt(6), place: '종로 가족극장 앞', area: '종각역 근처',
     startTitle: '공연 보고 수다', budget: '1to2', capacity: 4,
   });
@@ -368,8 +395,9 @@ async function seed() {
   //    G(나흘 뒤 · 신청 중)와 짝이다 — 그쪽은 경고가 안 떠야 한다
   const i = await makeMeetup({
     id: ID.I, event: EVENTS.I, host: jinho,
-    title: '[더미] 시 읽고 나와서',
-    intro: '이야기 자리가 곧이라 참여를 취소하면 매너 점수가 깎이는 더미예요.',
+    ...copy('시 읽고 나와서',
+      '이야기 자리가 곧이라 참여를 취소하면 매너 점수가 깎이는 더미예요.',
+      '시 낭독 듣고 나와서 짧게 이야기 나눠요.'),
     startAt: hoursAt(3), place: '시청역 7번 출구', area: '시청역 근처',
     startTitle: '시 읽고 나와서', budget: 'under1', capacity: 4,
   });

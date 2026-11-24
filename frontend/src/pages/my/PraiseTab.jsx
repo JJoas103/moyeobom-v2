@@ -1,70 +1,20 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import MiniPoster from '../../components/common/MiniPoster'
 import { ArrowUpIcon, ArrowDownIcon } from '../../components/common/Icons'
-import { formatMonthDay, formatWeekday } from '../../utils/format'
+import { formatMonthDay } from '../../utils/format'
 import { mannerTone, mannerBandEdges, MANNER_MAX, MANNER_RULES, MANNER_ZERO } from '../../utils/manner'
 
-const DOT_MAX = 8 // 이보다 많으면 점 대신 숫자만
-
 // 매너 점수 탭 — ① 점수 + 0~100 매 ② 규칙(오를 때 · 깎일 때, 안쪽에 '일부러 안 움직이는 것') ③ 변동 이력
-//   받은 평가 목록에 '아쉬웠어요'는 싣지 않는다 — 변동 이력에 이미 남는다
-export default function PraiseTab({ praise, manner }) {
+//   ④ '받은 평가' 모임별 목록이 있었는데 2026-11-18 에 걷어냈다 — 이력 줄이 모임 제목 · 날짜 ·
+//   건수 · 링크를 이미 다 말해서 같은 사실이 두 번 나왔다 (잃은 것은 분모 '3명 중 2명' 하나).
+//   그 목록은 '좋았어요'만 모아서, 아쉬움만 받은 사람에게는 이력의 '아쉬웠다는 평가를 받았어요'
+//   바로 아래 '아직 받은 매너 평가가 없어요' 가 붙는 모순도 있었다.
+export default function PraiseTab({ manner }) {
   return (
     <div className="mypage-panel">
       <MannerSum manner={manner} />
       <MannerRules rules={manner.rules} />
       <MannerLog manner={manner} />
-
-      {praise.meetups.length === 0 ? (
-        <div className="state-box">
-          <strong>아직 받은 매너 평가가 없어요</strong>
-          평가가 마감되면 여기에 모여요.
-        </div>
-      ) : (
-        <>
-          <div className="praise-sum">
-            <span className="praise-sum__big">{praise.total}</span>
-            <div className="praise-sum__text">
-              <strong>매너가 좋았다는 평가</strong>
-              <span>모임 {praise.meetups.length}곳 · 평가를 낸 사람 중</span>
-            </div>
-            <span className="mypage-tags">
-              <span className="mypage-tag">평가 마감된 모임</span>
-              <span className="mypage-tag">평가자 비공개</span>
-            </span>
-          </div>
-
-          <ul className="mypage-list">
-            {praise.meetups.map(({ meetup, praisedCount, ratedCount }) => (
-              <li key={meetup._id}>
-                <Link to={`/meetup/${meetup._id}`} className="mypage-row">
-                  <MiniPoster meetup={meetup} width={48} height={64} />
-                  <span className="mypage-row__main">
-                    <span className="mypage-row__title one-line">{meetup.title}</span>
-                    <span className="mypage-row__sub one-line">
-                      {formatMonthDay(meetup.talk.startAt)} ({formatWeekday(meetup.talk.startAt)})
-                      {meetup.event && ` · ${meetup.event.title}`}
-                    </span>
-                  </span>
-                  <span className="praise-meter">
-                    {ratedCount <= DOT_MAX && (
-                      <span className="praise-meter__dots" aria-hidden="true">
-                        {Array.from({ length: ratedCount }, (_, i) => (
-                          <i key={i} className={i < praisedCount ? 'is-on' : ''} />
-                        ))}
-                      </span>
-                    )}
-                    <b aria-label={`평가를 낸 ${ratedCount}명 중 ${praisedCount}명이 매너가 좋았다고 했어요`}>
-                      {praisedCount}/{ratedCount}명
-                    </b>
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
     </div>
   )
 }
@@ -131,10 +81,12 @@ function MannerRules({ rules }) {
 
       {open && (
         <div className="manner-rules__body">
-          <p className="manner-rules__note">
-            모임을 열면 <b>+5</b>가 붙어요. 평가를 보내야 하고, 함께한 분들 <b>반 이상</b>이 매너를 아쉬워하면 인정되지 않아요.
-          </p>
-
+          {/* 개설 가점(+5) 조건을 한 문장으로 요약하던 안내가 있었는데 2026-11-19 에 뺐다 —
+              '반 이상이 아쉬워하면'이 틀렸다. 실제 판정은 mannerService.forfeitsActivity 로
+              **2명 이상이면서 절반 초과**이고(평가자 2명 중 1명 · 4명 중 2명은 그대로 붙는다),
+              '승인된 참여자 1명 이상'이라는 세 번째 조건은 아예 빠져 있었다.
+              정확히 쓰면 표 위에 올 문장으로는 너무 길다 — 틀린 요약보다 없는 편이 낫다.
+              조건 전문은 CLAUDE.md '매너 점수' 절에 있다 */}
           <RuleList title="오를 때" rows={up} />
           <RuleList title="깎일 때" rows={down} />
 

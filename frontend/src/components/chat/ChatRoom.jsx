@@ -299,8 +299,12 @@ function RoomView({ data, setData, me, onReload, onLeft }) {
             }
             const mine = message.sender === me
             const menu = messageMenu(message)
+            // 안 읽은 수는 **보낸 쪽 · 받은 쪽 둘 다** 붙인다 (2026-11-18) — 단체방에서 남이 보낸
+            // 메시지도 몇 명이 안 읽었는지 보여야 한다. 보낸 사람은 보내는 순간 읽은 시각이
+            // 갱신되므로(chatService.pushMessage) 자기 메시지를 안 읽은 사람으로 세지 않고,
+            // 1:1 방은 others 가 보낸 사람 하나뿐이라 받은 메시지에선 늘 0 이라 안 보인다.
+            const unread = unreadBy(message)
             if (mine) {
-              const unread = unreadBy(message)
               return (
                 <div key={key} className="chat-msg chat-msg--mine">
                   {menu.length > 0 && <MoreMenu label="메시지 메뉴" items={menu} size={28} />}
@@ -323,7 +327,10 @@ function RoomView({ data, setData, me, onReload, onLeft }) {
                   </span>
                   <div className="chat-msg__line">
                     <span className="chat-bubble">{message.text}</span>
-                    <span className="chat-msg__meta">{formatChatTime(message.createdAt)}</span>
+                    <span className="chat-msg__meta">
+                      {unread > 0 && <span className="chat-msg__unread">{unread}</span>}
+                      <span>{formatChatTime(message.createdAt)}</span>
+                    </span>
                     {menu.length > 0 && <MoreMenu label="메시지 메뉴" items={menu} size={28} />}
                   </div>
                 </div>

@@ -309,77 +309,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* 받은 칭찬 */
-.praise-sum {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  padding: 24px 28px;
-  border-radius: var(--radius-lg);
-  background: var(--primary-soft);
-}
-
-.praise-sum__big {
-  font-size: 40px;
-  font-weight: 800;
-  line-height: 1;
-  color: var(--primary);
-  font-variant-numeric: tabular-nums;
-}
-
-.praise-sum .mypage-tags {
-  margin-left: auto;
-}
-
-.praise-sum .mypage-tag {
-  background: var(--surface);
-}
-
-.praise-sum__text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.praise-sum__text strong {
-  font-size: 17px;
-}
-
-.praise-sum__text span {
-  font-size: 14px;
-  color: var(--text-body);
-}
-
-.praise-meter {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-}
-
-.praise-meter__dots {
-  display: flex;
-  gap: 4px;
-}
-
-.praise-meter__dots i {
-  width: 10px;
-  height: 10px;
-  border-radius: var(--radius-pill);
-  background: var(--line);
-}
-
-.praise-meter__dots i.is-on {
-  background: var(--primary);
-}
-
-.praise-meter b {
-  min-width: 52px;
-  text-align: right;
-  font-size: 15px;
-  font-variant-numeric: tabular-nums;
-}
-
 /* 계정 설정 — 왼쪽 프로필 · 오른쪽 계정 (가입 방식과 상관없이 두 칸이 다 참) */
 .mypage-settings {
   display: grid;
@@ -639,18 +568,6 @@
   gap: 20px;
 }
 
-/* 활동 가점 조건 — 줄마다 반복하지 않고 여기 한 번만 */
-.manner-rules__note {
-  padding: 10px 12px;
-  border-radius: 8px;
-  background: var(--bg-muted);
-  font-size: 14px;
-  color: var(--text-body);
-}
-
-.manner-rules__note b {
-  color: var(--text);
-}
 
 /* '이런 건 움직이지 않아요' — 기본은 접힘. 화면을 가볍게 하되 답할 수단은 남긴다 */
 .manner-rules__sub {

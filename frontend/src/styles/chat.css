@@ -479,6 +479,12 @@
   white-space: nowrap;
 }
 
+/* 상대 메시지는 meta 가 버블 오른쪽이라, flex-end 면 안 읽은 수가 버블에서 멀어진다
+   — 내 메시지(meta 가 왼쪽)와 거울이 되게 왼쪽 정렬로 뒤집는다 */
+.chat-msg__line .chat-msg__meta {
+  align-items: flex-start;
+}
+
 .chat-msg__unread {
   color: var(--primary);
   font-weight: 600;
